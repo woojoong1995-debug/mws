@@ -1,0 +1,21 @@
+name: 자동 배포
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 서버에 SSH 접속해서 배포
+        uses: appleboy/ssh-action@master
+        with:
+          host: 223.130.138.146
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /root/mws
+            git pull origin main
+            systemctl restart warehouse
