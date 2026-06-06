@@ -1,0 +1,2242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>C&Tech 재고 관리</title>
+  <!-- Tabler Icons: 아이콘 라이브러리 (인터넷 필요) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    /* ─────────────────────────────────────
+       기본 스타일 초기화
+    ───────────────────────────────────── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* CSS 변수: 색상/크기 한 곳에서 관리 */
+    :root {
+      --r-md : 8px;
+      --r-lg : 12px;
+      --bg   : #f0f2f5;
+      --card : #ffffff;
+      --border    : #e5e7eb;
+      --border2   : #d1d5db;
+      --txt       : #1a1a1a;
+      --txt2      : #6b7280;
+      --blue      : #1a56db;
+      --blue-bg   : #e8f0fe;
+      --green     : #137333;
+      --green-bg  : #e6f4ea;
+      --yellow    : #8a5c00;
+      --yellow-bg : #fff8e1;
+      --yellow-b  : #f6d860;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 앱 컨테이너: 모바일 최적화 */
+    .app {
+      max-width: 430px;
+      width: 100%;
+      padding: 12px;
+      min-height: 100vh;
+    }
+
+    /* 로고 영역 */
+    .app-title {
+      text-align: center;
+      margin-bottom: 12px;
+      pointer-events: none; /* 로고가 버튼 클릭 막지 않게 */
+    }
+    .app-title img {
+      height: 48px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 4px;
+      pointer-events: none;
+    }
+    .app-title span {
+      font-size: 12px;
+      color: var(--txt2);
+    }
+
+    /* ─────────────────────────────────────
+       탭 네비게이션
+    ───────────────────────────────────── */
+    .nav {
+      display: flex;
+      background: var(--card);
+      border-radius: var(--r-lg) var(--r-lg) 0 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+    .nav button {
+      flex: 1;
+      padding: 11px 2px;
+      font-size: 11px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--txt2);
+      cursor: pointer;
+    }
+    .nav button.active {
+      border-bottom: 2px solid var(--txt);
+      color: var(--txt);
+      font-weight: 600;
+    }
+
+    /* ─────────────────────────────────────
+       섹션 표시/숨김
+    ───────────────────────────────────── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ─────────────────────────────────────
+       카드 (흰 박스)
+    ───────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    /* ─────────────────────────────────────
+       폼 요소
+    ───────────────────────────────────── */
+    label {
+      font-size: 13px;
+      color: var(--txt2);
+      display: block;
+      margin-bottom: 5px;
+      margin-top: 12px;
+    }
+    label:first-child { margin-top: 0; }
+
+    select,
+    input[type=text],
+    input[type=number],
+    input[type=date] {
+      width: 100%;
+      padding: 9px 10px;
+      font-size: 14px;
+      border: 1px solid var(--border2);
+      border-radius: var(--r-md);
+      background: #f9fafb;
+      color: var(--txt);
+      -webkit-appearance: none;
+    }
+
+    /* 2칸/3칸 그리드 */
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+
+    /* ─────────────────────────────────────
+       버튼
+    ───────────────────────────────────── */
+    .btn {
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--r-md);
+      cursor: pointer;
+    }
+    .btn-dark  { background: var(--txt); color: #fff; }
+    .btn-light { background: #f3f4f6; color: var(--txt); border: 1px solid var(--border2); }
+    .btn:active { opacity: 0.8; }
+
+    /* ─────────────────────────────────────
+       품목 유형 토글 (일반/원단)
+    ───────────────────────────────────── */
+    .toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .tbtn {
+      padding: 10px;
+      font-size: 13px;
+      border: 1px solid var(--border2);
+      border-radius: var(--r-md);
+      background: #f9fafb;
+      color: var(--txt2);
+      cursor: pointer;
+      text-align: center;
+      font-weight: 500;
+    }
+    .tbtn.on {
+      border: 2px solid var(--txt);
+      color: var(--txt);
+      font-weight: 700;
+      background: #fff;
+    }
+
+    /* 위치 미리보기 */
+    .loc-tip {
+      font-size: 13px;
+      color: var(--blue);
+      background: var(--blue-bg);
+      border-radius: var(--r-md);
+      padding: 6px 10px;
+      margin-top: 7px;
+    }
+
+    /* ─────────────────────────────────────
+       선입선출(FIFO) 박스
+    ───────────────────────────────────── */
+    .fifo-box {
+      background: var(--yellow-bg);
+      border: 1px solid var(--yellow-b);
+      border-radius: var(--r-lg);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .fifo-hd {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--yellow);
+      margin-bottom: 8px;
+    }
+    .fifo-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--yellow-b);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .fifo-row:last-child { border-bottom: none; }
+    .fifo-row:active     { background: rgba(255,200,0,0.2); }
+    .fifo-row.selected   { background: rgba(26,86,219,0.1); border: 1px solid var(--blue); border-radius: var(--r-md); }
+    .fifo-n    { font-size: 22px; font-weight: 700; color: var(--yellow); min-width: 32px; }
+    .fifo-info { flex: 1; padding: 0 8px; }
+    .fifo-name { font-size: 13px; font-weight: 600; color: var(--yellow); }
+    .fifo-sub  { font-size: 12px; color: var(--yellow); opacity: .8; margin-top: 2px; }
+    .fifo-dt   { font-size: 12px; font-weight: 600; color: var(--yellow); white-space: nowrap; }
+
+    /* ─────────────────────────────────────
+       재고 목록
+    ───────────────────────────────────── */
+    .item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .item:last-child { border-bottom: none; }
+    .item-top  { display: flex; justify-content: space-between; gap: 8px; }
+    .item-name { font-size: 14px; font-weight: 600; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-code { font-size: 12px; color: var(--txt2); margin-top: 2px; }
+    .item-right{ text-align: right; flex-shrink: 0; }
+    .item-qty  { font-size: 15px; font-weight: 600; margin-top: 3px; }
+    .item-loc  { font-size: 12px; color: var(--txt2); margin-top: 3px; }
+
+    /* 배지 (D동/천막/환입) */
+    .badge   { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+    .b-d     { background: var(--blue-bg);   color: var(--blue);   }
+    .b-t     { background: var(--green-bg);  color: var(--green);  }
+    .b-r     { background: var(--yellow-bg); color: var(--yellow); }
+    .hj-tag  { font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 600; background: #FAEEDA; color: #633806; margin-left: 5px; }
+
+    /* 카테고리 배지 */
+    .cat-lbl   { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 600; margin-left: 4px; }
+    .cl-카톤   { background: #dbeafe; color: #1e40af; }
+    .cl-원단   { background: var(--green-bg); color: var(--green); }
+    .cl-단상자 { background: #fef9c3; color: #854d0e; }
+    .cl-인박스 { background: #ede9fe; color: #5b21b6; }
+    .cl-기타   { background: #f1f5f9; color: #475569; }
+
+    /* 소진 항목 */
+    .depleted { opacity: .4; text-decoration: line-through; }
+    .depleted-badge { font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 600; background: #fde8e8; color: #9b1c1c; margin-left: 4px; }
+
+    /* ─────────────────────────────────────
+       통계 카드
+    ───────────────────────────────────── */
+    .stats   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .stat    { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px; }
+    .stat-l  { font-size: 12px; color: var(--txt2); }
+    .stat-v  { font-size: 24px; font-weight: 700; color: var(--txt); margin-top: 2px; }
+
+    /* 검색창 */
+    .search-wrap { position: relative; margin-bottom: 12px; }
+    .search-wrap input { padding-left: 36px; }
+    .s-ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--txt2); pointer-events: none; }
+
+    /* 카테고리 필터 버튼 */
+    .cat-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .cat-btn { padding: 6px 12px; font-size: 12px; font-weight: 600; border: 1px solid var(--border2); border-radius: 20px; background: #f9fafb; color: var(--txt2); cursor: pointer; }
+    .cat-btn.on { background: var(--txt); color: #fff; border-color: var(--txt); }
+
+    /* OCR */
+    .ocr-area  { border: 2px dashed var(--border2); border-radius: var(--r-md); padding: 24px; text-align: center; cursor: pointer; }
+    .ocr-fbox  { background: #f9fafb; border-radius: var(--r-lg); padding: 12px; margin-top: 10px; }
+    .ocr-frow  { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .ocr-frow:last-child { border-bottom: none; }
+    .ocr-fl    { font-size: 12px; color: var(--txt2); min-width: 65px; }
+    .ocr-fv    { font-size: 13px; font-weight: 600; text-align: right; word-break: break-all; }
+    .ocr-st    { font-size: 13px; color: var(--txt2); text-align: center; padding: 8px 0; }
+
+    /* 로딩 */
+    .loading { text-align: center; padding: 32px 0; color: var(--txt2); font-size: 14px; }
+
+    /* ─────────────────────────────────────
+       토스트 메시지
+    ───────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--txt);
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: var(--r-md);
+      font-size: 14px;
+      white-space: nowrap;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity .3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+<!-- ══════════════════════════════════════
+  로그인 / 회원가입 화면
+  로그인 전에는 이 화면만 보임
+══════════════════════════════════════ -->
+<div id="auth-screen" style="display:none;min-height:100vh;background:#f0f2f5;display:flex;justify-content:center;align-items:center;padding:20px">
+  <div style="background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
+
+    <!-- 로고 -->
+    <div style="text-align:center;margin-bottom:24px">
+      <img src="/logo.jpg" style="height:52px;object-fit:contain">
+      <p style="font-size:12px;color:#6b7280;margin-top:6px">재고 관리 시스템</p>
+    </div>
+
+    <!-- 탭: 로그인 / 회원가입 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;background:#f3f4f6;border-radius:10px;padding:3px;margin-bottom:20px">
+      <button id="tab-login" onclick="showAuthTab('login')"
+        style="padding:9px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#fff;color:#1a1a1a;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
+        로그인
+      </button>
+      <button id="tab-register" onclick="showAuthTab('register')"
+        style="padding:9px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:transparent;color:#6b7280">
+        회원가입
+      </button>
+    </div>
+
+    <!-- 로그인 폼 -->
+    <div id="login-form">
+      <div style="margin-bottom:14px">
+        <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">아이디</label>
+        <input type="text" id="login-username" placeholder="아이디 입력"
+          style="width:100%;padding:11px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">비밀번호</label>
+        <input type="password" id="login-password" placeholder="비밀번호 입력"
+          style="width:100%;padding:11px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+      </div>
+      <button id="btn-login"
+        style="width:100%;padding:13px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">
+        로그인
+      </button>
+      <div id="login-error" style="display:none;margin-top:10px;padding:10px;background:#fef2f2;border-radius:8px;font-size:13px;color:#dc2626;text-align:center"></div>
+    </div>
+
+    <!-- 회원가입 폼 -->
+    <div id="register-form" style="display:none">
+      <div style="margin-bottom:12px">
+        <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">이름</label>
+        <input type="text" id="reg-name" placeholder="실명 입력"
+          style="width:100%;padding:11px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">아이디</label>
+        <input type="text" id="reg-username" placeholder="영문/숫자 조합"
+          style="width:100%;padding:11px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">비밀번호</label>
+        <input type="password" id="reg-password" placeholder="4자 이상"
+          style="width:100%;padding:11px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+      </div>
+      <button id="btn-register"
+        style="width:100%;padding:13px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">
+        가입 신청
+      </button>
+      <p style="font-size:12px;color:#6b7280;text-align:center;margin-top:10px">운영자 승인 후 로그인 가능합니다</p>
+      <div id="reg-msg" style="display:none;margin-top:10px;padding:10px;border-radius:8px;font-size:13px;text-align:center"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="app" id="main-app" style="display:none">
+
+  <!-- 로고 + 사용자 정보 -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div class="app-title" style="margin-bottom:0;text-align:left">
+      <img src="/logo.jpg" alt="C&Tech" style="height:36px">
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:13px;font-weight:600;color:#1a1a1a" id="header-name"></div>
+      <button id="btn-logout" style="font-size:11px;color:#6b7280;background:none;border:none;cursor:pointer;text-decoration:underline">로그아웃</button>
+    </div>
+  </div>
+
+  <!-- 탭 네비게이션: id로 JS에서 이벤트 등록 -->
+  <div class="nav">
+    <button id="nav-inbound" class="active">입고</button>
+    <button id="nav-dispatch">불출</button>
+    <button id="nav-hwanjip">환입</button>
+    <button id="nav-stock">재고</button>
+    <button id="nav-history">이력</button>
+    <button id="nav-ocr">OCR</button>
+    <button id="nav-admin" style="display:none;color:#dc2626">직원</button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+    [1] 입고 탭
+  ══════════════════════════════════════ -->
+  <div id="sec-inbound" class="section active">
+  <div class="card">
+    <!-- 품목 유형 선택 -->
+    <label>품목 유형</label>
+    <div class="toggle">
+      <div id="in-type-normal" class="tbtn on">일반</div>
+      <div id="in-type-fabric" class="tbtn">원단</div>
+    </div>
+
+    <!-- 창고 선택 -->
+    <label>창고</label>
+    <select id="in-wh">
+      <option value="">선택하세요</option>
+      <option value="D">D동</option>
+      <option value="T">천막동</option>
+    </select>
+
+    <!-- 보관 방식 -->
+    <label>보관 방식</label>
+    <select id="in-st">
+      <option value="rack">렉 보관</option>
+      <option value="floor">바닥 보관</option>
+    </select>
+
+    <!-- 렉 보관: 구역 + 번호 + 층 -->
+    <div id="in-rack-fields">
+      <div class="row3">
+        <div>
+          <label>구역</label>
+          <select id="in-zone">
+            <option value="">-</option>
+            <option>A</option><option>B</option><option>C</option>
+            <option>D</option><option>E</option><option>F</option>
+          </select>
+        </div>
+        <div>
+          <label id="in-rack-label">렉 번호</label>
+          <input type="number" id="in-rn" min="1" max="14" placeholder="번호">
+        </div>
+        <div>
+          <label>층 (1~3)</label>
+          <input type="number" id="in-fl" min="1" max="3" placeholder="1~3">
+        </div>
+      </div>
+    </div>
+
+    <!-- 바닥 보관 -->
+    <div id="in-floor-fields" style="display:none">
+      <label>바닥 위치</label>
+      <input type="text" id="in-floc" placeholder="예: A구역 3번">
+    </div>
+
+    <!-- 위치 미리보기 -->
+    <div id="in-loc-preview" class="loc-tip" style="display:none"></div>
+
+    <!-- 품목 정보 -->
+    <label>카테고리</label>
+    <select id="in-cat">
+      <option value="">자동 감지</option>
+      <option value="카톤">카톤</option>
+      <option value="원단">원단</option>
+      <option value="단상자">단상자</option>
+      <option value="인박스">인박스</option>
+      <option value="기타">기타</option>
+    </select>
+
+    <label>품목명</label>
+    <input type="text" id="in-name" placeholder="품목명">
+
+    <label>품번</label>
+    <input type="text" id="in-code" placeholder="예: G21E000270">
+
+    <label>Lot No.</label>
+    <input type="text" id="in-lot" placeholder="예: GE141D">
+
+    <!-- 일반: 수량 + PO번호 -->
+    <div id="in-qty-normal">
+      <label>수량</label>
+      <input type="number" id="in-qty" min="0" placeholder="0">
+      <label>PO 번호</label>
+      <input type="text" id="in-po" placeholder="PO-2024">
+    </div>
+
+    <!-- 원단: 롤수 + 무게 + 루트번호 -->
+    <div id="in-qty-fabric" style="display:none">
+      <div class="row2">
+        <div><label>롤 수</label><input type="number" id="in-rolls" min="0" step="0.1" placeholder="0.0"></div>
+        <div><label>무게 (kg)</label><input type="number" id="in-weight" min="0" step="0.1" placeholder="0.0"></div>
+      </div>
+      <label>루트 번호</label>
+      <input type="text" id="in-route" placeholder="R-01">
+    </div>
+
+    <label>입고일</label>
+    <input type="date" id="in-date">
+
+    <label>비고</label>
+    <input type="text" id="in-note" placeholder="선택 입력">
+
+    <button id="btn-submit-in" class="btn btn-dark">입고 등록</button>
+  </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+    [2] 불출 탭
+    단계: 품번 입력 → 품목 선택 → 항목 선택 → 수량 입력 → 확정
+  ══════════════════════════════════════ -->
+  <div id="sec-dispatch" class="section">
+
+    <!-- 1단계: 품번 끝자리 입력 -->
+    <div class="card" id="dp-step1">
+      <label style="margin-top:0;font-size:14px;font-weight:600;color:var(--txt)">품번 끝자리 입력</label>
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:10px">예: 0017 입력하면 해당 품목 목록이 나와요</p>
+      <input type="text" id="dp-suffix" placeholder="끝자리 입력 (예: 0017)" maxlength="8">
+    </div>
+
+    <!-- 2단계: 품목 선택 (같은 끝자리 여러 개일 때) -->
+    <div id="dp-step2" style="display:none">
+      <div class="card">
+        <p style="font-size:13px;font-weight:600;margin-bottom:10px">해당 품목을 선택하세요</p>
+        <div id="dp-item-list"></div>
+      </div>
+    </div>
+
+    <!-- 3단계: FIFO 순서 확인 + 수량 입력 + 확정 -->
+    <div id="dp-step3" style="display:none">
+      <!-- 선택된 품목 표시 -->
+      <div id="dp-selected-card" class="card" style="background:var(--blue-bg);border-color:var(--blue)">
+        <div id="dp-selected-info"></div>
+      </div>
+
+      <!-- FIFO 목록 (클릭해서 선택) -->
+      <div id="dp-fifo-wrap"></div>
+
+      <!-- 수량 입력 -->
+      <div class="card">
+        <label style="margin-top:0">품목 유형</label>
+        <div class="toggle">
+          <div id="dp-type-normal" class="tbtn on">일반</div>
+          <div id="dp-type-fabric" class="tbtn">원단</div>
+        </div>
+
+        <div id="dp-qty-normal">
+          <label>불출 수량</label>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="dp-qty" min="0" placeholder="0" style="flex:1">
+            <button id="btn-max" style="padding:9px 14px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:var(--r-md);cursor:pointer;white-space:nowrap">MAX</button>
+          </div>
+        </div>
+
+        <div id="dp-qty-fabric" style="display:none">
+          <div class="row2">
+            <div><label>롤 수</label><input type="number" id="dp-rolls" min="0" step="0.1" placeholder="0.0"></div>
+            <div><label>무게 (kg)</label><input type="number" id="dp-weight" min="0" step="0.1" placeholder="0.0"></div>
+          </div>
+          <button id="btn-max-fabric" style="width:100%;margin-top:8px;padding:9px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:var(--r-md);cursor:pointer">MAX (전량)</button>
+        </div>
+
+        <label>담당자</label>
+        <input type="text" id="dp-person" placeholder="이름 입력 (필수)">
+
+        <label>불출 날짜</label>
+        <input type="date" id="dp-date">
+
+        <label>비고</label>
+        <input type="text" id="dp-note" placeholder="선택 입력">
+
+        <button id="btn-submit-dp" class="btn btn-dark">불출 확정</button>
+        <button id="btn-reset-dp" class="btn btn-light">다시 선택</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════
+    [3] 환입 탭 (입고와 동일한 순서)
+  ══════════════════════════════════════ -->
+  <div id="sec-hwanjip" class="section">
+  <div class="card">
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:12px">생산 라인에서 사용 후 남은 원자재를 창고로 돌려보낼 때</p>
+
+    <label>품목 유형</label>
+    <div class="toggle">
+      <div id="hj-type-normal" class="tbtn on">일반</div>
+      <div id="hj-type-fabric" class="tbtn">원단</div>
+    </div>
+
+    <label>창고</label>
+    <select id="hj-wh">
+      <option value="">선택하세요</option>
+      <option value="D">D동</option>
+      <option value="T">천막동</option>
+    </select>
+
+    <label>보관 방식</label>
+    <select id="hj-st">
+      <option value="rack">렉 보관</option>
+      <option value="floor">바닥 보관</option>
+    </select>
+
+    <div id="hj-rack-fields">
+      <div class="row3">
+        <div>
+          <label>구역</label>
+          <select id="hj-zone">
+            <option value="">-</option>
+            <option>A</option><option>B</option><option>C</option>
+            <option>D</option><option>E</option><option>F</option>
+          </select>
+        </div>
+        <div>
+          <label id="hj-rack-label">렉 번호</label>
+          <input type="number" id="hj-rn" min="1" max="14" placeholder="번호">
+        </div>
+        <div>
+          <label>층 (1~3)</label>
+          <input type="number" id="hj-fl" min="1" max="3" placeholder="1~3">
+        </div>
+      </div>
+    </div>
+
+    <div id="hj-floor-fields" style="display:none">
+      <label>바닥 위치</label>
+      <input type="text" id="hj-floc" placeholder="예: A구역 3번">
+    </div>
+
+    <div id="hj-loc-preview" class="loc-tip" style="display:none"></div>
+
+    <label>카테고리</label>
+    <select id="hj-cat">
+      <option value="">자동 감지</option>
+      <option value="카톤">카톤</option>
+      <option value="원단">원단</option>
+      <option value="단상자">단상자</option>
+      <option value="인박스">인박스</option>
+      <option value="기타">기타</option>
+    </select>
+
+    <label>품목명</label>
+    <input type="text" id="hj-name" placeholder="품목명">
+
+    <label>품번</label>
+    <input type="text" id="hj-code" placeholder="예: A11W000064">
+
+    <label>Lot No.</label>
+    <input type="text" id="hj-lot" placeholder="예: GE141D">
+
+    <div id="hj-qty-normal">
+      <label>수량</label>
+      <input type="number" id="hj-qty" min="0" placeholder="0">
+      <label>PO 번호</label>
+      <input type="text" id="hj-po" placeholder="PO-2024">
+    </div>
+
+    <div id="hj-qty-fabric" style="display:none">
+      <div class="row2">
+        <div><label>롤 수</label><input type="number" id="hj-rolls" min="0" step="0.1" placeholder="예: 2.5"></div>
+        <div><label>무게 (kg)</label><input type="number" id="hj-weight" min="0" step="0.1" placeholder="0.0"></div>
+      </div>
+      <label>루트 번호</label>
+      <input type="text" id="hj-route" placeholder="R-01">
+    </div>
+
+    <label>환입 날짜</label>
+    <input type="date" id="hj-date">
+
+    <label>비고</label>
+    <input type="text" id="hj-note" placeholder="선택 입력">
+
+    <button id="btn-submit-hj" class="btn btn-dark">환입 등록</button>
+  </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+    [4] 재고 탭
+  ══════════════════════════════════════ -->
+  <div id="sec-stock" class="section">
+    <div class="stats">
+      <div class="stat"><div class="stat-l">전체 입고</div><div class="stat-v" id="st-total">0</div></div>
+      <div class="stat"><div class="stat-l">오늘 입고</div><div class="stat-v" id="st-today">0</div></div>
+    </div>
+    <div class="cat-filter">
+      <button class="cat-btn on" data-cat="">전체</button>
+      <button class="cat-btn" data-cat="카톤">카톤</button>
+      <button class="cat-btn" data-cat="원단">원단</button>
+      <button class="cat-btn" data-cat="단상자">단상자</button>
+      <button class="cat-btn" data-cat="인박스">인박스</button>
+      <button class="cat-btn" data-cat="기타">기타</button>
+    </div>
+    <div class="search-wrap">
+      <i class="ti ti-search s-ico"></i>
+      <input type="text" id="st-q" placeholder="품목명, 품번, 위치 검색">
+    </div>
+    <div class="card" style="padding:6px 14px">
+      <div id="stock-list"><div class="loading">재고 탭을 눌러 불러오세요</div></div>
+    </div>
+    <button id="btn-export" class="btn btn-light" style="margin-top:0">엑셀(CSV) 내보내기</button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+    [5] 이력 탭
+  ══════════════════════════════════════ -->
+  <div id="sec-history" class="section">
+    <div class="stats">
+      <div class="stat"><div class="stat-l">전체 불출</div><div class="stat-v" id="hs-total">0</div></div>
+      <div class="stat"><div class="stat-l">기간 내 불출</div><div class="stat-v" id="hs-filtered">0</div></div>
+    </div>
+
+    <!-- 날짜 필터 -->
+    <div class="card" style="padding:12px 16px;margin-bottom:10px">
+      <p style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:10px">기간 검색</p>
+      <div class="row2">
+        <div>
+          <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">시작일</label>
+          <input type="date" id="hs-from" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:#f9fafb">
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">종료일</label>
+          <input type="date" id="hs-to" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid #d1d5db;border-radius:var(--r-md);background:#f9fafb">
+        </div>
+      </div>
+      <!-- 빠른 선택 버튼 -->
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <button class="hs-quick" data-days="7"  style="padding:5px 10px;font-size:12px;border:1px solid var(--border2);border-radius:20px;background:#f9fafb;cursor:pointer">1주일</button>
+        <button class="hs-quick" data-days="30" style="padding:5px 10px;font-size:12px;border:1px solid var(--border2);border-radius:20px;background:#f9fafb;cursor:pointer">1개월</button>
+        <button class="hs-quick" data-days="90" style="padding:5px 10px;font-size:12px;border:1px solid var(--border2);border-radius:20px;background:#f9fafb;cursor:pointer">3개월</button>
+        <button class="hs-quick" data-days="0"  style="padding:5px 10px;font-size:12px;border:1px solid var(--border2);border-radius:20px;background:#f9fafb;cursor:pointer">전체</button>
+      </div>
+    </div>
+
+    <div class="card" style="padding:6px 14px">
+      <div id="history-list"><div class="loading">이력 탭을 눌러 불러오세요</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+    [6] OCR 탭
+  ══════════════════════════════════════ -->
+  <div id="sec-ocr" class="section">
+  <div class="card">
+    <p style="font-size:14px;color:var(--txt2);margin-bottom:12px">
+      식별표를 찍으면 항목을 자동으로 읽어서 입고/환입 화면에 채워줘요<br>
+      <span style="font-size:12px;color:#9b1c1c">(Anthropic API 키 필요)</span>
+    </p>
+    <input type="file" id="ocr-file" accept="image/*" capture="environment" style="display:none">
+    <div id="ocr-area" class="ocr-area">
+      <i class="ti ti-camera" style="font-size:36px;color:var(--txt2)"></i>
+      <p style="font-size:14px;color:var(--txt2);margin-top:8px">탭하여 사진 촬영 / 갤러리 선택</p>
+    </div>
+    <div id="ocr-preview" style="display:none;margin-top:10px">
+      <img id="ocr-img" style="width:100%;border-radius:var(--r-md);max-height:200px;object-fit:contain">
+    </div>
+    <div id="ocr-status" class="ocr-st"></div>
+    <div id="ocr-result" style="display:none">
+      <p style="font-size:13px;font-weight:600;margin-bottom:8px">추출된 항목</p>
+      <div class="ocr-fbox" id="ocr-fc"></div>
+      <button id="btn-ocr-in" class="btn btn-dark" style="margin-top:12px">입고 화면에 자동 입력</button>
+      <button id="btn-ocr-hj" class="btn btn-light">환입 화면에 자동 입력</button>
+    </div>
+  </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+    [7] 직원 관리 탭 (운영자 전용)
+  ══════════════════════════════════════ -->
+  <div id="sec-admin" class="section">
+    <div class="stats">
+      <div class="stat"><div class="stat-l">전체 직원</div><div class="stat-v" id="admin-total">0</div></div>
+      <div class="stat"><div class="stat-l">승인 대기</div><div class="stat-v" id="admin-pending" style="color:#dc2626">0</div></div>
+    </div>
+    <div class="card" style="padding:6px 14px">
+      <div id="admin-list"><div class="loading">불러오는 중...</div></div>
+    </div>
+  </div>
+
+</div><!-- /.app -->
+</div><!-- /#main-app -->
+
+<!-- 수정 모달 -->
+<div id="edit-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:flex-end">
+  <div style="background:#fff;border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="font-size:16px;font-weight:600" id="edit-title">항목 수정</h3>
+      <button id="edit-close" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280">✕</button>
+    </div>
+
+    <div id="edit-name-row">
+      <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">품목명</label>
+      <input type="text" id="edit-name" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+    </div>
+
+    <div style="margin-top:12px">
+      <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">품번</label>
+      <input type="text" id="edit-code" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+    </div>
+
+    <!-- 일반 수량 -->
+    <div id="edit-qty-normal" style="margin-top:12px">
+      <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">수량</label>
+      <input type="number" id="edit-qty" min="0" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+    </div>
+
+    <!-- 원단 수량 -->
+    <div id="edit-qty-fabric" style="display:none;margin-top:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">롤 수</label>
+          <input type="number" id="edit-rolls" min="0" step="0.1" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+        </div>
+        <div>
+          <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">무게 (kg)</label>
+          <input type="number" id="edit-weight" min="0" step="0.1" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+        </div>
+      </div>
+    </div>
+
+    <!-- 위치 (창고 이동) -->
+    <div style="margin-top:12px">
+      <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">창고</label>
+      <select id="edit-wh" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+        <option value="D">D동</option>
+        <option value="T">천막동</option>
+      </select>
+    </div>
+
+    <div style="margin-top:12px">
+      <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">보관 방식</label>
+      <select id="edit-st" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+        <option value="rack">렉 보관</option>
+        <option value="floor">바닥 보관</option>
+      </select>
+    </div>
+
+    <div id="edit-rack-fields" style="margin-top:8px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+        <div>
+          <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">구역</label>
+          <select id="edit-zone" style="width:100%;padding:9px 6px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+            <option value="">-</option>
+            <option>A</option><option>B</option><option>C</option>
+            <option>D</option><option>E</option><option>F</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px" id="edit-rack-label">렉 번호</label>
+          <input type="number" id="edit-rn" min="1" max="14" placeholder="번호" style="width:100%;padding:9px 6px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+        </div>
+        <div>
+          <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">층</label>
+          <input type="number" id="edit-fl" min="1" max="3" placeholder="1~3" style="width:100%;padding:9px 6px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+        </div>
+      </div>
+    </div>
+
+    <div id="edit-floor-fields" style="display:none;margin-top:8px">
+      <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">바닥 위치</label>
+      <input type="text" id="edit-floc" placeholder="예: A구역 3번" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+    </div>
+
+    <div style="margin-top:12px">
+      <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">입고일</label>
+      <input type="date" id="edit-date" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+    </div>
+
+    <div style="margin-top:12px">
+      <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">비고</label>
+      <input type="text" id="edit-note" placeholder="선택 입력" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+    </div>
+
+    <button id="btn-edit-save" style="width:100%;margin-top:16px;padding:12px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">수정 완료</button>
+    <button id="btn-edit-delete" style="width:100%;margin-top:8px;padding:10px;font-size:14px;font-weight:600;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;cursor:pointer">이 항목 삭제</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- ══════════════════════════════════════════════
+  JavaScript
+  HTML이 완전히 로드된 후 실행되어 onclick 오류 방지
+  모든 이벤트는 addEventListener로 등록
+══════════════════════════════════════════════ -->
+<script>
+// ─────────────────────────────────────────────
+// 서버 API 주소
+// ─────────────────────────────────────────────
+const API = window.location.origin + '/api';
+
+// 현재 로그인한 사용자 정보
+var currentUser = null;
+
+
+// ═══════════════════════════════════════════
+// 페이지 로드 시 로그인 상태 확인
+// ═══════════════════════════════════════════
+async function checkLoginStatus() {
+  try {
+    var res  = await fetch(API + '/auth/me', { credentials: 'include' });
+    var json = await res.json();
+
+    if (json.success) {
+      // 로그인 된 상태 → 앱 화면 표시
+      currentUser = json.user;
+      showMainApp();
+    } else {
+      // 로그인 안 된 상태 → 로그인 화면 표시
+      showAuthScreen();
+    }
+  } catch(e) {
+    showAuthScreen();
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 로그인 화면 표시
+// ═══════════════════════════════════════════
+function showAuthScreen() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('main-app')   .style.display = 'none';
+}
+
+
+// ═══════════════════════════════════════════
+// 메인 앱 화면 표시
+// ═══════════════════════════════════════════
+function showMainApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('main-app')   .style.display = 'block';
+
+  // 헤더에 이름 표시
+  document.getElementById('header-name').textContent = currentUser.name + ' 님';
+
+  // 운영자면 직원 관리 탭 표시
+  var adminTab = document.getElementById('nav-admin');
+  if (currentUser.role === 'admin') {
+    adminTab.style.display = 'block';
+  } else {
+    adminTab.style.display = 'none';
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 로그인/회원가입 탭 전환
+// ═══════════════════════════════════════════
+function showAuthTab(tab) {
+  var isLogin = tab === 'login';
+  document.getElementById('login-form')   .style.display = isLogin ? 'block' : 'none';
+  document.getElementById('register-form').style.display = isLogin ? 'none'  : 'block';
+  document.getElementById('tab-login')   .style.background    = isLogin ? '#fff'        : 'transparent';
+  document.getElementById('tab-login')   .style.color         = isLogin ? '#1a1a1a'     : '#6b7280';
+  document.getElementById('tab-login')   .style.boxShadow     = isLogin ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
+  document.getElementById('tab-register').style.background    = isLogin ? 'transparent' : '#fff';
+  document.getElementById('tab-register').style.color         = isLogin ? '#6b7280'     : '#1a1a1a';
+  document.getElementById('tab-register').style.boxShadow     = isLogin ? 'none'        : '0 1px 3px rgba(0,0,0,0.1)';
+}
+
+
+// ═══════════════════════════════════════════
+// 로그인 처리
+// ═══════════════════════════════════════════
+async function doLogin() {
+  var username = document.getElementById('login-username').value.trim();
+  var password = document.getElementById('login-password').value.trim();
+  var errDiv   = document.getElementById('login-error');
+
+  if (!username || !password) {
+    errDiv.style.display = 'block';
+    errDiv.textContent   = '아이디와 비밀번호를 입력하세요';
+    return;
+  }
+
+  try {
+    var res  = await fetch(API + '/auth/login', {
+      method     : 'POST',
+      headers    : { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body       : JSON.stringify({ username, password })
+    });
+    var json = await res.json();
+
+    if (json.success) {
+      currentUser = json.user;
+      errDiv.style.display = 'none';
+      showMainApp();
+    } else {
+      errDiv.style.display = 'block';
+      errDiv.textContent   = json.message;
+    }
+  } catch(e) {
+    errDiv.style.display = 'block';
+    errDiv.textContent   = '서버에 연결할 수 없습니다';
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 회원가입 처리
+// ═══════════════════════════════════════════
+async function doRegister() {
+  var name     = document.getElementById('reg-name')    .value.trim();
+  var username = document.getElementById('reg-username').value.trim();
+  var password = document.getElementById('reg-password').value.trim();
+  var msgDiv   = document.getElementById('reg-msg');
+
+  if (!name || !username || !password) {
+    msgDiv.style.display    = 'block';
+    msgDiv.style.background = '#fef2f2';
+    msgDiv.style.color      = '#dc2626';
+    msgDiv.textContent      = '모든 항목을 입력하세요';
+    return;
+  }
+
+  try {
+    var res  = await fetch(API + '/auth/register', {
+      method     : 'POST',
+      headers    : { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body       : JSON.stringify({ name, username, password })
+    });
+    var json = await res.json();
+
+    msgDiv.style.display = 'block';
+    if (json.success) {
+      msgDiv.style.background = '#f0fdf4';
+      msgDiv.style.color      = '#166534';
+      msgDiv.textContent      = json.message;
+      // 입력 초기화
+      ['reg-name','reg-username','reg-password'].forEach(function(id){
+        document.getElementById(id).value = '';
+      });
+    } else {
+      msgDiv.style.background = '#fef2f2';
+      msgDiv.style.color      = '#dc2626';
+      msgDiv.textContent      = json.message;
+    }
+  } catch(e) {
+    msgDiv.style.display    = 'block';
+    msgDiv.style.background = '#fef2f2';
+    msgDiv.style.color      = '#dc2626';
+    msgDiv.textContent      = '서버에 연결할 수 없습니다';
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 로그아웃
+// ═══════════════════════════════════════════
+async function doLogout() {
+  try {
+    await fetch(API + '/auth/logout', { method: 'POST', credentials: 'include' });
+  } catch(e) {}
+  currentUser = null;
+  showAuthScreen();
+}
+
+
+// ═══════════════════════════════════════════
+// 직원 관리 목록 로드 (운영자 전용)
+// ═══════════════════════════════════════════
+async function loadUsers() {
+  var list = document.getElementById('admin-list');
+  list.innerHTML = '<div class="loading">불러오는 중...</div>';
+
+  try {
+    var res  = await fetch(API + '/users', { credentials: 'include' });
+    var json = await res.json();
+    var users = json.data || [];
+
+    var total   = users.filter(function(u){ return u.status !== 'pending'; }).length;
+    var pending = users.filter(function(u){ return u.status === 'pending'; }).length;
+    document.getElementById('admin-total')  .textContent = total;
+    document.getElementById('admin-pending').textContent = pending;
+
+    if (!users.length) {
+      list.innerHTML = '<p style="text-align:center;color:#6b7280;padding:24px 0">직원 없음</p>';
+      return;
+    }
+
+    // 상태별 정렬: 승인대기 → 활성 → 비활성
+    var statusOrder = { pending: 0, active: 1, inactive: 2 };
+    users.sort(function(a, b){ return (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0); });
+
+    list.innerHTML = users.map(function(u) {
+      // 상태 배지
+      var statusMap = {
+        pending  : { label: '승인 대기', bg: '#fef9c3', color: '#854d0e' },
+        active   : { label: '활성',     bg: '#f0fdf4', color: '#166534' },
+        inactive : { label: '비활성',   bg: '#fef2f2', color: '#991b1b' },
+      };
+      var st = statusMap[u.status] || statusMap.active;
+
+      // 역할 배지
+      var roleBadge = u.role === 'admin'
+        ? '<span style="font-size:11px;padding:2px 7px;border-radius:6px;background:#ede9fe;color:#5b21b6;font-weight:600;margin-left:4px">운영자</span>'
+        : '';
+
+      // 버튼 구성
+      var btns = '';
+      if (u.status === 'pending') {
+        btns = '<button class="user-action" data-id="' + u.id + '" data-action="approve" style="font-size:11px;padding:3px 8px;border:1px solid #86efac;border-radius:6px;background:#f0fdf4;color:#166534;cursor:pointer;margin-right:4px">승인</button>' +
+               '<button class="user-action" data-id="' + u.id + '" data-action="reject"  style="font-size:11px;padding:3px 8px;border:1px solid #fca5a5;border-radius:6px;background:#fef2f2;color:#dc2626;cursor:pointer">거절</button>';
+      } else if (u.status === 'active' && u.role !== 'admin') {
+        btns = '<button class="user-action" data-id="' + u.id + '" data-action="deactivate" style="font-size:11px;padding:3px 8px;border:1px solid #fca5a5;border-radius:6px;background:#fef2f2;color:#dc2626;cursor:pointer">강제탈퇴</button>';
+      } else if (u.status === 'inactive') {
+        btns = '<button class="user-action" data-id="' + u.id + '" data-action="activate" style="font-size:11px;padding:3px 8px;border:1px solid #86efac;border-radius:6px;background:#f0fdf4;color:#166534;cursor:pointer">복구</button>';
+      }
+
+      return '<div class="item">' +
+        '<div class="item-top">' +
+          '<div>' +
+            '<div class="item-name">' + u.name + roleBadge + '</div>' +
+            '<div class="item-code">@' + u.username + ' · ' + u.created + '</div>' +
+          '</div>' +
+          '<div class="item-right">' +
+            '<span style="font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600;background:' + st.bg + ';color:' + st.color + '">' + st.label + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="margin-top:8px">' + btns + '</div>' +
+        '</div>';
+    }).join('');
+
+    // 버튼 이벤트 등록
+    document.querySelectorAll('.user-action').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id     = parseInt(this.dataset.id);
+        var action = this.dataset.action;
+        handleUserAction(id, action);
+      });
+    });
+
+  } catch(e) {
+    list.innerHTML = '<p style="text-align:center;color:#9b1c1c;padding:24px 0">서버 연결 오류</p>';
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 직원 관리 액션 처리
+// ═══════════════════════════════════════════
+async function handleUserAction(id, action) {
+  var confirmMsg = {
+    approve    : '승인하시겠습니까?',
+    reject     : '가입을 거절하시겠습니까?',
+    deactivate : '강제 탈퇴시키겠습니까?',
+    activate   : '계정을 복구하시겠습니까?',
+  };
+  if (!confirm(confirmMsg[action] || '진행하시겠습니까?')) return;
+
+  try {
+    var res  = await fetch(API + '/users/' + id + '/' + action, {
+      method     : 'POST',
+      credentials: 'include'
+    });
+    var json = await res.json();
+    showToast(json.success ? '✓ ' + json.message : '오류: ' + json.message);
+    if (json.success) loadUsers();
+  } catch(e) {
+    showToast('서버 연결 오류');
+  }
+}
+
+// 오늘 날짜
+const TODAY = new Date().toISOString().slice(0, 10);
+
+// 현재 선택된 상태값
+let inType  = 'normal';  // 입고 품목 유형
+let dpType  = 'normal';  // 불출 품목 유형
+let hjType  = 'normal';  // 환입 품목 유형
+let currentCat = '';     // 재고 탭 카테고리 필터
+let selectedDpItem  = null;  // 불출: 선택된 품목
+let selectedFifoItem = null; // 불출: 선택된 FIFO 항목
+let ocrData = {};        // OCR 추출 결과
+
+
+// ═══════════════════════════════════════════
+// 페이지 로드 완료 후 모든 이벤트 등록
+// DOMContentLoaded: HTML이 완전히 파싱된 후 실행
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function () {
+
+  // 로그인 상태 확인
+  checkLoginStatus();
+
+  // 로그인 폼 이벤트
+  document.getElementById('btn-login').addEventListener('click', doLogin);
+  document.getElementById('btn-register').addEventListener('click', doRegister);
+  document.getElementById('btn-logout').addEventListener('click', doLogout);
+
+  // 엔터키로 로그인
+  document.getElementById('login-password').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('login-username').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') doLogin();
+  });
+
+  // 날짜 기본값 = 오늘
+  ['in-date', 'dp-date', 'hj-date'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = TODAY;
+  });
+
+  // 서버에 소진 항목 정리 요청
+  fetch(API + '/cleanup', { method: 'POST', credentials: 'include' }).catch(function(){});
+
+  // ─────────────────────────────────────
+  // 탭 네비게이션 이벤트
+  // ─────────────────────────────────────
+  document.getElementById('nav-inbound') .addEventListener('click', function(){ switchTab('inbound',  this); });
+  document.getElementById('nav-dispatch').addEventListener('click', function(){ switchTab('dispatch', this); });
+  document.getElementById('nav-hwanjip') .addEventListener('click', function(){ switchTab('hwanjip',  this); });
+  document.getElementById('nav-stock')   .addEventListener('click', function(){ switchTab('stock',    this); });
+  document.getElementById('nav-history') .addEventListener('click', function(){ switchTab('history',  this); });
+  document.getElementById('nav-ocr')     .addEventListener('click', function(){ switchTab('ocr',      this); });
+  document.getElementById('nav-admin')   .addEventListener('click', function(){ switchTab('admin',    this); });
+
+  // ─────────────────────────────────────
+  // 입고: 품목 유형 토글
+  // ─────────────────────────────────────
+  document.getElementById('in-type-normal').addEventListener('click', function(){ setType('in', 'normal'); });
+  document.getElementById('in-type-fabric').addEventListener('click', function(){ setType('in', 'fabric'); });
+
+  // ─────────────────────────────────────
+  // 입고: 창고/보관방식 변경 시 위치 필드 업데이트
+  // ─────────────────────────────────────
+  document.getElementById('in-wh')  .addEventListener('change', function(){ updateWh('in'); });
+  document.getElementById('in-st')  .addEventListener('change', function(){ updateStorage('in'); });
+  document.getElementById('in-zone').addEventListener('change', function(){ updateLocPreview('in'); });
+  document.getElementById('in-rn')  .addEventListener('input',  function(){ updateLocPreview('in'); });
+  document.getElementById('in-fl')  .addEventListener('input',  function(){ updateLocPreview('in'); });
+  document.getElementById('in-floc').addEventListener('input',  function(){ updateLocPreview('in'); });
+
+  // ─────────────────────────────────────
+  // 입고: 품목명 입력 시 카테고리 자동 감지
+  // ─────────────────────────────────────
+  document.getElementById('in-name').addEventListener('input', function(){ autoCat('in'); });
+
+  // 입고 등록 버튼
+  document.getElementById('btn-submit-in').addEventListener('click', submitInbound);
+
+  // ─────────────────────────────────────
+  // 불출: 품번 입력 시 품목 검색
+  // ─────────────────────────────────────
+  document.getElementById('dp-suffix').addEventListener('input', searchBySuffix);
+
+  // 불출: 품목 유형 토글
+  document.getElementById('dp-type-normal').addEventListener('click', function(){ setType('dp', 'normal'); });
+  document.getElementById('dp-type-fabric').addEventListener('click', function(){ setType('dp', 'fabric'); });
+
+  // 불출: MAX 버튼
+  document.getElementById('btn-max')       .addEventListener('click', setMaxQty);
+  document.getElementById('btn-max-fabric').addEventListener('click', setMaxQty);
+
+  // 불출 확정 / 다시 선택
+  document.getElementById('btn-submit-dp').addEventListener('click', submitDispatch);
+  document.getElementById('btn-reset-dp') .addEventListener('click', resetDispatch);
+
+  // ─────────────────────────────────────
+  // 환입: 이벤트
+  // ─────────────────────────────────────
+  document.getElementById('hj-type-normal').addEventListener('click', function(){ setType('hj', 'normal'); });
+  document.getElementById('hj-type-fabric').addEventListener('click', function(){ setType('hj', 'fabric'); });
+  document.getElementById('hj-wh')  .addEventListener('change', function(){ updateWh('hj'); });
+  document.getElementById('hj-st')  .addEventListener('change', function(){ updateStorage('hj'); });
+  document.getElementById('hj-zone').addEventListener('change', function(){ updateLocPreview('hj'); });
+  document.getElementById('hj-rn')  .addEventListener('input',  function(){ updateLocPreview('hj'); });
+  document.getElementById('hj-fl')  .addEventListener('input',  function(){ updateLocPreview('hj'); });
+  document.getElementById('hj-floc').addEventListener('input',  function(){ updateLocPreview('hj'); });
+  document.getElementById('hj-name').addEventListener('input',  function(){ autoCat('hj'); });
+  document.getElementById('btn-submit-hj').addEventListener('click', submitReturn);
+
+  // ─────────────────────────────────────
+  // 재고: 검색 + 카테고리 필터
+  // ─────────────────────────────────────
+  document.getElementById('st-q').addEventListener('input', loadStock);
+  document.querySelectorAll('.cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      currentCat = this.dataset.cat;
+      document.querySelectorAll('.cat-btn').forEach(function(b){ b.classList.remove('on'); });
+      this.classList.add('on');
+      loadStock();
+    });
+  });
+
+  // 이력 날짜 필터 이벤트
+  document.getElementById('hs-from').addEventListener('change', loadHistory);
+  document.getElementById('hs-to')  .addEventListener('change', loadHistory);
+
+  // 빠른 날짜 선택 버튼 (1주일/1개월/3개월/전체)
+  document.querySelectorAll('.hs-quick').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var days = parseInt(this.dataset.days);
+      var today = new Date();
+      var toStr = today.toISOString().slice(0, 10);
+
+      if (days === 0) {
+        // 전체: 필터 초기화
+        document.getElementById('hs-from').value = '';
+        document.getElementById('hs-to').value   = '';
+      } else {
+        var from = new Date(today);
+        from.setDate(from.getDate() - days);
+        document.getElementById('hs-from').value = from.toISOString().slice(0, 10);
+        document.getElementById('hs-to').value   = toStr;
+      }
+
+      // 버튼 활성화 표시
+      document.querySelectorAll('.hs-quick').forEach(function(b){
+        b.style.background = '#f9fafb';
+        b.style.borderColor = 'var(--border2)';
+        b.style.color = 'var(--txt2)';
+      });
+      this.style.background   = 'var(--txt)';
+      this.style.borderColor  = 'var(--txt)';
+      this.style.color        = '#fff';
+
+      loadHistory();
+    });
+  });
+
+  // CSV 내보내기
+  document.getElementById('btn-export').addEventListener('click', function(){
+    window.open(API + '/export', '_blank');
+  });
+
+  // ─────────────────────────────────────
+  // OCR: 사진 촬영/선택
+  // ─────────────────────────────────────
+  document.getElementById('ocr-area').addEventListener('click', function(){
+    document.getElementById('ocr-file').click();
+  });
+  document.getElementById('ocr-file').addEventListener('change', doOCR);
+  document.getElementById('btn-ocr-in').addEventListener('click', applyOcrToInbound);
+  document.getElementById('btn-ocr-hj').addEventListener('click', applyOcrToReturn);
+
+  // 수정 모달 이벤트
+  document.getElementById('edit-close')    .addEventListener('click', function(){ document.getElementById('edit-modal').style.display = 'none'; });
+  document.getElementById('btn-edit-save') .addEventListener('click', saveEdit);
+  document.getElementById('btn-edit-delete').addEventListener('click', async function(){
+    if (!editingId) return;
+    if (!confirm('이 항목을 삭제할까요?')) return;
+    try {
+      var res  = await fetch(API + '/record/' + editingId, { method: 'DELETE', credentials: 'include' });
+      var json = await res.json();
+      if (json.success) {
+        showToast('✓ 삭제 완료!');
+        document.getElementById('edit-modal').style.display = 'none';
+        loadStock();
+      }
+    } catch(e) { showToast('서버 연결 오류'); }
+  });
+  document.getElementById('edit-modal').addEventListener('click', function(e){
+    if (e.target === this) this.style.display = 'none';
+  });
+  document.getElementById('edit-st').addEventListener('change', function(){
+    var v = this.value;
+    document.getElementById('edit-rack-fields') .style.display = v === 'rack'  ? 'block' : 'none';
+    document.getElementById('edit-floor-fields').style.display = v === 'floor' ? 'block' : 'none';
+  });
+  document.getElementById('edit-wh').addEventListener('change', function(){
+    var rl = document.getElementById('edit-rack-label');
+    var rn = document.getElementById('edit-rn');
+    rl.textContent = this.value === 'D' ? '렉 번호 (1~14)' : '렉 번호 (1~10)';
+    rn.max = this.value === 'D' ? 14 : 10;
+  });
+
+}); // DOMContentLoaded 끝
+
+
+// ═══════════════════════════════════════════
+// 탭 전환
+// ═══════════════════════════════════════════
+function switchTab(name, btn) {
+  // 모든 섹션 숨기기
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+  // 모든 탭 버튼 비활성화
+  document.querySelectorAll('.nav button').forEach(function(b){ b.classList.remove('active'); });
+  // 선택한 섹션 보이기
+  document.getElementById('sec-' + name).classList.add('active');
+  btn.classList.add('active');
+  // 재고/이력 탭은 데이터 자동 로드
+  if (name === 'stock')   loadStock();
+  if (name === 'history') loadHistory();
+  if (name === 'admin')   loadUsers();
+}
+
+
+// ═══════════════════════════════════════════
+// 품목 유형 토글 (일반/원단)
+// prefix: 'in'=입고, 'dp'=불출, 'hj'=환입
+// ═══════════════════════════════════════════
+function setType(prefix, type) {
+  // 버튼 스타일 업데이트
+  document.getElementById(prefix + '-type-normal').classList.toggle('on', type === 'normal');
+  document.getElementById(prefix + '-type-fabric').classList.toggle('on', type === 'fabric');
+
+  // 유형 상태 저장
+  if (prefix === 'in') inType = type;
+  else if (prefix === 'dp') dpType = type;
+  else hjType = type;
+
+  // 수량 입력 필드 전환
+  var normalDiv = document.getElementById(prefix + '-qty-normal');
+  var fabricDiv = document.getElementById(prefix + '-qty-fabric');
+  if (normalDiv) normalDiv.style.display = type === 'normal' ? 'block' : 'none';
+  if (fabricDiv) fabricDiv.style.display = type === 'fabric' ? 'block' : 'none';
+}
+
+
+// ═══════════════════════════════════════════
+// 창고 변경 시 렉 최대 번호 업데이트
+// D동: 1~14, 천막동: 1~10
+// ═══════════════════════════════════════════
+function updateWh(p) {
+  var wh = document.getElementById(p + '-wh').value;
+  var rl = document.getElementById(p + '-rack-label');
+  var rn = document.getElementById(p + '-rn');
+  if (rl) rl.textContent = wh === 'D' ? '렉 번호 (1~14)' : '렉 번호 (1~10)';
+  if (rn) rn.max = wh === 'D' ? 14 : 10;
+  updateLocPreview(p);
+}
+
+
+// ═══════════════════════════════════════════
+// 보관 방식 변경 시 필드 전환
+// ═══════════════════════════════════════════
+function updateStorage(p) {
+  var v  = document.getElementById(p + '-st').value;
+  var rf = document.getElementById(p + '-rack-fields');
+  var ff = document.getElementById(p + '-floor-fields');
+  if (rf) rf.style.display = v === 'rack'  ? 'block' : 'none';
+  if (ff) ff.style.display = v === 'floor' ? 'block' : 'none';
+  updateLocPreview(p);
+}
+
+
+// ═══════════════════════════════════════════
+// 위치 문자열 생성
+// 예: "D동 B구역 5번 렉 2층"
+// ═══════════════════════════════════════════
+function buildLoc(p) {
+  var wh = (document.getElementById(p + '-wh') || {}).value || '';
+  if (!wh) return '';
+  var label = wh === 'D' ? 'D동' : '천막동';
+  var st = (document.getElementById(p + '-st') || {}).value || 'rack';
+
+  if (st === 'rack') {
+    var zone  = (document.getElementById(p + '-zone') || {}).value || '';
+    var rn    = (document.getElementById(p + '-rn')   || {}).value || '';
+    var fl    = (document.getElementById(p + '-fl')   || {}).value || '';
+    var parts = [label, zone ? zone+'구역' : '', rn ? rn+'번 렉' : '', fl ? fl+'층' : ''].filter(Boolean);
+    return parts.length > 1 ? parts.join(' ') : '';
+  } else {
+    var floc = (document.getElementById(p + '-floc') || {}).value || '';
+    return floc ? label + ' 바닥 ' + floc : '';
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 위치 미리보기 업데이트
+// ═══════════════════════════════════════════
+function updateLocPreview(p) {
+  var preview = document.getElementById(p + '-loc-preview');
+  if (!preview) return;
+  var loc = buildLoc(p);
+  if (loc) {
+    preview.style.display = 'block';
+    preview.textContent = '📍 ' + loc;
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 품목명으로 카테고리 자동 감지
+// ═══════════════════════════════════════════
+function detectCat(name) {
+  var n = (name || '').toLowerCase().replace(/[\s.\-_]/g, '');
+  if (n.includes('카톤'))   return '카톤';
+  if (n.includes('원단'))   return '원단';
+  if (n.includes('단상자')) return '단상자';
+  if (n.includes('인박스')) return '인박스';
+  return '기타';
+}
+
+function autoCat(p) {
+  var name = document.getElementById(p + '-name').value;
+  var cat  = document.getElementById(p + '-cat');
+  if (cat && !cat.value) cat.value = detectCat(name);
+}
+
+
+// ═══════════════════════════════════════════
+// 토스트 메시지 표시 (2.5초 후 자동 사라짐)
+// ═══════════════════════════════════════════
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+
+
+// ═══════════════════════════════════════════
+// 입고 등록
+// ═══════════════════════════════════════════
+async function submitInbound() {
+  var wh   = document.getElementById('in-wh').value;
+  var name = document.getElementById('in-name').value.trim();
+  var loc  = buildLoc('in');
+
+  if (!wh)   { showToast('창고를 선택하세요');   return; }
+  if (!name) { showToast('품목명을 입력하세요'); return; }
+  if (!loc)  { showToast('위치를 입력하세요');   return; }
+
+  var qty = 0, rolls = 0, weight = 0;
+  if (inType === 'fabric') {
+    rolls  = parseFloat(document.getElementById('in-rolls').value)  || 0;
+    weight = parseFloat(document.getElementById('in-weight').value) || 0;
+    qty    = rolls;
+  } else {
+    qty = parseFloat(document.getElementById('in-qty').value) || 0;
+  }
+
+  var body = {
+    item_type : inType,
+    wh, name, loc, qty, rolls, weight,
+    code  : document.getElementById('in-code').value.trim(),
+    lot   : document.getElementById('in-lot').value.trim(),
+    cat   : document.getElementById('in-cat').value || detectCat(name),
+    po    : inType === 'normal' ? document.getElementById('in-po').value    : '',
+    route : inType === 'fabric' ? document.getElementById('in-route').value : '',
+    date  : document.getElementById('in-date').value,
+    note  : document.getElementById('in-note').value,
+  };
+
+  try {
+    var res  = await fetch(API + '/inbound', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    var json = await res.json();
+    if (json.success) {
+      showToast('✓ 입고 등록 완료!');
+      // 입력 필드 초기화
+      ['in-name','in-code','in-lot','in-qty','in-rn','in-fl','in-floc','in-route','in-po','in-rolls','in-weight','in-note'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('in-cat').value = '';
+      document.getElementById('in-loc-preview').style.display = 'none';
+    } else {
+      showToast('오류: ' + json.message);
+    }
+  } catch(e) {
+    showToast('서버 연결 오류');
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 불출: 품번 끝자리로 품목 검색
+// ═══════════════════════════════════════════
+async function searchBySuffix() {
+  var suffix = document.getElementById('dp-suffix').value.trim();
+
+  // 이전 결과 초기화
+  document.getElementById('dp-step2').style.display = 'none';
+  document.getElementById('dp-step3').style.display = 'none';
+  selectedDpItem   = null;
+  selectedFifoItem = null;
+
+  if (suffix.length < 2) return;
+
+  try {
+    var res     = await fetch(API + '/fifo?code=' + encodeURIComponent(suffix));
+    var json    = await res.json();
+    var matches = json.data || [];
+
+    if (!matches.length) {
+      document.getElementById('dp-step2').style.display = 'block';
+      document.getElementById('dp-item-list').innerHTML = '<p style="text-align:center;color:var(--txt2);padding:16px 0;font-size:14px">해당 품번 없음</p>';
+      return;
+    }
+
+    // 품번 기준 중복 제거 (대표 항목만)
+    var seen = {};
+    var unique = [];
+    matches.forEach(function(m) {
+      if (m.code && !seen[m.code]) {
+        seen[m.code] = true;
+        unique.push(m);
+      }
+    });
+
+    // 1개면 바로 3단계로
+    if (unique.length === 1) {
+      selectDpItem(unique[0]);
+      return;
+    }
+
+    // 여러 개면 선택 목록 표시
+    document.getElementById('dp-step2').style.display = 'block';
+    document.getElementById('dp-item-list').innerHTML = unique.map(function(item) {
+      return '<div class="dp-item-card" data-code="' + item.code + '" style="padding:12px;border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:8px;cursor:pointer;background:#f9fafb">' +
+        '<div style="font-size:14px;font-weight:600;color:var(--txt)">' + (item.name || '-') + '</div>' +
+        '<div style="font-size:12px;color:var(--txt2);margin-top:3px">' + item.code + '</div>' +
+        '</div>';
+    }).join('');
+
+    // 품목 카드 클릭 이벤트
+    document.querySelectorAll('.dp-item-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        var code = this.dataset.code;
+        var found = unique.find(function(u){ return u.code === code; });
+        if (found) selectDpItem(found);
+      });
+    });
+
+  } catch(e) {
+    showToast('서버 연결 오류');
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 불출: 품목 선택 → FIFO 목록 표시
+// ═══════════════════════════════════════════
+async function selectDpItem(item) {
+  selectedDpItem   = item;
+  selectedFifoItem = null;
+
+  document.getElementById('dp-step2').style.display = 'none';
+  document.getElementById('dp-step3').style.display = 'block';
+
+  // 선택된 품목 정보 표시
+  document.getElementById('dp-selected-info').innerHTML =
+    '<div style="font-size:13px;font-weight:600;color:var(--blue)">' + (item.name || '-') + '</div>' +
+    '<div style="font-size:12px;color:var(--blue);margin-top:2px;opacity:.8">' + item.code + '</div>';
+
+  // 품목 유형 자동 세팅
+  setType('dp', (item.item_type === 'fabric' || item.itemType === 'fabric') ? 'fabric' : 'normal');
+
+  // FIFO 순서 조회
+  try {
+    var res  = await fetch(API + '/fifo?code=' + encodeURIComponent(item.code), { credentials: 'include' });
+    var json = await res.json();
+    var list = json.data || [];
+
+    var wrap = document.getElementById('dp-fifo-wrap');
+    if (!list.length) { wrap.innerHTML = ''; return; }
+
+    // FIFO 목록 렌더링
+    var rows = list.map(function(m, idx) {
+      var qty  = m.item_type === 'fabric' ? (m.rolls + '롤/' + m.weight + 'kg') : (m.qty + '개');
+      var tag  = m.kind === 'hwanjip' ? '<span class="hj-tag">환입</span>' : '';
+      return '<div class="fifo-row" data-id="' + m.id + '">' +
+        '<div class="fifo-n">' + (idx + 1) + '</div>' +
+        '<div class="fifo-info">' +
+          '<div class="fifo-name">' + (m.name || m.code) + tag + '</div>' +
+          '<div class="fifo-sub">📍 ' + (m.loc || '-') + ' · ' + qty + '</div>' +
+        '</div>' +
+        '<div class="fifo-dt">' + m.date + '</div>' +
+        '</div>';
+    }).join('');
+
+    wrap.innerHTML =
+      '<div class="fifo-box">' +
+        '<div class="fifo-hd">선입선출 순서 — 탭해서 선택하세요</div>' +
+        rows +
+      '</div>';
+
+    // FIFO 행 클릭 이벤트
+    wrap.querySelectorAll('.fifo-row').forEach(function(row) {
+      row.addEventListener('click', function() {
+        var id    = parseInt(this.dataset.id);
+        var found = list.find(function(m){ return m.id === id; });
+        if (!found) return;
+
+        // 선택 표시
+        wrap.querySelectorAll('.fifo-row').forEach(function(r){ r.classList.remove('selected'); });
+        this.classList.add('selected');
+        selectedFifoItem = found;
+
+        // MAX 자동 입력
+        if (found.item_type === 'fabric') {
+          document.getElementById('dp-rolls').value  = found.rolls  || 0;
+          document.getElementById('dp-weight').value = found.weight || 0;
+        } else {
+          document.getElementById('dp-qty').value = found.qty || 0;
+        }
+      });
+    });
+
+    // 1번 자동 선택
+    if (list.length) {
+      wrap.querySelectorAll('.fifo-row')[0].click();
+    }
+
+  } catch(e) {
+    showToast('FIFO 조회 오류');
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 불출: MAX 버튼 (선택된 항목 전량)
+// ═══════════════════════════════════════════
+function setMaxQty() {
+  if (!selectedFifoItem) { showToast('먼저 항목을 선택하세요'); return; }
+  if (selectedFifoItem.item_type === 'fabric') {
+    document.getElementById('dp-rolls').value  = selectedFifoItem.rolls  || 0;
+    document.getElementById('dp-weight').value = selectedFifoItem.weight || 0;
+  } else {
+    document.getElementById('dp-qty').value = selectedFifoItem.qty || 0;
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 불출 확정
+// ═══════════════════════════════════════════
+async function submitDispatch() {
+  if (!selectedDpItem)   { showToast('품목을 먼저 선택하세요'); return; }
+  if (!selectedFifoItem) { showToast('불출할 항목을 선택하세요'); return; }
+
+  var person = document.getElementById('dp-person').value.trim();
+  if (!person) { showToast('담당자 이름을 입력하세요'); return; }
+
+  var qty = 0, rolls = 0, weight = 0;
+  if (dpType === 'fabric') {
+    rolls  = parseFloat(document.getElementById('dp-rolls').value)  || 0;
+    weight = parseFloat(document.getElementById('dp-weight').value) || 0;
+    qty    = rolls;
+  } else {
+    qty = parseFloat(document.getElementById('dp-qty').value) || 0;
+  }
+  if (!qty) { showToast('수량을 입력하세요'); return; }
+
+  try {
+    var res  = await fetch(API + '/outbound', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        item_type : dpType,
+        code      : selectedDpItem.code,
+        name      : selectedDpItem.name,
+        person, qty, rolls, weight,
+        from_id  : selectedFifoItem.id,
+        from_loc : selectedFifoItem.loc || '',
+        date     : document.getElementById('dp-date').value,
+        note     : document.getElementById('dp-note').value,
+      })
+    });
+    var json = await res.json();
+    if (json.success) {
+      showToast('✓ 불출 확정 완료!');
+      resetDispatch();
+    } else {
+      showToast('오류: ' + json.message);
+    }
+  } catch(e) {
+    showToast('서버 연결 오류');
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 불출 초기화 (다시 선택)
+// ═══════════════════════════════════════════
+function resetDispatch() {
+  selectedDpItem   = null;
+  selectedFifoItem = null;
+  document.getElementById('dp-suffix').value = '';
+  document.getElementById('dp-step2').style.display = 'none';
+  document.getElementById('dp-step3').style.display = 'none';
+  document.getElementById('dp-fifo-wrap').innerHTML = '';
+  ['dp-qty','dp-rolls','dp-weight','dp-person','dp-note'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  setType('dp', 'normal');
+}
+
+
+// ═══════════════════════════════════════════
+// 환입 등록
+// ═══════════════════════════════════════════
+async function submitReturn() {
+  var wh   = document.getElementById('hj-wh').value;
+  var code = document.getElementById('hj-code').value.trim();
+  var loc  = buildLoc('hj');
+
+  if (!wh)   { showToast('창고를 선택하세요');   return; }
+  if (!code) { showToast('품번을 입력하세요');   return; }
+  if (!loc)  { showToast('위치를 입력하세요');   return; }
+
+  var qty = 0, rolls = 0, weight = 0;
+  if (hjType === 'fabric') {
+    rolls  = parseFloat(document.getElementById('hj-rolls').value)  || 0;
+    weight = parseFloat(document.getElementById('hj-weight').value) || 0;
+    qty    = rolls;
+  } else {
+    qty = parseFloat(document.getElementById('hj-qty').value) || 0;
+  }
+
+  var name = document.getElementById('hj-name').value.trim();
+  var body = {
+    item_type : hjType,
+    wh, code, name, loc, qty, rolls, weight,
+    lot   : document.getElementById('hj-lot').value.trim(),
+    cat   : document.getElementById('hj-cat').value || detectCat(name),
+    po    : hjType === 'normal' ? document.getElementById('hj-po').value    : '',
+    route : hjType === 'fabric' ? document.getElementById('hj-route').value : '',
+    date  : document.getElementById('hj-date').value,
+    note  : document.getElementById('hj-note').value,
+  };
+
+  try {
+    var res  = await fetch(API + '/return', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    var json = await res.json();
+    if (json.success) {
+      showToast('✓ 환입 등록 완료!');
+      ['hj-code','hj-name','hj-lot','hj-qty','hj-po','hj-rolls','hj-weight','hj-route','hj-rn','hj-fl','hj-floc','hj-note'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('hj-cat').value = '';
+      document.getElementById('hj-loc-preview').style.display = 'none';
+    } else {
+      showToast('오류: ' + json.message);
+    }
+  } catch(e) {
+    showToast('서버 연결 오류');
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 재고 목록 로드
+// ═══════════════════════════════════════════
+async function loadStock() {
+  var q    = document.getElementById('st-q').value.trim();
+  var list = document.getElementById('stock-list');
+  list.innerHTML = '<div class="loading">불러오는 중...</div>';
+
+  try {
+    var params = new URLSearchParams();
+    if (q)          params.set('q',   q);
+    if (currentCat) params.set('cat', currentCat);
+
+    var res  = await fetch(API + '/inventory?' + params, { credentials: 'include' });
+    var json = await res.json();
+    var items = json.data || [];
+
+    document.getElementById('st-total').textContent = json.total_in || 0;
+    document.getElementById('st-today').textContent = json.today_in || 0;
+
+    if (!items.length) {
+      list.innerHTML = '<p style="text-align:center;color:var(--txt2);padding:24px 0;font-size:14px">항목 없음</p>';
+      return;
+    }
+
+    list.innerHTML = items.slice().reverse().map(function(item) {
+      var badgeCls   = item.kind === 'hwanjip' ? 'b-r' : item.wh === 'D' ? 'b-d' : 'b-t';
+      var badgeLabel = item.kind === 'hwanjip' ? '환입' : item.wh === 'D' ? 'D동' : '천막';
+      var qtyTxt     = item.item_type === 'fabric' ? (item.rolls + '롤/' + item.weight + 'kg') : (item.qty + '개');
+      var catLabel   = item.cat ? '<span class="cat-lbl cl-' + item.cat + '">' + item.cat + '</span>' : '';
+      var depCls     = item.depleted ? 'depleted' : '';
+      var depBadge   = item.depleted ? '<span class="depleted-badge">소진</span>' : '';
+
+      return '<div class="item ' + depCls + '">' +
+        '<div class="item-top">' +
+          '<div style="min-width:0">' +
+            '<div class="item-name">' + (item.name || '-') + catLabel + depBadge + '</div>' +
+            '<div class="item-code">' + (item.code || '') + (item.lot ? ' · Lot:' + item.lot : '') + '</div>' +
+          '</div>' +
+          '<div class="item-right">' +
+            '<span class="badge ' + badgeCls + '">' + badgeLabel + '</span>' +
+            '<div class="item-qty">' + qtyTxt + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="item-loc" style="display:flex;justify-content:space-between;align-items:center">' +
+          '<span>📍 ' + (item.loc || '-') + ' · ' + item.date + '</span>' +
+          '<button class="edit-btn" data-id="' + item.id + '" style="font-size:11px;padding:3px 10px;border:1px solid #d1d5db;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer">수정</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+
+    // 수정 버튼 이벤트
+    document.querySelectorAll('.edit-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        openEditModal(parseInt(this.dataset.id));
+      });
+    });
+
+  } catch(e) {
+    list.innerHTML = '<p style="text-align:center;color:#9b1c1c;padding:24px 0;font-size:14px">서버에 연결할 수 없습니다</p>';
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 불출 이력 로드 (날짜 필터 포함)
+// ═══════════════════════════════════════════
+async function loadHistory() {
+  var list = document.getElementById('history-list');
+  list.innerHTML = '<div class="loading">불러오는 중...</div>';
+
+  // 날짜 필터 값 가져오기
+  var fromDate = document.getElementById('hs-from').value;
+  var toDate   = document.getElementById('hs-to').value;
+
+  try {
+    // 서버에 날짜 필터 파라미터 전송
+    var params = new URLSearchParams();
+    if (fromDate) params.set('from', fromDate);
+    if (toDate)   params.set('to',   toDate);
+
+    var res  = await fetch(API + '/history?' + params, { credentials: 'include' });
+    var json = await res.json();
+    var outs = json.data || [];
+
+    document.getElementById('hs-total')   .textContent = json.total    || 0;
+    document.getElementById('hs-filtered').textContent = json.filtered || outs.length;
+
+    if (!outs.length) {
+      list.innerHTML = '<p style="text-align:center;color:var(--txt2);padding:24px 0;font-size:14px">이력 없음</p>';
+      return;
+    }
+
+    list.innerHTML = outs.map(function(item) {
+      var qtyTxt = item.item_type === 'fabric'
+        ? (item.rolls + '롤/' + item.weight + 'kg')
+        : (item.qty + '개');
+      return '<div class="item">' +
+        '<div class="item-top">' +
+          '<div style="min-width:0">' +
+            '<div class="item-name">' + (item.name || item.code || '-') + '</div>' +
+            '<div class="item-code">' + (item.code || '') +
+              ' · <b style="color:var(--blue)">' + (item.person || '미입력') + '</b>' +
+            '</div>' +
+          '</div>' +
+          '<div class="item-right">' +
+            '<div class="item-qty" style="font-size:14px">' + qtyTxt + '</div>' +
+            '<div style="font-size:11px;color:var(--txt2);margin-top:2px">' + (item.date || '') + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="item-loc" style="display:flex;justify-content:space-between;align-items:center">' +
+          '<span>📍 ' + (item.from_loc || '-') + '</span>' +
+          '<button class="cancel-btn" data-id="' + item.id + '" ' +
+            'style="font-size:11px;padding:3px 10px;border:1px solid #fca5a5;border-radius:6px;background:#fef2f2;color:#dc2626;cursor:pointer">취소</button>' +
+        '</div>' +
+        (item.note ? '<div style="font-size:12px;color:var(--txt2);margin-top:4px">📝 ' + item.note + '</div>' : '') +
+        '</div>';
+    }).join('');
+
+    // 불출 취소 버튼 이벤트
+    document.querySelectorAll('.cancel-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        cancelOutbound(parseInt(this.dataset.id));
+      });
+    });
+
+  } catch(e) {
+    list.innerHTML = '<p style="text-align:center;color:#9b1c1c;padding:24px 0;font-size:14px">서버에 연결할 수 없습니다</p>';
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 수정 모달 열기
+// ═══════════════════════════════════════════
+var editingId = null;
+var editingData = null;
+
+function openEditModal(id) {
+  // 현재 재고 데이터에서 해당 항목 찾기
+  fetch(API + '/inventory?limit=9999')
+    .then(function(r){ return r.json(); })
+    .then(function(json){
+      var all = json.data || [];
+      var item = all.find(function(d){ return d.id === id; });
+      if (!item) { showToast('항목을 찾을 수 없습니다'); return; }
+
+      editingId   = id;
+      editingData = item;
+
+      // 모달에 현재 값 채우기
+      document.getElementById('edit-title').textContent = item.name || '항목 수정';
+      document.getElementById('edit-name').value  = item.name  || '';
+      document.getElementById('edit-code').value  = item.code  || '';
+      document.getElementById('edit-date').value  = item.date  || '';
+      document.getElementById('edit-note').value  = item.note  || '';
+
+      // 수량 (유형에 따라)
+      if (item.item_type === 'fabric') {
+        document.getElementById('edit-qty-normal').style.display = 'none';
+        document.getElementById('edit-qty-fabric').style.display = 'block';
+        document.getElementById('edit-rolls').value  = item.rolls  || 0;
+        document.getElementById('edit-weight').value = item.weight || 0;
+      } else {
+        document.getElementById('edit-qty-normal').style.display = 'block';
+        document.getElementById('edit-qty-fabric').style.display = 'none';
+        document.getElementById('edit-qty').value = item.qty || 0;
+      }
+
+      // 위치 파싱해서 폼에 채우기
+      document.getElementById('edit-wh').value = item.wh || 'D';
+      var loc = item.loc || '';
+
+      // 렉/바닥 구분
+      if (loc.includes('바닥')) {
+        document.getElementById('edit-st').value = 'floor';
+        document.getElementById('edit-rack-fields').style.display = 'none';
+        document.getElementById('edit-floor-fields').style.display = 'block';
+        document.getElementById('edit-floc').value = loc.replace(/.*바닥\s*/, '');
+      } else {
+        document.getElementById('edit-st').value = 'rack';
+        document.getElementById('edit-rack-fields').style.display = 'block';
+        document.getElementById('edit-floor-fields').style.display = 'none';
+        // 구역/번호/층 파싱
+        var zoneM = loc.match(/([A-F])구역/);
+        var rackM = loc.match(/(\d+)번 렉/);
+        var floorM= loc.match(/(\d+)층/);
+        document.getElementById('edit-zone').value = zoneM  ? zoneM[1]  : '';
+        document.getElementById('edit-rn').value   = rackM  ? rackM[1]  : '';
+        document.getElementById('edit-fl').value   = floorM ? floorM[1] : '';
+      }
+
+      // 모달 표시
+      var modal = document.getElementById('edit-modal');
+      modal.style.display = 'flex';
+    });
+}
+
+// 위치 문자열 생성 (수정 모달용)
+function buildEditLoc() {
+  var wh    = document.getElementById('edit-wh').value;
+  var label = wh === 'D' ? 'D동' : '천막동';
+  var st    = document.getElementById('edit-st').value;
+  if (st === 'rack') {
+    var zone  = document.getElementById('edit-zone').value;
+    var rn    = document.getElementById('edit-rn').value;
+    var fl    = document.getElementById('edit-fl').value;
+    var parts = [label, zone?zone+'구역':'', rn?rn+'번 렉':'', fl?fl+'층':''].filter(Boolean);
+    return parts.length > 1 ? parts.join(' ') : label;
+  } else {
+    var floc = document.getElementById('edit-floc').value;
+    return floc ? label + ' 바닥 ' + floc : label;
+  }
+}
+
+// 수정 모달 저장
+async function saveEdit() {
+  if (!editingId || !editingData) return;
+
+  var loc = buildEditLoc();
+  var updatedData = Object.assign({}, editingData, {
+    name  : document.getElementById('edit-name').value.trim(),
+    code  : document.getElementById('edit-code').value.trim(),
+    wh    : document.getElementById('edit-wh').value,
+    loc   : loc,
+    date  : document.getElementById('edit-date').value,
+    note  : document.getElementById('edit-note').value,
+  });
+
+  if (editingData.item_type === 'fabric') {
+    updatedData.rolls  = parseFloat(document.getElementById('edit-rolls').value)  || 0;
+    updatedData.weight = parseFloat(document.getElementById('edit-weight').value) || 0;
+    updatedData.qty    = updatedData.rolls;
+  } else {
+    updatedData.qty = parseFloat(document.getElementById('edit-qty').value) || 0;
+  }
+
+  try {
+    var res  = await fetch(API + '/record/' + editingId, {
+      method : 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(updatedData)
+    });
+    var json = await res.json();
+    if (json.success) {
+      showToast('✓ 수정 완료!');
+      document.getElementById('edit-modal').style.display = 'none';
+      loadStock();
+    } else {
+      showToast('오류: ' + json.message);
+    }
+  } catch(e) {
+    showToast('서버 연결 오류');
+  }
+}
+
+// ═══════════════════════════════════════════
+// 불출 취소 (재고 자동 복원)
+// ═══════════════════════════════════════════
+async function cancelOutbound(id) {
+  try {
+    var res  = await fetch(API + '/outbound/' + id, { method: 'DELETE', credentials: 'include' });
+    var json = await res.json();
+    if (json.success) {
+      showToast('✓ 불출 취소 완료! 재고가 복원됐어요');
+      loadHistory();
+    } else {
+      showToast('취소 실패: ' + json.message);
+    }
+  } catch(e) {
+    showToast('서버 연결 오류');
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// OCR: 식별표 사진 분석
+// ═══════════════════════════════════════════
+async function doOCR(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+
+  // 미리보기
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('ocr-img').src = e.target.result;
+    document.getElementById('ocr-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+
+  document.getElementById('ocr-status').textContent = 'AI가 식별표를 분석하는 중...';
+  document.getElementById('ocr-result').style.display = 'none';
+
+  try {
+    // 이미지를 Base64로 변환
+    var b64 = await new Promise(function(resolve, reject) {
+      var r = new FileReader();
+      r.onload = function(){ resolve(r.result.split(',')[1]); };
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+
+    // Claude API 호출 (API 키 필요)
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // 아래 키를 발급받은 API 키로 교체하세요
+        // 'x-api-key': 'sk-ant-여기에키입력',
+        // 'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: '창고 물류 식별표에서 정보를 추출해 JSON만 반환하세요.',
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: file.type, data: b64 } },
+            { type: 'text',  text: '식별표에서 항목 추출 후 JSON만 반환:\n{"품목명":"","품번":"","수량":"","롤수":"","무게":"","입고일":"","LotNo":"","규격":"","공급처":"","비고":"","유형":"일반 또는 원단"}\n날짜는 YYYY-MM-DD 형식.' }
+          ]
+        }]
+      })
+    });
+
+    var data = await resp.json();
+    var text = data.content.map(function(c){ return c.text || ''; }).join('').replace(/```json|```/g, '').trim();
+    ocrData  = JSON.parse(text);
+
+    // 추출 결과 표시
+    var fields = [
+      {k:'품목명',l:'품목명'}, {k:'품번',l:'품번'}, {k:'유형',l:'유형'},
+      {k:'수량',l:'수량'},     {k:'롤수',l:'롤 수'}, {k:'무게',l:'무게(kg)'},
+      {k:'입고일',l:'입고일'}, {k:'LotNo',l:'Lot No.'}, {k:'비고',l:'비고'}
+    ];
+    var rows = fields.filter(function(f){ return ocrData[f.k]; }).map(function(f){
+      return '<div class="ocr-frow"><span class="ocr-fl">' + f.l + '</span><span class="ocr-fv">' + ocrData[f.k] + '</span></div>';
+    }).join('');
+
+    document.getElementById('ocr-fc').innerHTML = rows || '<p style="font-size:13px;color:var(--txt2)">읽지 못했습니다</p>';
+    document.getElementById('ocr-result').style.display = 'block';
+    document.getElementById('ocr-status').textContent = '추출 완료! 확인 후 버튼을 눌러주세요';
+
+  } catch(e) {
+    document.getElementById('ocr-status').textContent = 'API 키를 설정해주세요 (OCR 탭 안내 참고)';
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// OCR 결과를 입고 화면에 자동 입력
+// ═══════════════════════════════════════════
+function applyOcrToInbound() {
+  switchTab('inbound', document.getElementById('nav-inbound'));
+  if (ocrData['유형'] === '원단') setType('in', 'fabric');
+  else setType('in', 'normal');
+  if (ocrData['품목명']) { document.getElementById('in-name').value = ocrData['품목명']; autoCat('in'); }
+  if (ocrData['품번'])   document.getElementById('in-code').value   = ocrData['품번'];
+  if (ocrData['LotNo'])  document.getElementById('in-lot').value    = ocrData['LotNo'];
+  if (ocrData['입고일']) document.getElementById('in-date').value   = ocrData['입고일'];
+  if (ocrData['비고'])   document.getElementById('in-note').value   = ocrData['비고'];
+  if (ocrData['유형'] === '원단') {
+    if (ocrData['롤수']) document.getElementById('in-rolls').value  = ocrData['롤수'];
+    if (ocrData['무게']) document.getElementById('in-weight').value = ocrData['무게'];
+  } else {
+    if (ocrData['수량']) document.getElementById('in-qty').value = ocrData['수량'].replace(/[^0-9.]/g, '');
+  }
+  showToast('입고 화면에 자동 입력 완료! 창고/위치만 선택해주세요');
+}
+
+
+// ═══════════════════════════════════════════
+// OCR 결과를 환입 화면에 자동 입력
+// ═══════════════════════════════════════════
+function applyOcrToReturn() {
+  switchTab('hwanjip', document.getElementById('nav-hwanjip'));
+  if (ocrData['유형'] === '원단') setType('hj', 'fabric');
+  else setType('hj', 'normal');
+  if (ocrData['품목명']) { document.getElementById('hj-name').value = ocrData['품목명']; autoCat('hj'); }
+  if (ocrData['품번'])   document.getElementById('hj-code').value   = ocrData['품번'];
+  if (ocrData['LotNo'])  document.getElementById('hj-lot').value    = ocrData['LotNo'];
+  if (ocrData['유형'] === '원단') {
+    if (ocrData['롤수']) document.getElementById('hj-rolls').value  = ocrData['롤수'];
+    if (ocrData['무게']) document.getElementById('hj-weight').value = ocrData['무게'];
+  } else {
+    if (ocrData['수량']) document.getElementById('hj-qty').value = ocrData['수량'].replace(/[^0-9.]/g, '');
+  }
+  showToast('환입 화면에 자동 입력 완료! 창고/위치만 선택해주세요');
+}
+</script>
+</body>
+</html>

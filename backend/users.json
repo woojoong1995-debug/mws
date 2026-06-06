@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1780721409261,
+    "name": "운영자",
+    "username": "admin",
+    "password": "ac9689e2272427085e35b9d3e3e8bed88cb3434828b43b86fc0596cad4c6e270",
+    "role": "admin",
+    "status": "active",
+    "created": "2026-06-06"
+  },
+  {
+    "id": 1780721454025,
+    "name": "김우중",
+    "username": "dnwnd660",
+    "password": "da2d4f1b9ca69fb8beb43e73845983463d4f46bbe9dddd075b575572474075ff",
+    "role": "user",
+    "status": "active",
+    "created": "2026-06-06"
+  }
+]

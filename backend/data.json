@@ -1,0 +1,36 @@
+[
+  {
+    "cat": "원단",
+    "code": "A21X000017",
+    "date": "2026-06-05",
+    "depleted": true,
+    "id": 1780666125937,
+    "item_type": "normal",
+    "kind": "in",
+    "loc": "D동 A구역 1번 렉 2층",
+    "lot": "GF0327",
+    "name": "원단.엠보사각패드",
+    "note": "",
+    "po": "",
+    "qty": 0,
+    "rolls": 0,
+    "route": "",
+    "weight": 0,
+    "wh": "D"
+  },
+  {
+    "item_type": "normal",
+    "code": "A21X000017",
+    "name": "원단.엠보사각패드",
+    "person": "김우중",
+    "qty": 300,
+    "rolls": 0,
+    "weight": 0,
+    "from_id": 1780666125937,
+    "from_loc": "D동 A구역 1번 렉 2층",
+    "date": "2026-06-06",
+    "note": "",
+    "kind": "out",
+    "id": 1780721896389
+  }
+]
