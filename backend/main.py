@@ -26,7 +26,9 @@
 
 from flask import Flask, send_from_directory, session, jsonify
 from flask_cors import CORS
-import os
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))  # 현재 디렉토리를 모듈 경로에 추가
+
 import secrets
 
 # 각 기능 파일에서 Blueprint 가져오기
