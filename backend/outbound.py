@@ -198,13 +198,14 @@ def get_history():
     total = len(outs)
 
     # 날짜 필터 적용
-    from_date = request.args.get('from', '')
-    to_date   = request.args.get('to', '')
+    date_filter = request.args.get('date', '')
+    kind_filter = request.args.get('kind', 'out')  # 기본값은 'out'
 
-    if from_date:
-        outs = [o for o in outs if o.get('date', '') >= from_date]
-    if to_date:
-        outs = [o for o in outs if o.get('date', '') <= to_date]
+    # 종류 필터 (입고/불출/환입)
+    outs = [d for d in data if d.get('kind') == kind_filter]
+
+    if date_filter:
+        outs = [o for o in outs if o.get('date', '') == date_filter]
 
     # 최신순 정렬
     outs = sorted(outs, key=lambda x: x.get('date', ''), reverse=True)

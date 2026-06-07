@@ -712,6 +712,11 @@
     [5] 이력 탭
   ══════════════════════════════════════ -->
   <div id="sec-history" class="section">
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button class="hist-tab on" data-kind="out" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#1a1a1a;color:#fff;cursor:pointer">불출</button>
+      <button class="hist-tab" data-kind="in" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#f9fafb;color:#6b7280;cursor:pointer">입고</button>
+      <button class="hist-tab" data-kind="hwanjip" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#f9fafb;color:#6b7280;cursor:pointer">환입</button>
+    </div>
     <div class="stats">
       <div class="stat"><div class="stat-l">전체 불출</div><div class="stat-v" id="hs-total">0</div></div>
       <div class="stat"><div class="stat-l">기간 내 불출</div><div class="stat-v" id="hs-filtered">0</div></div>
@@ -720,16 +725,11 @@
     <!-- 날짜 필터 -->
     <div class="card" style="padding:12px 16px;margin-bottom:10px">
       <p style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:10px">기간 검색</p>
-      <div class="row2">
-        <div>
-          <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">시작일</label>
-          <input type="date" id="hs-from" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:#f9fafb">
-        </div>
-        <div>
-          <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">종료일</label>
-          <input type="date" id="hs-to" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid #d1d5db;border-radius:var(--r-md);background:#f9fafb">
-        </div>
+      <div>
+        <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">날짜 선택</label>
+        <input type="date" id="hs-date" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:#f9fafb">
       </div>
+      
       <!-- 빠른 선택 버튼 -->
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
         <button class="hs-quick" data-days="7"  style="padding:5px 10px;font-size:12px;border:1px solid var(--border2);border-radius:20px;background:#f9fafb;cursor:pointer">1주일</button>
@@ -1295,9 +1295,20 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // 이력 날짜 필터 이벤트
-  document.getElementById('hs-from').addEventListener('change', loadHistory);
-  document.getElementById('hs-to')  .addEventListener('change', loadHistory);
-
+  document.getElementById('hs-date').addEventListener('change', loadHistory);
+  document.querySelectorAll('.hist-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.hist-tab').forEach(function(b){
+        b.style.background = '#f9fafb';
+        b.style.color = '#6b7280';
+        b.classList.remove('on');
+      });
+      this.style.background = '#1a1a1a';
+      this.style.color = '#fff';
+      this.classList.add('on');
+      loadHistory();
+    });
+  });
   // 빠른 날짜 선택 버튼 (1주일/1개월/3개월/전체)
   document.querySelectorAll('.hs-quick').forEach(function(btn) {
     btn.addEventListener('click', function() {
@@ -1919,14 +1930,14 @@ async function loadHistory() {
   list.innerHTML = '<div class="loading">불러오는 중...</div>';
 
   // 날짜 필터 값 가져오기
-  var fromDate = document.getElementById('hs-from').value;
-  var toDate   = document.getElementById('hs-to').value;
+  var histDate = document.getElementById('hs-date').value;
+  var histKind = document.querySelector('.hist-tab.on')?.dataset.kind || 'out';
 
   try {
     // 서버에 날짜 필터 파라미터 전송
     var params = new URLSearchParams();
-    if (fromDate) params.set('from', fromDate);
-    if (toDate)   params.set('to',   toDate);
+    if (histDate) params.set('date', histDate);
+    params.set('kind', histKind);
 
     var res  = await fetch(API + '/history?' + params, { credentials: 'include' });
     var json = await res.json();
