@@ -156,3 +156,37 @@ def get_me():
             'role'    : session.get('role', 'user'),
         }
     })
+
+@auth_bp.route('/api/auth/change-password', methods=['POST'])
+def change_password():
+    '''
+    비밀번호 변경 API
+    본인 비밀번호만 변경 가능
+    '''
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다'}), 401
+    
+    body = request.get_json()
+    if not body:
+        return jsonify({'success': False, 'message': '데이터가 없습니다'}), 400
+    
+    current = (body.get('current') or '').strip()
+    new_pw = (body.get('new_password') or '').strip()
+
+    if not current or not new_pw:
+        return jsonify({'success': False, 'message': '모든 항목을 입력하세요'}), 400
+    if len(new_pw) < 4:
+        return jsonify({'success': False, 'message': '새 비밀번호는 4자 이상이어야 합니다'}), 400
+    
+    users = load_users()
+    for user in users:
+        if user.get('id') == session['user_id']:
+            # 현재 비밀번호 확인
+            if user.get('password') != hash_password(current):
+                return jsonify({'success': False, 'message': '현재 비밀번호가 틀렸습니다'}), 401
+            # 새 비밀번호로 저장
+            user['password'] = hash_password(new_pw)
+            save_users(users)
+            return jsonify({'success': True, 'message': '비밀번호가 변경되었습니다'})
+        
+    return jsonify({'success': False, 'message': '사용자 정보를 찾을 수 없습니다'}), 404
