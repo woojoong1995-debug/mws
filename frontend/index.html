@@ -1393,7 +1393,12 @@ document.addEventListener('DOMContentLoaded', function () {
 // ═══════════════════════════════════════════
 // 탭 전환
 // ═══════════════════════════════════════════
+var currentTab = '';
 function switchTab(name, btn) {
+  // 같은 탭 다시 누르면 무시
+  if (currentTab === name) return;
+  currentTab = name;
+
   // 모든 섹션 숨기기
   document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
   // 모든 탭 버튼 비활성화
