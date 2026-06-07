@@ -7,7 +7,7 @@
 #   POST /api/inbound  -> 입고 등록
 # =====================================================
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from database import add_record, detect_category
 
 # Blueprint: 기능별로 API를 나눠서 관리하는 Flask 기능
@@ -54,6 +54,9 @@ def add_inbound():
     # 담당자 정보 저장
     if not body.get('person'):
         body['person'] = '' 
+
+    # 등록자 저장 (수정 권한 체크용)
+    body['created_by'] = session.get('useername', '')  # 로그인한 사용자 ID 저장, 없으면 'unknown'
 
     # 입고 종류 표시
     body['kind'] = 'in'

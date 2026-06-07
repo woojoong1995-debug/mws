@@ -13,7 +13,7 @@
 #   - 입고 화면과 동일한 필드 구조
 # =====================================================
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from database import add_record, detect_category
 
 returns_bp = Blueprint('returns', __name__)
@@ -59,6 +59,9 @@ def add_return():
     # 담당자 정보 저장
     if not body.get('person'):
         body['person'] = ''
+
+    # 등록자 저장 (수정 권한 체크용)
+    body['created_by'] = session.get('useername', '')  # 로그인한
 
     # 환입 종류 표시
     body['kind']     = 'hwanjip'

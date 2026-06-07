@@ -14,7 +14,7 @@
 #   - 다음날: 자동으로 완전 삭제
 # =====================================================
 
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, request, jsonify, Response, session
 from database import load_data, save_data, delete_record, export_to_csv
 from datetime import date
 
@@ -142,10 +142,17 @@ def update_record(record_id):
     if not body:
         return jsonify({'success': False, 'message': '데이터가 없습니다'}), 400
 
+    # 권환 확인: 본인 항목이거나 운영자만 수정 가능
+    current_user = session.get('username', '')
+    current_role = session.get('role', 'user')
+
     data = load_data()
     found = False
     for i, item in enumerate(data):
         if item.get('id') == record_id:
+            # 운영자거나 본인이 윽록한 항목만 수정가능
+            if current_role != 'admin' and item.get('created_by', '') != current_user:
+                return jsonify({'success': False, 'message': '본인이 등록한 항목만 수정할 수 있습니다'}), 403
             # 기존 데이터에 수정 내용 덮어쓰기
             data[i] = body
             data[i]['id'] = record_id  # ID 유지

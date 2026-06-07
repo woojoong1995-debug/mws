@@ -735,14 +735,6 @@
         <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">날짜 선택</label>
         <input type="date" id="hs-date" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:#f9fafb">
       </div>
-      
-      <!-- 빠른 선택 버튼 -->
-      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
-        <button class="hs-quick" data-days="7"  style="padding:5px 10px;font-size:12px;border:1px solid var(--border2);border-radius:20px;background:#f9fafb;cursor:pointer">1주일</button>
-        <button class="hs-quick" data-days="30" style="padding:5px 10px;font-size:12px;border:1px solid var(--border2);border-radius:20px;background:#f9fafb;cursor:pointer">1개월</button>
-        <button class="hs-quick" data-days="90" style="padding:5px 10px;font-size:12px;border:1px solid var(--border2);border-radius:20px;background:#f9fafb;cursor:pointer">3개월</button>
-        <button class="hs-quick" data-days="0"  style="padding:5px 10px;font-size:12px;border:1px solid var(--border2);border-radius:20px;background:#f9fafb;cursor:pointer">전체</button>
-      </div>
     </div>
 
     <div class="card" style="padding:6px 14px">
@@ -1924,7 +1916,8 @@ async function loadStock() {
         '</div>' +
         '<div class="item-loc" style="display:flex;justify-content:space-between;align-items:center">' +
           '<span>📍 ' + (item.loc || '-') + ' · ' + item.date + '</span>' +
-          '<button class="edit-btn" data-id="' + item.id + '" style="font-size:11px;padding:3px 10px;border:1px solid #d1d5db;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer">수정</button>' +
+          (currentUser.role === 'admin' || item.created_by === currentUser.username ?
+          '<button class="edit-btn" data-id="' + item.id + '" style="font-size:11px;padding:3px 10px;border:1px solid #d1d5db;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer">수정</button>' : '')
         '</div>' +
         '</div>';
     }).join('');
