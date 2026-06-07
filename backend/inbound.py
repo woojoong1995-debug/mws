@@ -51,6 +51,10 @@ def add_inbound():
     if not body.get('cat'):
         body['cat'] = detect_category(body.get('name', ''))
 
+    # 담당자 정보 저장
+    if not body.get('person'):
+        body['person'] = '' 
+
     # 입고 종류 표시
     body['kind'] = 'in'
     body['depleted'] = False  # 소진 여부 초기값

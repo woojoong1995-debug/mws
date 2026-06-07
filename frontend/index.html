@@ -502,6 +502,9 @@
       <input type="text" id="in-route" placeholder="R-01">
     </div>
 
+    <label>담당자</label>
+    <input type="text" id="in-person" readonly style="background:#f3f4f6;color:#6b7280;cursor:not-allowed">
+    
     <label>입고일</label>
     <input type="date" id="in-date">
 
@@ -568,7 +571,7 @@
         </div>
 
         <label>담당자</label>
-        <input type="text" id="dp-person" placeholder="이름 입력 (필수)">
+        <input type="text" id="dp-person" readonly style="background:#f3f4f6;color:#6b7280;cursor:not-allowed">
 
         <label>불출 날짜</label>
         <input type="date" id="dp-date">
@@ -671,6 +674,9 @@
       <label>루트 번호</label>
       <input type="text" id="hj-route" placeholder="R-01">
     </div>
+    
+    <label>담당자</label>
+    <input type="text" id="hj-person" readonly style="background:#f3f4f6;color:#6b7280;cursor:not-allowed">
 
     <label>환입 날짜</label>
     <input type="date" id="hj-date">
@@ -948,6 +954,13 @@ function showMainApp() {
   } else {
     adminTab.style.display = 'none';
   }
+
+  // 입고/불출 담당자 자동 입력 (수정 불가)
+  var personFields = ['in-person', 'dp-person', 'hj-person'];
+  personFields.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = currentUser.name;
+  });
 }
 
 
@@ -1554,6 +1567,7 @@ async function submitInbound() {
 
   var body = {
     item_type : inType,
+    person: document.getElementById('in-person').value,
     wh, name, loc, qty, rolls, weight,
     code  : document.getElementById('in-code').value.trim(),
     lot   : document.getElementById('in-lot').value.trim(),
@@ -1834,6 +1848,7 @@ async function submitReturn() {
   var name = document.getElementById('hj-name').value.trim();
   var body = {
     item_type : hjType,
+    person: document.getElementById('hj-person').value,
     wh, code, name, loc, qty, rolls, weight,
     lot   : document.getElementById('hj-lot').value.trim(),
     cat   : document.getElementById('hj-cat').value || detectCat(name),

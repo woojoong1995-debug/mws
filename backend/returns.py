@@ -56,6 +56,10 @@ def add_return():
     if not body.get('cat'):
         body['cat'] = detect_category(body.get('name', ''))
 
+    # 담당자 정보 저장
+    if not body.get('person'):
+        body['person'] = ''
+
     # 환입 종류 표시
     body['kind']     = 'hwanjip'
     body['depleted'] = False
