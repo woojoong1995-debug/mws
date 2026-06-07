@@ -43,7 +43,7 @@ app = Flask(__name__)
 CORS(app, supports_credentials=True)  # 쿠키/세션 포함 허용
 
 # 세션 암호화 키 (서버 재시작 시 새로 생성)
-app.secret_key = secrets.token_hex(32)
+app.secret_key = '9e8e2ecca4466912b4ab36ad6da281f214b9478c2502f8fe8f7693f11f75c18d'
 
 # 세션 유지 시간 설정
 from datetime import timedelta
