@@ -24,7 +24,11 @@ def do_ocr():
     mime_type  = data.get('mime_type', 'image/jpeg')
 
     resp = requests.post(
-        f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}',
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+        headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {api_key}'
+        },
         json={
             'contents': [{
                 'parts': [
