@@ -38,6 +38,8 @@ from inbound   import inbound_bp
 from outbound  import outbound_bp
 from returns   import returns_bp
 from inventory import inventory_bp
+from ocr       import ocr_bp
+app.register_blueprint(ocr_bp)  # OCR API도 등록
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  # 쿠키/세션 포함 허용

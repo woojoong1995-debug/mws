@@ -2307,13 +2307,6 @@ async function doOCR(event) {
   var file = event.target.files[0];
   if (!file) return;
 
-  // API 키 확인
-  var apiKey = loadApiKey();
-  if (!apiKey) {
-    document.getElementById('ocr-status').textContent = 'Google AI Studio API 키를 먼저 입력하고 저장해주세요';
-    return;
-  }
-
   // 미리보기
   var reader = new FileReader();
   reader.onload = function(e) {
@@ -2334,33 +2327,22 @@ async function doOCR(event) {
       r.readAsDataURL(file);
     });
 
-    // Gemini API 호출
-    var resp = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { inline_data: { mime_type: file.type, data: b64 } },
-              { text: '창고 물류 식별표 이미지에서 정보를 추출해줘. 아래 JSON 형식으로만 응답하고 다른 텍스트는 절대 포함하지 마:\n{"품목명":"","품번":"","수량":"","롤수":"","무게":"","입고일":"","LotNo":"","규격":"","공급처":"","비고":"","유형":"일반 또는 원단"}\n날짜는 YYYY-MM-DD 형식. 없는 항목은 빈 문자열로.' }
-            ]
-          }],
-          generationConfig: { temperature: 0 }
-        })
-      }
-    );
+    // 서버 백엔드로 전송 (API 키는 서버에서 관리)
+    var resp = await fetch(API + '/ocr', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: b64, mime_type: file.type })
+    });
 
-    var data = await resp.json();
-    if (data.error) throw new Error(data.error.message);
-    var text = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
-    ocrData  = JSON.parse(text);
+    var json = await resp.json();
+    if (!json.success) throw new Error(json.message);
+    ocrData = json.data;
 
     // 추출 결과 표시
     var fields = [
       {k:'품목명',l:'품목명'}, {k:'품번',l:'품번'}, {k:'유형',l:'유형'},
-      {k:'수량',l:'수량'},     {k:'롤수',l:'롤 수'}, {k:'무게',l:'무게(kg)'},
+      {k:'수량',l:'수량'}, {k:'롤수',l:'롤 수'}, {k:'무게',l:'무게(kg)'},
       {k:'입고일',l:'입고일'}, {k:'LotNo',l:'Lot No.'}, {k:'비고',l:'비고'}
     ];
     var rows = fields.filter(function(f){ return ocrData[f.k]; }).map(function(f){
@@ -2372,12 +2354,7 @@ async function doOCR(event) {
     document.getElementById('ocr-status').textContent = '추출 완료! 확인 후 버튼을 눌러주세요';
 
   } catch(e) {
-    var msg = e.message || '';
-    if (msg.includes('401') || msg.includes('authentication')) {
-      document.getElementById('ocr-status').textContent = 'API 키가 올바르지 않습니다. 다시 확인해주세요';
-    } else {
-      document.getElementById('ocr-status').textContent = '오류: ' + (msg || 'API 호출에 실패했습니다');
-    }
+    document.getElementById('ocr-status').textContent = '오류: ' + (e.message || 'API 호출 실패');
   }
 }
 
