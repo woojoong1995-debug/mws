@@ -27,7 +27,7 @@ def do_ocr():
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
         headers={
             'Content-Type': 'application/json',
-            'Authorization': f'Bearer {api_key}'
+            'x-goog-api-key': api_key
         },
         json={
             'contents': [{
