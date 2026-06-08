@@ -391,6 +391,7 @@
     </div>
     <div style="text-align:right">
       <div style="font-size:13px;font-weight:600;color:#1a1a1a" id="header-name"></div>
+      <button id="btn-change-pw" style="font-size:11px;color:#6b7280;background:none;border:none;cursor:pointer;text-decoration:underline;margin-right:6px">비밀번호 변경</button>
       <button id="btn-logout" style="font-size:11px;color:#6b7280;background:none;border:none;cursor:pointer;text-decoration:underline">로그아웃</button>
     </div>
   </div>
@@ -748,9 +749,26 @@
   <div id="sec-ocr" class="section">
   <div class="card">
     <p style="font-size:14px;color:var(--txt2);margin-bottom:12px">
-      식별표를 찍으면 항목을 자동으로 읽어서 입고/환입 화면에 채워줘요<br>
-      <span style="font-size:12px;color:#9b1c1c">(Anthropic API 키 필요)</span>
+      식별표를 찍으면 항목을 자동으로 읽어서 입고/환입 화면에 채워줘요
     </p>
+
+    <!-- API 키 입력 영역 -->
+    <div style="margin-bottom:14px">
+      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">
+        Anthropic API 키
+        <span id="ocr-key-status" style="margin-left:6px;font-size:11px;font-weight:600;color:#dc2626">미설정</span>
+      </label>
+      <div style="display:flex;gap:6px">
+        <input type="password" id="ocr-api-key" placeholder="AIza..."
+          style="flex:1;padding:9px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:#f9fafb;color:var(--txt)">
+        <button id="btn-save-key"
+          style="padding:9px 14px;font-size:13px;font-weight:600;background:var(--txt);color:#fff;border:none;border-radius:var(--r-md);cursor:pointer;white-space:nowrap">
+          저장
+        </button>
+      </div>
+      <p style="font-size:11px;color:var(--txt2);margin-top:5px">키는 이 기기에만 저장되며 서버로 전송되지 않습니다</p>
+    </div>
+
     <input type="file" id="ocr-file" accept="image/*" capture="environment" style="display:none">
     <div id="ocr-area" class="ocr-area">
       <i class="ti ti-camera" style="font-size:36px;color:var(--txt2)"></i>
@@ -882,6 +900,28 @@
 </div>
 
 <div id="toast" class="toast"></div>
+
+<!-- 비밀번호 변경 모달 -->
+<div id="pw-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:center;padding:20px">
+  <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:380px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h3 style="font-size:16px;font-weight:600">비밀번호 변경</h3>
+      <button id="pw-modal-close" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280">✕</button>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">현재 비밀번호</label>
+      <input type="password" id="pw-current" placeholder="현재 비밀번호 입력"
+        style="width:100%;padding:11px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">새 비밀번호 (4자 이상)</label>
+      <input type="password" id="pw-new" placeholder="새 비밀번호 입력"
+        style="width:100%;padding:11px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+    </div>
+    <div id="pw-msg" style="display:none;margin-bottom:12px;padding:10px;border-radius:8px;font-size:13px;text-align:center"></div>
+    <button id="pw-submit" style="width:100%;padding:13px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">변경 완료</button>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════
   JavaScript
@@ -1202,6 +1242,16 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('btn-login').addEventListener('click', doLogin);
   document.getElementById('btn-register').addEventListener('click', doRegister);
   document.getElementById('btn-logout').addEventListener('click', doLogout);
+  document.getElementById('btn-change-pw').addEventListener('click', function(){
+    document.getElementById('pw-msg').style.display = 'none';
+    document.getElementById('pw-current').value = '';
+    document.getElementById('pw-new').value = '';
+    document.getElementById('pw-modal').style.display = 'flex';
+  });
+  document.getElementById('pw-modal-close').addEventListener('click', function(){
+    document.getElementById('pw-modal').style.display = 'none';
+  });
+  document.getElementById('pw-submit').addEventListener('click', doChangePassword);
 
   // 엔터키로 로그인
   document.getElementById('login-password').addEventListener('keydown', function(e){
@@ -1352,7 +1402,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // ─────────────────────────────────────
-  // OCR: 사진 촬영/선택
+  // OCR: 사진 촬영/선택 + API 키 저장
   // ─────────────────────────────────────
   document.getElementById('ocr-area').addEventListener('click', function(){
     document.getElementById('ocr-file').click();
@@ -1360,6 +1410,31 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('ocr-file').addEventListener('change', doOCR);
   document.getElementById('btn-ocr-in').addEventListener('click', applyOcrToInbound);
   document.getElementById('btn-ocr-hj').addEventListener('click', applyOcrToReturn);
+
+  // API 키 저장 버튼
+  document.getElementById('btn-save-key').addEventListener('click', function(){
+    var key = document.getElementById('ocr-api-key').value.trim();
+    if (!key) {
+      showToast('API 키를 입력해주세요');
+      return;
+    }
+    if (!key.startsWith('AIza')) {
+      showToast('올바른 Google AI Studio API 키 형식이 아닙니다 (AIza로 시작)');
+      return;
+    }
+    saveApiKey(key);
+    updateKeyStatus();
+    document.getElementById('ocr-api-key').value = '';
+    showToast('✓ API 키가 저장됐습니다');
+  });
+
+  // OCR 탭 진입 시 저장된 키 상태 표시
+  document.getElementById('nav-ocr').addEventListener('click', function(){
+    updateKeyStatus();
+  }, true);  // true = 캡처 단계 (switchTab보다 먼저 실행)
+
+  // 페이지 로드 시 키 상태 초기화
+  updateKeyStatus();
 
   // 수정 모달 이벤트
   document.getElementById('edit-close')    .addEventListener('click', function(){ document.getElementById('edit-modal').style.display = 'none'; });
@@ -2148,11 +2223,96 @@ async function cancelOutbound(id) {
 
 
 // ═══════════════════════════════════════════
-// OCR: 식별표 사진 분석
+// 비밀번호 변경
+// ═══════════════════════════════════════════
+async function doChangePassword() {
+  var current = document.getElementById('pw-current').value.trim();
+  var newPw   = document.getElementById('pw-new').value.trim();
+  var msgDiv  = document.getElementById('pw-msg');
+
+  if (!current || !newPw) {
+    msgDiv.style.display = 'block';
+    msgDiv.style.background = '#fef2f2';
+    msgDiv.style.color = '#dc2626';
+    msgDiv.textContent = '모든 항목을 입력하세요';
+    return;
+  }
+  if (newPw.length < 4) {
+    msgDiv.style.display = 'block';
+    msgDiv.style.background = '#fef2f2';
+    msgDiv.style.color = '#dc2626';
+    msgDiv.textContent = '새 비밀번호는 4자 이상이어야 합니다';
+    return;
+  }
+
+  try {
+    var res  = await fetch(API + '/auth/change-password', {
+      method     : 'POST',
+      headers    : { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body       : JSON.stringify({ current: current, new_password: newPw })
+    });
+    var json = await res.json();
+    msgDiv.style.display = 'block';
+    if (json.success) {
+      msgDiv.style.background = '#f0fdf4';
+      msgDiv.style.color = '#166534';
+      msgDiv.textContent = '✓ 비밀번호가 변경됐습니다';
+      document.getElementById('pw-current').value = '';
+      document.getElementById('pw-new').value = '';
+      setTimeout(function(){ document.getElementById('pw-modal').style.display = 'none'; }, 1500);
+    } else {
+      msgDiv.style.background = '#fef2f2';
+      msgDiv.style.color = '#dc2626';
+      msgDiv.textContent = json.message;
+    }
+  } catch(e) {
+    msgDiv.style.display = 'block';
+    msgDiv.style.background = '#fef2f2';
+    msgDiv.style.color = '#dc2626';
+    msgDiv.textContent = '서버 연결 오류';
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// OCR: API 키 저장/불러오기 (Gemini)
+// ═══════════════════════════════════════════
+function loadApiKey() {
+  return localStorage.getItem('cntech_gemini_key') || '';
+}
+function saveApiKey(key) {
+  localStorage.setItem('cntech_gemini_key', key.trim());
+}
+function updateKeyStatus() {
+  var key = loadApiKey();
+  var statusEl = document.getElementById('ocr-key-status');
+  var inputEl  = document.getElementById('ocr-api-key');
+  if (!statusEl) return;
+  if (key) {
+    statusEl.textContent = '✓ 설정됨';
+    statusEl.style.color = '#137333';
+    if (inputEl) inputEl.placeholder = '...' + key.slice(-4) + ' (저장됨)';
+  } else {
+    statusEl.textContent = '미설정';
+    statusEl.style.color = '#dc2626';
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// OCR: 식별표 사진 분석 (Gemini)
 // ═══════════════════════════════════════════
 async function doOCR(event) {
   var file = event.target.files[0];
   if (!file) return;
+
+  // API 키 확인
+  var apiKey = loadApiKey();
+  if (!apiKey) {
+    document.getElementById('ocr-status').textContent = 'Google AI Studio API 키를 먼저 입력하고 저장해주세요';
+    return;
+  }
 
   // 미리보기
   var reader = new FileReader();
@@ -2174,31 +2334,27 @@ async function doOCR(event) {
       r.readAsDataURL(file);
     });
 
-    // Claude API 호출 (API 키 필요)
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // 아래 키를 발급받은 API 키로 교체하세요
-        // 'x-api-key': 'sk-ant-여기에키입력',
-        // 'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: '창고 물류 식별표에서 정보를 추출해 JSON만 반환하세요.',
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: file.type, data: b64 } },
-            { type: 'text',  text: '식별표에서 항목 추출 후 JSON만 반환:\n{"품목명":"","품번":"","수량":"","롤수":"","무게":"","입고일":"","LotNo":"","규격":"","공급처":"","비고":"","유형":"일반 또는 원단"}\n날짜는 YYYY-MM-DD 형식.' }
-          ]
-        }]
-      })
-    });
+    // Gemini API 호출
+    var resp = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inline_data: { mime_type: file.type, data: b64 } },
+              { text: '창고 물류 식별표 이미지에서 정보를 추출해줘. 아래 JSON 형식으로만 응답하고 다른 텍스트는 절대 포함하지 마:\n{"품목명":"","품번":"","수량":"","롤수":"","무게":"","입고일":"","LotNo":"","규격":"","공급처":"","비고":"","유형":"일반 또는 원단"}\n날짜는 YYYY-MM-DD 형식. 없는 항목은 빈 문자열로.' }
+            ]
+          }],
+          generationConfig: { temperature: 0 }
+        })
+      }
+    );
 
     var data = await resp.json();
-    var text = data.content.map(function(c){ return c.text || ''; }).join('').replace(/```json|```/g, '').trim();
+    if (data.error) throw new Error(data.error.message);
+    var text = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
     ocrData  = JSON.parse(text);
 
     // 추출 결과 표시
@@ -2216,7 +2372,12 @@ async function doOCR(event) {
     document.getElementById('ocr-status').textContent = '추출 완료! 확인 후 버튼을 눌러주세요';
 
   } catch(e) {
-    document.getElementById('ocr-status').textContent = 'API 키를 설정해주세요 (OCR 탭 안내 참고)';
+    var msg = e.message || '';
+    if (msg.includes('401') || msg.includes('authentication')) {
+      document.getElementById('ocr-status').textContent = 'API 키가 올바르지 않습니다. 다시 확인해주세요';
+    } else {
+      document.getElementById('ocr-status').textContent = '오류: ' + (msg || 'API 호출에 실패했습니다');
+    }
   }
 }
 
