@@ -2304,7 +2304,7 @@ async function doOCR(event) {
       var url = URL.createObjectURL(file);
       img.onload = function() {
         var canvas = document.createElement('canvas');
-        var maxSize = 1280;
+        var maxSize = 900;
         var w = img.width, h = img.height;
         if (w > maxSize || h > maxSize) {
           if (w > h) { h = h * maxSize / w; w = maxSize; }
