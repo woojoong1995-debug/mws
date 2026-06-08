@@ -24,10 +24,11 @@ def do_ocr():
     mime_type  = data.get('mime_type', 'image/jpeg')
 
     resp = requests.post(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+        # flash 대신 부하가 적은 pro 모델로 변경
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent',
         headers={
             'Content-Type': 'application/json',
-            'x-goog-api-key': api_key
+            'x-goog-api-key': api_key  # 앞서 해결한 올바른 헤더 형식
         },
         json={
             'contents': [{
