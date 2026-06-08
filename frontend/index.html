@@ -752,23 +752,6 @@
       식별표를 찍으면 항목을 자동으로 읽어서 입고/환입 화면에 채워줘요
     </p>
 
-    <!-- API 키 입력 영역 -->
-    <div style="margin-bottom:14px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">
-        Anthropic API 키
-        <span id="ocr-key-status" style="margin-left:6px;font-size:11px;font-weight:600;color:#dc2626">미설정</span>
-      </label>
-      <div style="display:flex;gap:6px">
-        <input type="password" id="ocr-api-key" placeholder="API 키 입력..."
-          style="flex:1;padding:9px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:#f9fafb;color:var(--txt)">
-        <button id="btn-save-key"
-          style="padding:9px 14px;font-size:13px;font-weight:600;background:var(--txt);color:#fff;border:none;border-radius:var(--r-md);cursor:pointer;white-space:nowrap">
-          저장
-        </button>
-      </div>
-      <p style="font-size:11px;color:var(--txt2);margin-top:5px">키는 이 기기에만 저장되며 서버로 전송되지 않습니다</p>
-    </div>
-
     <input type="file" id="ocr-file" accept="image/*" capture="environment" style="display:none">
     <div id="ocr-area" class="ocr-area">
       <i class="ti ti-camera" style="font-size:36px;color:var(--txt2)"></i>
