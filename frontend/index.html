@@ -2302,12 +2302,26 @@ async function doOCR(event) {
   document.getElementById('ocr-result').style.display = 'none';
 
   try {
-    // 이미지를 Base64로 변환
+    // 이미지 압축 후 Base64 변환 (모바일 대용량 사진 대응)
     var b64 = await new Promise(function(resolve, reject) {
-      var r = new FileReader();
-      r.onload = function(){ resolve(r.result.split(',')[1]); };
-      r.onerror = reject;
-      r.readAsDataURL(file);
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var maxSize = 1280;
+        var w = img.width, h = img.height;
+        if (w > maxSize || h > maxSize) {
+          if (w > h) { h = h * maxSize / w; w = maxSize; }
+          else       { w = w * maxSize / h; h = maxSize; }
+        }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        URL.revokeObjectURL(url);
+        resolve(dataUrl.split(',')[1]);
+      };
+      img.onerror = reject;
+      img.src = url;
     });
 
     // 서버 백엔드로 전송 (API 키는 서버에서 관리)
