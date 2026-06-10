@@ -803,6 +803,18 @@
       <input type="text" id="edit-code" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
     </div>
 
+    <div style="margin-top:12px">
+      <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">카테고리</label>
+      <select id="edit-cat" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb">
+        <option value="카톤">카톤</option>
+        <option value="원단">원단</option>
+        <option value="단상자">단상자</option>
+        <option value="인박스">인박스</option>
+        <option value="손발원단">손발원단</option>
+        <option value="기타">기타</option>
+      </select>
+    </div>
+
     <!-- 일반 수량 -->
     <div id="edit-qty-normal" style="margin-top:12px">
       <label style="font-size:13px;color:#6b7280;display:block;margin-bottom:5px">수량</label>
@@ -2013,8 +2025,8 @@ async function loadHistory() {
         '<div class="item-top">' +
           '<div style="min-width:0">' +
             '<div class="item-name">' + (item.name || item.code || '-') + '</div>' +
-            '<div class="item-code">' + (item.code || '') +
-              ' · <b style="color:var(--blue)">' + (item.person || '미입력') + '</b>' +
+            '<div class="item-code">' + (item.code || '') + (item.lot ? ' · Lot:' + item.lot : '') +
+            ' · <b style="color:var(--blue)">' + (item.person || '미입력') + '</b>' +
             '</div>' +
           '</div>' +
           '<div class="item-right">' +
@@ -2068,6 +2080,7 @@ function openEditModal(id) {
       document.getElementById('edit-code').value  = item.code  || '';
       document.getElementById('edit-date').value  = item.date  || '';
       document.getElementById('edit-note').value  = item.note  || '';
+      document.getElementById('edit-cat').value = item.cat || '기타';
 
       // 수량 (유형에 따라)
       if (item.item_type === 'fabric') {
@@ -2139,6 +2152,7 @@ async function saveEdit() {
     loc   : loc,
     date  : document.getElementById('edit-date').value,
     note  : document.getElementById('edit-note').value,
+    cat   : document.getElementById('edit-cat').value,
   });
 
   if (editingData.item_type === 'fabric') {
