@@ -81,9 +81,12 @@ def detect_category(name):
     # 점, 공백, 특수문자 제거 후 비교
     n = name.lower().replace(' ', '').replace('.', '').replace('-', '')
     if '카톤'   in n: return '카톤'
-    if '원단'   in n: return '원단'
     if '단상자' in n: return '단상자'
     if '인박스' in n: return '인박스'
+
+    # 원단 중 손발원단 먼저 체크
+    if '원단' in n and ('발' in n or '손' in n or '마스크' in n): return '손발원단'
+    if '원단'   in n: return '원단'
     return '기타'
 
 
