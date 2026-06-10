@@ -1974,7 +1974,7 @@ async function loadStock() {
         '<div class="item-loc" style="display:flex;justify-content:space-between;align-items:center">' +
           '<span>📍 ' + (item.loc || '-') + ' · ' + item.date + '</span>' +
           (currentUser.role === 'admin' || item.created_by === currentUser.username ?
-          '<button class="edit-btn" data-id="' + item.id + '" style="font-size:11px;padding:3px 10px;border:1px solid #d1d5db;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer">수정</button>' : '')
+          '<button class="edit-btn" data-id="' + item.id + '" style="font-size:11px;padding:3px 10px;border:1px solid #d1d5db;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer">수정</button>' : '') +
         '</div>' +
         '</div>';
     }).join('');
