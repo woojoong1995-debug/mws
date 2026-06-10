@@ -1393,22 +1393,6 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('btn-ocr-in').addEventListener('click', applyOcrToInbound);
   document.getElementById('btn-ocr-hj').addEventListener('click', applyOcrToReturn);
 
-  // API 키 저장 버튼
-  document.getElementById('btn-save-key').addEventListener('click', function(){
-    var key = document.getElementById('ocr-api-key').value.trim();
-    if (!key) {
-      showToast('API 키를 입력해주세요');
-      return;
-    }
-    if (key.length < 10) {
-      showToast('API 키가 너무 짧습니다. 다시 확인해주세요');
-      return;
-    }
-    saveApiKey(key);
-    updateKeyStatus();
-    document.getElementById('ocr-api-key').value = '';
-    showToast('✓ API 키가 저장됐습니다');
-  });
 
   // OCR 탭 진입 시 저장된 키 상태 표시
   document.getElementById('nav-ocr').addEventListener('click', function(){
