@@ -17,5 +17,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /root/mws
-            git pull origin main
+            git fetch origin main
+            git checkout origin/main -- frontend/index.html backend/main.py backend/inbound.py backend/outbound.py backend/returns.py backend/inventory.py backend/auth.py backend/users.py backend/user_db.py backend/database.py backend/ocr.py
             systemctl restart warehouse
