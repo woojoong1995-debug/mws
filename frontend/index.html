@@ -222,9 +222,9 @@
     .fifo-row.selected   { background: rgba(26,86,219,0.1); border: 1px solid var(--blue); border-radius: var(--r-md); }
     .fifo-n    { font-size: 22px; font-weight: 700; color: var(--yellow); min-width: 32px; }
     .fifo-info { flex: 1; padding: 0 8px; }
-    .fifo-name { font-size: 13px; font-weight: 600; color: var(--yellow); }
-    .fifo-sub  { font-size: 12px; color: var(--yellow); opacity: .8; margin-top: 2px; }
-    .fifo-dt   { font-size: 12px; font-weight: 600; color: var(--yellow); white-space: nowrap; }
+    .fifo-name { font-size: 13px; font-weight: 600; color: var(--txt); }
+    .fifo-sub  { font-size: 12px; color: var(--txt2); margin-top: 2px; }
+    .fifo-dt   { font-size: 12px; font-weight: 600; color: var(--txt2); white-space: nowrap; }
 
     /* ─────────────────────────────────────
        재고 목록
@@ -664,7 +664,7 @@
     <!-- 2단계: 품목 선택 (같은 끝자리 여러 개일 때) -->
     <div id="dp-step2" style="display:none">
       <div class="card">
-        <p style="font-size:13px;font-weight:600;margin-bottom:10px">해당 품목을 선택하세요</p>
+        <p style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--txt)">해당 품목을 선택하세요</p>
         <div id="dp-item-list"></div>
       </div>
     </div>
@@ -1987,12 +1987,13 @@ async function selectDpItem(item) {
     // FIFO 목록 렌더링
     var rows = list.map(function(m, idx) {
       var qty  = m.item_type === 'fabric' ? (m.rolls + '롤/' + m.weight + 'kg' + (m.meters ? '/' + m.meters + 'm' : '')) : (m.qty + '개');
+      var lotTxt = m.lot ? ' · Lot:' + m.lot : '';
       var tag  = m.kind === 'hwanjip' ? '<span class="hj-tag">환입</span>' : '';
       return '<div class="fifo-row" data-id="' + m.id + '">' +
         '<div class="fifo-n">' + (idx + 1) + '</div>' +
         '<div class="fifo-info">' +
           '<div class="fifo-name">' + (m.name || m.code) + tag + '</div>' +
-          '<div class="fifo-sub">📍 ' + (m.loc || '-') + ' · ' + qty + '</div>' +
+          '<div class="fifo-sub">📍 ' + (m.loc || '-') + ' · ' + qty + (m.lot ? ' · Lot:' + m.lot : '') + '</div>' +
         '</div>' +
         '<div class="fifo-dt">' + m.date + '</div>' +
         '</div>';
