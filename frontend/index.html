@@ -235,7 +235,7 @@
     .item-name { font-size: 14px; font-weight: 600; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .item-code { font-size: 12px; color: var(--txt2); margin-top: 2px; }
     .item-right{ text-align: right; flex-shrink: 0; }
-    .item-qty  { font-size: 15px; font-weight: 600; margin-top: 3px; }
+    .item-qty  { font-size: 15px; font-weight: 600; margin-top: 3px; color: var(--txt); }
     .item-loc  { font-size: 12px; color: var(--txt2); margin-top: 3px; }
 
     /* 배지 (D동/천막/환입) */
@@ -956,6 +956,15 @@
     <div style="margin-top:12px">
       <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">품번</label>
       <input type="text" id="edit-code" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+    </div>
+
+    <!-- 품목 유형 토글 -->
+    <div style="margin-top:12px">
+      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">품목 유형</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div id="edit-type-normal" class="tbtn on" onclick="setEditType('normal')" style="cursor:pointer">일반</div>
+        <div id="edit-type-fabric" class="tbtn" onclick="setEditType('fabric')" style="cursor:pointer">원단</div>
+      </div>
     </div>
 
     <div style="margin-top:12px">
@@ -2315,15 +2324,12 @@ function openEditModal(id) {
       document.getElementById('edit-cat').value = item.cat || '기타';
 
       // 수량 (유형에 따라)
+      setEditType(item.item_type === 'fabric' ? 'fabric' : 'normal');
       if (item.item_type === 'fabric') {
-        document.getElementById('edit-qty-normal').style.display = 'none';
-        document.getElementById('edit-qty-fabric').style.display = 'block';
         document.getElementById('edit-rolls').value   = item.rolls   || 0;
         document.getElementById('edit-weight').value  = item.weight  || 0;
         document.getElementById('edit-meters').value  = item.meters  || 0;
       } else {
-        document.getElementById('edit-qty-normal').style.display = 'block';
-        document.getElementById('edit-qty-fabric').style.display = 'none';
         document.getElementById('edit-qty').value = item.qty || 0;
       }
 
@@ -2374,6 +2380,14 @@ function buildEditLoc() {
 }
 
 // 수정 모달 저장
+function setEditType(type) {
+  document.getElementById('edit-type-normal').classList.toggle('on', type === 'normal');
+  document.getElementById('edit-type-fabric').classList.toggle('on', type === 'fabric');
+  document.getElementById('edit-qty-normal').style.display = type === 'normal' ? 'block' : 'none';
+  document.getElementById('edit-qty-fabric').style.display = type === 'fabric' ? 'block' : 'none';
+  if (editingData) editingData.item_type = type;
+}
+
 async function saveEdit() {
   if (!editingId || !editingData) return;
 
