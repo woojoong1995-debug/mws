@@ -396,17 +396,17 @@
     <!-- 로고 -->
     <div style="text-align:center;margin-bottom:24px">
       <img src="/logo.jpg" style="height:52px;object-fit:contain">
-      <p style="font-size:12px;color:#6b7280;margin-top:6px">재고 관리 시스템</p>
+      <p style="font-size:12px;color:var(--txt2);margin-top:6px">재고 관리 시스템</p>
     </div>
 
     <!-- 탭: 로그인 / 회원가입 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;background:#f3f4f6;border-radius:10px;padding:3px;margin-bottom:20px">
       <button id="tab-login" onclick="showAuthTab('login')"
-        style="padding:9px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#fff;color:#1a1a1a;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
+        style="padding:9px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#fff;color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,0.1)">
         로그인
       </button>
       <button id="tab-register" onclick="showAuthTab('register')"
-        style="padding:9px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:transparent;color:#6b7280">
+        style="padding:9px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:transparent;color:var(--txt2)">
         회원가입
       </button>
     </div>
@@ -451,7 +451,7 @@
         style="width:100%;padding:13px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">
         가입 신청
       </button>
-      <p style="font-size:12px;color:#6b7280;text-align:center;margin-top:10px">운영자 승인 후 로그인 가능합니다</p>
+      <p style="font-size:12px;color:var(--txt2);text-align:center;margin-top:10px">운영자 승인 후 로그인 가능합니다</p>
       <div id="reg-msg" style="display:none;margin-top:10px;padding:10px;border-radius:8px;font-size:13px;text-align:center"></div>
     </div>
 
@@ -634,7 +634,7 @@
     </div>
 
     <label>담당자</label>
-    <input type="text" id="in-person" readonly style="background:#f3f4f6;color:#6b7280;cursor:not-allowed">
+    <input type="text" id="in-person" readonly style="background:#f3f4f6;color:var(--txt2);cursor:not-allowed">
     
     <label>입고일</label>
     <input type="date" id="in-date">
@@ -705,7 +705,7 @@
         </div>
 
         <label>담당자</label>
-        <input type="text" id="dp-person" readonly style="background:#f3f4f6;color:#6b7280;cursor:not-allowed">
+        <input type="text" id="dp-person" readonly style="background:#f3f4f6;color:var(--txt2);cursor:not-allowed">
 
         <label>불출 날짜</label>
         <input type="date" id="dp-date">
@@ -809,7 +809,7 @@
     </div>
     
     <label>담당자</label>
-    <input type="text" id="hj-person" readonly style="background:#f3f4f6;color:#6b7280;cursor:not-allowed">
+    <input type="text" id="hj-person" readonly style="background:#f3f4f6;color:var(--txt2);cursor:not-allowed">
 
     <label>환입 날짜</label>
     <input type="date" id="hj-date">
@@ -863,8 +863,8 @@
   <div id="sec-history" class="section">
     <div style="display:flex;gap:6px;margin-bottom:12px">
       <button class="hist-tab on" data-kind="out" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#1a1a1a;color:#fff;cursor:pointer">불출</button>
-      <button class="hist-tab" data-kind="in" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#f9fafb;color:#6b7280;cursor:pointer">입고</button>
-      <button class="hist-tab" data-kind="hwanjip" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#f9fafb;color:#6b7280;cursor:pointer">환입</button>
+      <button class="hist-tab" data-kind="in" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">입고</button>
+      <button class="hist-tab" data-kind="hwanjip" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">환입</button>
     </div>
     <div class="stats">
       <div class="stat"><div class="stat-l">전체 불출</div><div class="stat-v" id="hs-total">0</div></div>
@@ -936,10 +936,10 @@
 <div id="reset-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:center">
   <div style="background:#fff;border-radius:16px;padding:24px;width:calc(100% - 48px);max-width:380px;position:relative;z-index:1001">
     <h3 style="font-size:16px;font-weight:700;color:#dc2626;margin-bottom:8px">⚠️ 전체 데이터 초기화</h3>
-    <p style="font-size:13px;color:#6b7280;margin-bottom:16px">모든 재고 데이터가 삭제됩니다. 비밀번호를 입력해 확인하세요.</p>
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:16px">모든 재고 데이터가 삭제됩니다. 비밀번호를 입력해 확인하세요.</p>
     <input type="password" id="reset-pw" placeholder="운영자 비밀번호" style="width:100%;padding:10px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;margin-bottom:12px">
     <button id="btn-reset-confirm" style="width:100%;padding:12px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px">삭제 확인</button>
-    <button id="btn-reset-cancel" style="width:100%;padding:12px;background:#f3f4f6;color:#1a1a1a;border:none;border-radius:8px;font-size:15px;cursor:pointer">취소</button>
+    <button id="btn-reset-cancel" style="width:100%;padding:12px;background:#f3f4f6;color:var(--txt);border:none;border-radius:8px;font-size:15px;cursor:pointer">취소</button>
   </div>
 </div>
 
@@ -952,7 +952,7 @@
   <div style="background:#fff;border-radius:16px 16px 0 0;padding:20px 20px 40px 20px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;position:relative;z-index:1001">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <h3 style="font-size:16px;font-weight:600" id="edit-title">항목 수정</h3>
-      <button id="edit-close" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280">✕</button>
+      <button id="edit-close" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--txt2)">✕</button>
     </div>
 
     <div id="edit-name-row">
@@ -1075,7 +1075,7 @@
   <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:380px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
       <h3 style="font-size:16px;font-weight:600">비밀번호 변경</h3>
-      <button id="pw-modal-close" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280">✕</button>
+      <button id="pw-modal-close" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--txt2)">✕</button>
     </div>
     <div style="margin-bottom:12px">
       <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">현재 비밀번호</label>
@@ -1309,7 +1309,7 @@ async function loadUsers() {
     document.getElementById('admin-pending').textContent = pending;
 
     if (!users.length) {
-      list.innerHTML = '<p style="text-align:center;color:#6b7280;padding:24px 0">직원 없음</p>';
+      list.innerHTML = '<p style="text-align:center;color:var(--txt2);padding:24px 0">직원 없음</p>';
       return;
     }
 
@@ -1936,7 +1936,7 @@ async function searchBySuffix() {
     // 여러 개면 선택 목록 표시
     document.getElementById('dp-step2').style.display = 'block';
     document.getElementById('dp-item-list').innerHTML = unique.map(function(item) {
-      return '<div class="dp-item-card" data-code="' + item.code + '" style="padding:12px;border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:8px;cursor:pointer;background:#f9fafb">' +
+      return '<div class="dp-item-card" data-code="' + item.code + '" style="padding:12px;border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:8px;cursor:pointer;background:var(--card);color:var(--txt)">' +
         '<div style="font-size:14px;font-weight:600;color:var(--txt)">' + (item.name || '-') + '</div>' +
         '<div style="font-size:12px;color:var(--txt2);margin-top:3px">' + item.code + '</div>' +
         '</div>';
