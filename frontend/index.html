@@ -31,6 +31,117 @@
       --yellow-b  : #f6d860;
     }
 
+    /* 다크모드 */
+    [data-theme="dark"] {
+      --bg        : #0a0a0a;
+      --card      : #1c1c1e;
+      --border    : #2c2c2e;
+      --border2   : #3a3a3c;
+      --txt       : #f2f2f7;
+      --txt2      : #8e8e93;
+      --blue      : #0a84ff;
+      --blue-bg   : #0a84ff22;
+      --green     : #30d158;
+      --green-bg  : #30d15822;
+      --yellow    : #ffd60a;
+      --yellow-bg : #ffd60a22;
+      --yellow-b  : #ffd60a;
+    }
+
+    [data-theme="dark"] input,
+    [data-theme="dark"] select,
+    [data-theme="dark"] textarea {
+      background: #2c2c2e !important;
+      color: #f2f2f7 !important;
+      border-color: #3a3a3c !important;
+    }
+    [data-theme="dark"] input::placeholder { color: #636366; }
+    [data-theme="dark"] input[readonly] { background: #1c1c1e !important; color: #8e8e93 !important; }
+
+    /* ─────────────────────────────────────
+       홈 화면
+    ───────────────────────────────────── */
+    .home-header {
+      padding: 20px 4px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .home-greeting { font-size: 22px; font-weight: 700; color: var(--txt); line-height: 1.3; }
+    .home-date { font-size: 12px; color: var(--txt2); }
+
+    .home-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .home-stat {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .home-stat-label { font-size: 12px; color: var(--txt2); margin-bottom: 6px; }
+    .home-stat-value { font-size: 28px; font-weight: 700; color: var(--txt); line-height: 1; }
+    .home-stat-unit  { font-size: 13px; color: var(--txt2); margin-left: 2px; }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .home-icon-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px 8px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .home-icon-btn:active { transform: scale(0.94); }
+    .home-icon-wrap {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+    .home-icon-label { font-size: 12px; font-weight: 600; color: var(--txt); }
+    .home-icon-badge {
+      position: absolute; top: 10px; right: 10px;
+      background: #ff3b30;
+      color: #fff;
+      font-size: 10px; font-weight: 700;
+      min-width: 18px; height: 18px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 4px;
+    }
+
+    /* 테마 토글 버튼 */
+    .theme-toggle {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 500;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg);
@@ -309,7 +420,6 @@
     }
     .toast.show { opacity: 1; }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js"></script>
 </head>
 <body>
 <!-- ══════════════════════════════════════
@@ -388,25 +498,97 @@
 
   <!-- 로고 + 사용자 정보 -->
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <div class="app-title" style="margin-bottom:0;text-align:left">
+    <div class="app-title" style="margin-bottom:0;text-align:left;cursor:pointer" id="logo-btn">
       <img src="/logo.jpg" alt="C&Tech" style="height:36px">
     </div>
     <div style="text-align:right">
-      <div style="font-size:13px;font-weight:600;color:#1a1a1a" id="header-name"></div>
-      <button id="btn-change-pw" style="font-size:11px;color:#6b7280;background:none;border:none;cursor:pointer;text-decoration:underline;margin-right:6px">비밀번호 변경</button>
-      <button id="btn-logout" style="font-size:11px;color:#6b7280;background:none;border:none;cursor:pointer;text-decoration:underline">로그아웃</button>
+      <div style="font-size:13px;font-weight:600;color:var(--txt)" id="header-name"></div>
+      <button id="btn-change-pw" style="font-size:11px;color:var(--txt2);background:none;border:none;cursor:pointer;text-decoration:underline;margin-right:6px">비밀번호 변경</button>
+      <button id="btn-logout" style="font-size:11px;color:var(--txt2);background:none;border:none;cursor:pointer;text-decoration:underline">로그아웃</button>
     </div>
   </div>
 
-  <!-- 탭 네비게이션: id로 JS에서 이벤트 등록 -->
+  <!-- 탭 네비게이션 -->
   <div class="nav">
-    
-    <button id="nav-inbound" class="active">입고</button>
+    <button id="nav-home" class="active">홈</button>
+    <button id="nav-inbound">입고</button>
     <button id="nav-dispatch">불출</button>
     <button id="nav-hwanjip">환입</button>
     <button id="nav-stock">재고</button>
     <button id="nav-history">이력</button>
-    <button id="nav-admin" style="display:none;color:#dc2626">직원</button>
+    <button id="nav-admin" style="display:none;color:#ff3b30">직원</button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+    [0] 홈 탭
+  ══════════════════════════════════════ -->
+  <div id="sec-home" class="section active">
+    <div class="home-header">
+      <div>
+        <div class="home-greeting" id="home-greeting">안녕하세요 👋</div>
+        <div class="home-date" id="home-date"></div>
+      </div>
+    </div>
+
+    <!-- 오늘 통계 -->
+    <div class="home-stats">
+      <div class="home-stat">
+        <div class="home-stat-label">오늘 입고</div>
+        <div><span class="home-stat-value" id="home-today-in">0</span><span class="home-stat-unit">건</span></div>
+      </div>
+      <div class="home-stat">
+        <div class="home-stat-label">오늘 불출</div>
+        <div><span class="home-stat-value" id="home-today-out">0</span><span class="home-stat-unit">건</span></div>
+      </div>
+      <div class="home-stat">
+        <div class="home-stat-label">전체 재고</div>
+        <div><span class="home-stat-value" id="home-total-stock">0</span><span class="home-stat-unit">건</span></div>
+      </div>
+      <div class="home-stat">
+        <div class="home-stat-label">전체 입고</div>
+        <div><span class="home-stat-value" id="home-total-in">0</span><span class="home-stat-unit">건</span></div>
+      </div>
+    </div>
+
+    <!-- 앱 아이콘 그리드 -->
+    <div class="home-grid">
+      <div class="home-icon-btn" onclick="switchTab('inbound', document.getElementById('nav-inbound'))">
+        <div class="home-icon-wrap" style="background:linear-gradient(135deg,#1c1c1e,#3a3a3c)">
+          <i class="ti ti-package-import" style="color:#fff"></i>
+        </div>
+        <span class="home-icon-label">입고</span>
+      </div>
+      <div class="home-icon-btn" onclick="switchTab('dispatch', document.getElementById('nav-dispatch'))">
+        <div class="home-icon-wrap" style="background:linear-gradient(135deg,#0a84ff,#0066cc)">
+          <i class="ti ti-package-export" style="color:#fff"></i>
+        </div>
+        <span class="home-icon-label">불출</span>
+      </div>
+      <div class="home-icon-btn" onclick="switchTab('hwanjip', document.getElementById('nav-hwanjip'))">
+        <div class="home-icon-wrap" style="background:linear-gradient(135deg,#30d158,#25a244)">
+          <i class="ti ti-arrow-back-up" style="color:#fff"></i>
+        </div>
+        <span class="home-icon-label">환입</span>
+      </div>
+      <div class="home-icon-btn" onclick="switchTab('stock', document.getElementById('nav-stock'))">
+        <div class="home-icon-wrap" style="background:linear-gradient(135deg,#ff9f0a,#cc7a00)">
+          <i class="ti ti-box" style="color:#fff"></i>
+        </div>
+        <span class="home-icon-label">재고</span>
+      </div>
+      <div class="home-icon-btn" onclick="switchTab('history', document.getElementById('nav-history'))">
+        <div class="home-icon-wrap" style="background:linear-gradient(135deg,#bf5af2,#9b3dd6)">
+          <i class="ti ti-history" style="color:#fff"></i>
+        </div>
+        <span class="home-icon-label">이력</span>
+      </div>
+      <div class="home-icon-btn" id="home-admin-btn" style="display:none" onclick="switchTab('admin', document.getElementById('nav-admin'))">
+        <div class="home-icon-wrap" style="background:linear-gradient(135deg,#ff3b30,#cc2020)">
+          <i class="ti ti-users" style="color:#fff"></i>
+        </div>
+        <span class="home-icon-label">직원관리</span>
+      </div>
+    </div>
   </div>
 
   <!-- ══════════════════════════════════════
@@ -512,12 +694,6 @@
 
     <label>비고</label>
     <input type="text" id="in-note" placeholder="선택 입력">
-
-    <!-- OCR 카메라 버튼 -->
-    <input type="file" id="ocr-file-in" accept="image/*" capture="environment" style="display:none">
-    <button id="btn-ocr-camera-in" class="btn btn-light" style="margin-bottom:8px">📷 식별표 촬영으로 자동 입력</button>
-
-    <button id="btn-submit-in" class="btn btn-dark">입고 등록</button>
 
     <button id="btn-submit-in" class="btn btn-dark">입고 등록</button>
   </div>
@@ -690,12 +866,6 @@
     <label>비고</label>
     <input type="text" id="hj-note" placeholder="선택 입력">
 
-    <!-- OCR 카메라 버튼 -->
-    <input type="file" id="ocr-file-hj" accept="image/*" capture="environment" style="display:none">
-    <button id="btn-ocr-camera-hj" class="btn btn-light" style="margin-bottom:8px">📷 식별표 촬영으로 자동 입력</button>
-
-    <button id="btn-submit-hj" class="btn btn-dark">환입 등록</button>
-
     <button id="btn-submit-hj" class="btn btn-dark">환입 등록</button>
   </div>
   </div>
@@ -793,10 +963,30 @@
     <div class="card" style="padding:6px 14px">
       <div id="admin-list"><div class="loading">불러오는 중...</div></div>
     </div>
+    <!-- 데이터 초기화 -->
+    <div class="card" style="border:1px solid #fca5a5;margin-top:8px">
+      <p style="font-size:13px;font-weight:600;color:#dc2626;margin-bottom:4px">⚠️ 위험 구역</p>
+      <p style="font-size:12px;color:#6b7280;margin-bottom:12px">전체 재고 데이터를 삭제합니다. 복구 불가능합니다.</p>
+      <button id="btn-reset-data" class="btn" style="background:#dc2626;color:#fff;width:100%">전체 데이터 초기화</button>
+    </div>
   </div>
 
 </div><!-- /.app -->
 </div><!-- /#main-app -->
+
+<!-- 다크모드 토글 버튼 -->
+<button class="theme-toggle" id="btn-theme" title="테마 변경">🌙</button>
+
+<!-- 데이터 초기화 확인 모달 -->
+<div id="reset-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:center">
+  <div style="background:#fff;border-radius:16px;padding:24px;width:calc(100% - 48px);max-width:380px;position:relative;z-index:1001">
+    <h3 style="font-size:16px;font-weight:700;color:#dc2626;margin-bottom:8px">⚠️ 전체 데이터 초기화</h3>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:16px">모든 재고 데이터가 삭제됩니다. 비밀번호를 입력해 확인하세요.</p>
+    <input type="password" id="reset-pw" placeholder="운영자 비밀번호" style="width:100%;padding:10px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;margin-bottom:12px">
+    <button id="btn-reset-confirm" style="width:100%;padding:12px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px">삭제 확인</button>
+    <button id="btn-reset-cancel" style="width:100%;padding:12px;background:#f3f4f6;color:#1a1a1a;border:none;border-radius:8px;font-size:15px;cursor:pointer">취소</button>
+  </div>
+</div>
 
 <!-- 수정 모달 -->
 <div id="edit-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom)">
@@ -986,12 +1176,15 @@ function showMainApp() {
   // 헤더에 이름 표시
   document.getElementById('header-name').textContent = currentUser.name + ' 님';
 
-  // 운영자면 직원 관리 탭 표시
+  // 운영자면 직원 관리 탭 + 홈 아이콘 표시
   var adminTab = document.getElementById('nav-admin');
+  var adminHomeBtn = document.getElementById('home-admin-btn');
   if (currentUser.role === 'admin') {
     adminTab.style.display = 'block';
+    if (adminHomeBtn) adminHomeBtn.style.display = 'flex';
   } else {
     adminTab.style.display = 'none';
+    if (adminHomeBtn) adminHomeBtn.style.display = 'none';
   }
 
   // 입고/불출 담당자 자동 입력 (수정 불가)
@@ -1000,6 +1193,20 @@ function showMainApp() {
     var el = document.getElementById(id);
     if (el) el.value = currentUser.name;
   });
+
+  // 홈 화면 날짜/인사말
+  var days = ['일','월','화','수','목','금','토'];
+  var now = new Date();
+  document.getElementById('home-greeting').textContent = currentUser.name + ' 님, 안녕하세요 👋';
+  document.getElementById('home-date').textContent =
+    now.getFullYear() + '년 ' + (now.getMonth()+1) + '월 ' + now.getDate() + '일 (' + days[now.getDay()] + ')';
+
+  // 홈 통계 로드
+  loadHomeStats();
+
+  // currentTab 초기화 후 홈으로
+  currentTab = '';
+  switchTab('home', document.getElementById('nav-home'));
 }
 
 
@@ -1280,12 +1487,30 @@ document.addEventListener('DOMContentLoaded', function () {
   // ─────────────────────────────────────
   // 탭 네비게이션 이벤트
   // ─────────────────────────────────────
+  document.getElementById('nav-home')    .addEventListener('click', function(){ switchTab('home',     this); });
   document.getElementById('nav-inbound') .addEventListener('click', function(){ switchTab('inbound',  this); });
   document.getElementById('nav-dispatch').addEventListener('click', function(){ switchTab('dispatch', this); });
   document.getElementById('nav-hwanjip') .addEventListener('click', function(){ switchTab('hwanjip',  this); });
   document.getElementById('nav-stock')   .addEventListener('click', function(){ switchTab('stock',    this); });
   document.getElementById('nav-history') .addEventListener('click', function(){ switchTab('history',  this); });
   document.getElementById('nav-admin')   .addEventListener('click', function(){ switchTab('admin',    this); });
+
+  // 로고 클릭 → 홈으로
+  document.getElementById('logo-btn').addEventListener('click', function(){
+    switchTab('home', document.getElementById('nav-home'));
+  });
+
+  // 다크모드 토글
+  var savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('btn-theme').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+  document.getElementById('btn-theme').addEventListener('click', function(){
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    this.textContent = next === 'dark' ? '☀️' : '🌙';
+  });
 
   // ─────────────────────────────────────
   // 입고: 품목 유형 토글
@@ -1341,6 +1566,34 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('hj-floc').addEventListener('input',  function(){ updateLocPreview('hj'); });
   document.getElementById('hj-name').addEventListener('input',  function(){ autoCat('hj'); });
   document.getElementById('btn-submit-hj').addEventListener('click', submitReturn);
+
+  // ─────────────────────────────────────
+  // 데이터 초기화 : 이벤트
+  // ─────────────────────────────────────
+  document.getElementById('btn-reset-data').addEventListener('click', function(){
+    document.getElementById('reset-pw').value = '';
+    document.getElementById('reset-modal').style.display = 'flex';
+  });
+  document.getElementById('btn-reset-cancel').addEventListener('click', function(){
+    document.getElementById('reset-modal').style.display = 'none';
+  });
+  document.getElementById('btn-reset-confirm').addEventListener('click', async function(){
+    var pw = document.getElementById('reset-pw').value.trim();
+    if (!pw) { showToast('비밀번호를 입력하세요'); return; }
+    var res = await fetch(API + '/reset-data', {
+      method: 'POST', credentials: 'include',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pw })
+    });
+    var json = await res.json();
+    if (json.success) {
+      document.getElementById('reset-modal').style.display = 'none';
+      showToast('✓ 전체 데이터가 초기화됐습니다');
+      loadHomeStats();
+    } else {
+      showToast('오류: ' + json.message);
+    }
+  });
 
   // ─────────────────────────────────────
   // 재고: 검색 + 카테고리 필터
@@ -1410,18 +1663,13 @@ document.addEventListener('DOMContentLoaded', function () {
   // ─────────────────────────────────────
   // OCR: 사진 촬영/선택 + API 키 저장
   // ─────────────────────────────────────
-  document.getElementById('btn-ocr-camera-in').addEventListener('click', function(){
-    document.getElementById('ocr-file-in').click();
+  document.getElementById('ocr-area').addEventListener('click', function(){
+    document.getElementById('ocr-file').click();
   });
-  document.getElementById('ocr-file-in').addEventListener('change', function(e){
-    doOCR(e).then(function(){ applyOcrToInbound(); });
-  });
-  document.getElementById('btn-ocr-camera-hj').addEventListener('click', function(){
-    document.getElementById('ocr-file-hj').click();
-  });
-  document.getElementById('ocr-file-hj').addEventListener('change', function(e){
-    doOCR(e).then(function(){ applyOcrToReturn(); });
-  });
+  document.getElementById('ocr-file').addEventListener('change', doOCR);
+  document.getElementById('btn-ocr-in').addEventListener('click', applyOcrToInbound);
+  document.getElementById('btn-ocr-hj').addEventListener('click', applyOcrToReturn);
+
 
   // OCR 탭 진입 시 저장된 키 상태 표시
   document.getElementById('nav-ocr').addEventListener('click', function(){
@@ -1485,11 +1733,33 @@ function switchTab(name, btn) {
   if (name === 'stock')   loadStock();
   if (name === 'history') loadHistory();
   if (name === 'admin')   loadUsers();
+  if (name === 'home')    loadHomeStats();
 }
 
 
 // ═══════════════════════════════════════════
-// 품목 유형 토글 (일반/원단)
+// 홈 통계 로드
+// ═══════════════════════════════════════════
+async function loadHomeStats() {
+  try {
+    var today = new Date().toISOString().slice(0,10);
+    var [invRes, outRes] = await Promise.all([
+      fetch(API + '/inventory', { credentials: 'include' }),
+      fetch(API + '/history?kind=out&date=' + today, { credentials: 'include' })
+    ]);
+    var inv = await invRes.json();
+    var out = await outRes.json();
+
+    document.getElementById('home-today-in').textContent    = inv.today_in  || 0;
+    document.getElementById('home-total-in').textContent    = inv.total_in  || 0;
+    document.getElementById('home-total-stock').textContent = (inv.data || []).length;
+    document.getElementById('home-today-out').textContent   = out.today     || 0;
+  } catch(e) {
+    console.log('홈 통계 로드 실패', e);
+  }
+}
+
+
 // prefix: 'in'=입고, 'dp'=불출, 'hj'=환입
 // ═══════════════════════════════════════════
 function setType(prefix, type) {
@@ -1761,7 +2031,7 @@ async function selectDpItem(item) {
         '<div class="fifo-n">' + (idx + 1) + '</div>' +
         '<div class="fifo-info">' +
           '<div class="fifo-name">' + (m.name || m.code) + tag + '</div>' +
-          '<div class="fifo-sub">📍 ' + (m.loc || '-') + ' · ' + qty + (m.lot ? ' · Lot:' + m.lot : '') + '</div>' +
+          '<div class="fifo-sub">📍 ' + (m.loc || '-') + ' · ' + qty + '</div>' +
         '</div>' +
         '<div class="fifo-dt">' + m.date + '</div>' +
         '</div>';
@@ -1878,12 +2148,11 @@ function resetDispatch() {
   document.getElementById('dp-step2').style.display = 'none';
   document.getElementById('dp-step3').style.display = 'none';
   document.getElementById('dp-fifo-wrap').innerHTML = '';
-  ['dp-qty','dp-rolls','dp-weight','dp-note'].forEach(function(id){
+  ['dp-qty','dp-rolls','dp-weight','dp-person','dp-note'].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.value = '';
   });
   setType('dp', 'normal');
-  switchTab('dispatch', document.getElementById('nav-dispatch'));
 }
 
 
@@ -2305,19 +2574,6 @@ async function doOCR(event) {
   var file = event.target.files[0];
   if (!file) return;
 
-  // HEIC 변환 (아이폰 사진 대응)
-  if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic') {
-    try {
-      document.getElementById('ocr-status').textContent = '아이폰 사진 변환 중...';
-      var convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 });
-      file = new File([convertedBlob], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
-    } catch (heicError) {
-      console.error('HEIC 변환 실패:', heicError);
-      showToast('아이폰 사진 변환 실패. 다시 시도해주세요');
-      return;
-    }
-  }
-
   // 미리보기
   var reader = new FileReader();
   reader.onload = function(e) {
@@ -2379,7 +2635,7 @@ async function doOCR(event) {
     document.getElementById('ocr-status').textContent = '추출 완료! 확인 후 버튼을 눌러주세요';
 
   } catch(e) {
-    showToast('OCR 오류: ' + (e.message || 'API 호출 실패'));
+    document.getElementById('ocr-status').textContent = '오류: ' + (e.message || 'API 호출 실패');
   }
 }
 

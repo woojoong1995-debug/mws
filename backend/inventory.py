@@ -175,3 +175,21 @@ def remove_record(record_id):
     if delete_record(record_id):
         return jsonify({'success': True, 'message': '삭제 완료'})
     return jsonify({'success': False, 'message': '항목을 찾을 수 없습니다'}), 404
+
+@inventory_bp.route('/api/reset-data', methods=['POST'])
+def reset_data():
+    """
+    전체 데이터 초기화 (운영자 전용)
+    비밀번호 확인 후 data.json 전체 삭제
+    """
+    if session.get('role') != 'admin':
+        return jsonify({'success': False, 'message': '운영자만 가능합니다'}), 403
+    body = request.get_json()
+    password = (body.get('password') or '').strip()
+    from user_db import load_users, hash_password
+    users = load_users()
+    me = next((u for u in users if u.get('id') == session['user_id']), None)
+    if not me or me.get('password') != hash_password(password):
+        return jsonify({'success': False, 'message': '비밀번호가 틀렸습니다'}), 401
+    save_data([])
+    return jsonify({'success': True, 'message': '전체 데이터가 초기화됐습니다'})
