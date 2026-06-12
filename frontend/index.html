@@ -624,11 +624,12 @@
       <input type="text" id="in-po" placeholder="PO-2024">
     </div>
 
-    <!-- 원단: 롤수 + 무게  -->
+    <!-- 원단: 롤수 + 무게 + 길이(m) -->
     <div id="in-qty-fabric" style="display:none">
-      <div class="row2">
+      <div class="row3">
         <div><label>롤 수</label><input type="number" id="in-rolls" min="0" step="0.1" placeholder="0.0"></div>
         <div><label>무게 (kg)</label><input type="number" id="in-weight" min="0" step="0.1" placeholder="0.0"></div>
+        <div><label>길이 (m)</label><input type="number" id="in-meters" min="0" step="0.1" placeholder="0.0"></div>
       </div>
     </div>
 
@@ -695,9 +696,10 @@
         </div>
 
         <div id="dp-qty-fabric" style="display:none">
-          <div class="row2">
+          <div class="row3">
             <div><label>롤 수</label><input type="number" id="dp-rolls" min="0" step="0.1" placeholder="0.0"></div>
             <div><label>무게 (kg)</label><input type="number" id="dp-weight" min="0" step="0.1" placeholder="0.0"></div>
+            <div><label>길이 (m)</label><input type="number" id="dp-meters" min="0" step="0.1" placeholder="0.0"></div>
           </div>
           <button id="btn-max-fabric" style="width:100%;margin-top:8px;padding:9px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:var(--r-md);cursor:pointer">MAX (전량)</button>
         </div>
@@ -799,9 +801,10 @@
     </div>
 
     <div id="hj-qty-fabric" style="display:none">
-      <div class="row2">
+      <div class="row3">
         <div><label>롤 수</label><input type="number" id="hj-rolls" min="0" step="0.1" placeholder="예: 2.5"></div>
         <div><label>무게 (kg)</label><input type="number" id="hj-weight" min="0" step="0.1" placeholder="0.0"></div>
+        <div><label>길이 (m)</label><input type="number" id="hj-meters" min="0" step="0.1" placeholder="0.0"></div>
       </div>
     </div>
     
@@ -1821,10 +1824,11 @@ async function submitInbound() {
   if (!name) { showToast('품목명을 입력하세요'); return; }
   if (!loc)  { showToast('위치를 입력하세요');   return; }
 
-  var qty = 0, rolls = 0, weight = 0;
+  var qty = 0, rolls = 0, weight = 0, meters = 0;
   if (inType === 'fabric') {
-    rolls  = parseFloat(document.getElementById('in-rolls').value)  || 0;
-    weight = parseFloat(document.getElementById('in-weight').value) || 0;
+    rolls  = parseFloat(document.getElementById('in-rolls').value)   || 0;
+    weight = parseFloat(document.getElementById('in-weight').value)  || 0;
+    meters = parseFloat(document.getElementById('in-meters').value)  || 0;
     qty    = rolls;
   } else {
     qty = parseFloat(document.getElementById('in-qty').value) || 0;
@@ -1833,7 +1837,7 @@ async function submitInbound() {
   var body = {
     item_type : inType,
     person: document.getElementById('in-person').value,
-    wh, name, loc, qty, rolls, weight,
+    wh, name, loc, qty, rolls, weight, meters,
     code  : document.getElementById('in-code').value.trim(),
     lot   : document.getElementById('in-lot').value.trim(),
     cat   : document.getElementById('in-cat').value || detectCat(name),
@@ -1849,7 +1853,7 @@ async function submitInbound() {
     if (json.success) {
       showToast('✓ 입고 등록 완료!');
       // 입력 필드 초기화
-      ['in-name','in-code','in-lot','in-qty','in-rn','in-fl','in-floc','in-route','in-po','in-rolls','in-weight','in-note'].forEach(function(id){
+      ['in-name','in-code','in-lot','in-qty','in-rn','in-fl','in-floc','in-route','in-po','in-rolls','in-weight','in-meters','in-note'].forEach(function(id){
         var el = document.getElementById(id);
         if (el) el.value = '';
       });
@@ -1958,7 +1962,7 @@ async function selectDpItem(item) {
 
     // FIFO 목록 렌더링
     var rows = list.map(function(m, idx) {
-      var qty  = m.item_type === 'fabric' ? (m.rolls + '롤/' + m.weight + 'kg') : (m.qty + '개');
+      var qty  = m.item_type === 'fabric' ? (m.rolls + '롤/' + m.weight + 'kg' + (m.meters ? '/' + m.meters + 'm' : '')) : (m.qty + '개');
       var tag  = m.kind === 'hwanjip' ? '<span class="hj-tag">환입</span>' : '';
       return '<div class="fifo-row" data-id="' + m.id + '">' +
         '<div class="fifo-n">' + (idx + 1) + '</div>' +
@@ -1990,8 +1994,9 @@ async function selectDpItem(item) {
 
         // MAX 자동 입력
         if (found.item_type === 'fabric') {
-          document.getElementById('dp-rolls').value  = found.rolls  || 0;
-          document.getElementById('dp-weight').value = found.weight || 0;
+          document.getElementById('dp-rolls').value   = found.rolls   || 0;
+          document.getElementById('dp-weight').value  = found.weight  || 0;
+          document.getElementById('dp-meters').value  = found.meters  || 0;
         } else {
           document.getElementById('dp-qty').value = found.qty || 0;
         }
@@ -2015,8 +2020,9 @@ async function selectDpItem(item) {
 function setMaxQty() {
   if (!selectedFifoItem) { showToast('먼저 항목을 선택하세요'); return; }
   if (selectedFifoItem.item_type === 'fabric') {
-    document.getElementById('dp-rolls').value  = selectedFifoItem.rolls  || 0;
-    document.getElementById('dp-weight').value = selectedFifoItem.weight || 0;
+    document.getElementById('dp-rolls').value   = selectedFifoItem.rolls   || 0;
+    document.getElementById('dp-weight').value  = selectedFifoItem.weight  || 0;
+    document.getElementById('dp-meters').value  = selectedFifoItem.meters  || 0;
   } else {
     document.getElementById('dp-qty').value = selectedFifoItem.qty || 0;
   }
@@ -2033,10 +2039,11 @@ async function submitDispatch() {
   var person = document.getElementById('dp-person').value.trim();
   if (!person) { showToast('담당자 이름을 입력하세요'); return; }
 
-  var qty = 0, rolls = 0, weight = 0;
+  var qty = 0, rolls = 0, weight = 0, meters = 0;
   if (dpType === 'fabric') {
-    rolls  = parseFloat(document.getElementById('dp-rolls').value)  || 0;
-    weight = parseFloat(document.getElementById('dp-weight').value) || 0;
+    rolls  = parseFloat(document.getElementById('dp-rolls').value)   || 0;
+    weight = parseFloat(document.getElementById('dp-weight').value)  || 0;
+    meters = parseFloat(document.getElementById('dp-meters').value)  || 0;
     qty    = rolls;
   } else {
     qty = parseFloat(document.getElementById('dp-qty').value) || 0;
@@ -2051,7 +2058,7 @@ async function submitDispatch() {
         item_type : dpType,
         code      : selectedDpItem.code,
         name      : selectedDpItem.name,
-        person, qty, rolls, weight,
+        person, qty, rolls, weight, meters,
         from_id  : selectedFifoItem.id,
         from_loc : selectedFifoItem.loc || '',
         date     : document.getElementById('dp-date').value,
@@ -2081,7 +2088,7 @@ function resetDispatch() {
   document.getElementById('dp-step2').style.display = 'none';
   document.getElementById('dp-step3').style.display = 'none';
   document.getElementById('dp-fifo-wrap').innerHTML = '';
-  ['dp-qty','dp-rolls','dp-weight','dp-person','dp-note'].forEach(function(id){
+  ['dp-qty','dp-rolls','dp-weight','dp-meters','dp-person','dp-note'].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -2101,10 +2108,11 @@ async function submitReturn() {
   if (!code) { showToast('품번을 입력하세요');   return; }
   if (!loc)  { showToast('위치를 입력하세요');   return; }
 
-  var qty = 0, rolls = 0, weight = 0;
+  var qty = 0, rolls = 0, weight = 0, meters = 0;
   if (hjType === 'fabric') {
-    rolls  = parseFloat(document.getElementById('hj-rolls').value)  || 0;
-    weight = parseFloat(document.getElementById('hj-weight').value) || 0;
+    rolls  = parseFloat(document.getElementById('hj-rolls').value)   || 0;
+    weight = parseFloat(document.getElementById('hj-weight').value)  || 0;
+    meters = parseFloat(document.getElementById('hj-meters').value)  || 0;
     qty    = rolls;
   } else {
     qty = parseFloat(document.getElementById('hj-qty').value) || 0;
@@ -2114,7 +2122,7 @@ async function submitReturn() {
   var body = {
     item_type : hjType,
     person: document.getElementById('hj-person').value,
-    wh, code, name, loc, qty, rolls, weight,
+    wh, code, name, loc, qty, rolls, weight, meters,
     lot   : document.getElementById('hj-lot').value.trim(),
     cat   : document.getElementById('hj-cat').value || detectCat(name),
     po    : hjType === 'normal' ? document.getElementById('hj-po').value    : '',
@@ -2128,7 +2136,7 @@ async function submitReturn() {
     var json = await res.json();
     if (json.success) {
       showToast('✓ 환입 등록 완료!');
-      ['hj-code','hj-name','hj-lot','hj-qty','hj-po','hj-rolls','hj-weight','hj-route','hj-rn','hj-fl','hj-floc','hj-note'].forEach(function(id){
+      ['hj-code','hj-name','hj-lot','hj-qty','hj-po','hj-rolls','hj-weight','hj-meters','hj-route','hj-rn','hj-fl','hj-floc','hj-note'].forEach(function(id){
         var el = document.getElementById(id);
         if (el) el.value = '';
       });
@@ -2171,7 +2179,7 @@ async function loadStock() {
     list.innerHTML = items.slice().reverse().map(function(item) {
       var badgeCls   = item.kind === 'hwanjip' ? 'b-r' : item.wh === 'D' ? 'b-d' : 'b-t';
       var badgeLabel = item.kind === 'hwanjip' ? '환입' : item.wh === 'D' ? 'D동' : '천막';
-      var qtyTxt     = item.item_type === 'fabric' ? (item.rolls + '롤/' + item.weight + 'kg') : (item.qty + '개');
+      var qtyTxt     = item.item_type === 'fabric' ? (item.rolls + '롤/' + item.weight + 'kg' + (item.meters ? '/' + item.meters + 'm' : '')) : (item.qty + '개');
       var catLabel   = item.cat ? '<span class="cat-lbl cl-' + item.cat + '">' + item.cat + '</span>' : '';
       var depCls     = item.depleted ? 'depleted' : '';
       var depBadge   = item.depleted ? '<span class="depleted-badge">소진</span>' : '';
@@ -2239,7 +2247,7 @@ async function loadHistory() {
 
     list.innerHTML = outs.map(function(item) {
       var qtyTxt = item.item_type === 'fabric'
-        ? (item.rolls + '롤/' + item.weight + 'kg')
+        ? (item.rolls + '롤/' + item.weight + 'kg' + (item.meters ? '/' + item.meters + 'm' : ''))
         : (item.qty + '개');
       return '<div class="item">' +
         '<div class="item-top">' +
