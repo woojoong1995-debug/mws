@@ -61,7 +61,7 @@ def add_return():
         body['person'] = ''
 
     # 등록자 저장 (수정 권한 체크용)
-    body['created_by'] = session.get('useername', '')  # 로그인한
+    body['created_by'] = session.get('username', '')  # 로그인한
 
     # 환입 종류 표시
     body['kind']     = 'hwanjip'

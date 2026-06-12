@@ -56,7 +56,7 @@ def add_inbound():
         body['person'] = '' 
 
     # 등록자 저장 (수정 권한 체크용)
-    body['created_by'] = session.get('useername', '')  # 로그인한 사용자 ID 저장, 없으면 'unknown'
+    body['created_by'] = session.get('username', '')
 
     # 입고 종류 표시
     body['kind'] = 'in'

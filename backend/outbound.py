@@ -49,7 +49,7 @@ def get_fifo():
     matches = [
         d for d in data
         if d.get('kind') in ('in', 'hwanjip')
-        and code.upper() in (d.get('code') or '').upper()
+        and (d.get('code') or '').upper().endswith(code.upper())
         and not d.get('depleted')
         and ((d.get('qty') or 0) > 0 or (d.get('rolls') or 0) > 0)
     ]
