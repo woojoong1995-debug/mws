@@ -831,6 +831,15 @@
       <div class="stat"><div class="stat-l">전체 입고</div><div class="stat-v" id="st-total">0</div></div>
       <div class="stat"><div class="stat-l">오늘 입고</div><div class="stat-v" id="st-today">0</div></div>
     </div>
+
+    <!-- 창고 탭 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:12px">
+      <button id="st-wh-all" class="tbtn on" onclick="setStockWh('all')">전체</button>
+      <button id="st-wh-D" class="tbtn" onclick="setStockWh('D')">D동</button>
+      <button id="st-wh-T" class="tbtn" onclick="setStockWh('T')">천막동</button>
+      <button id="st-wh-hj" class="tbtn" onclick="setStockWh('hj')">환입</button>
+    </div>
+
     <div class="cat-filter">
       <button class="cat-btn on" data-cat="">전체</button>
       <button class="cat-btn" data-cat="카톤">카톤</button>
@@ -844,9 +853,7 @@
       <i class="ti ti-search s-ico"></i>
       <input type="text" id="st-q" placeholder="품목명, 품번, 위치 검색">
     </div>
-    <div class="card" style="padding:6px 14px">
-      <div id="stock-list"><div class="loading">재고 탭을 눌러 불러오세요</div></div>
-    </div>
+    <div id="stock-list"></div>
     <button id="btn-export" class="btn btn-light" style="margin-top:0">엑셀(CSV) 내보내기</button>
   </div>
 
@@ -869,7 +876,7 @@
       <p style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:10px">기간 검색</p>
       <div>
         <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">날짜 선택</label>
-        <input type="date" id="hs-date" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:#f9fafb">
+        <input type="date" id="hs-date" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:var(--card);color:var(--txt)">
       </div>
     </div>
 
@@ -1684,7 +1691,11 @@ function switchTab(name, btn) {
   document.getElementById('sec-' + name).classList.add('active');
   btn.classList.add('active');
   if (name === 'stock')   loadStock();
-  if (name === 'history') loadHistory();
+  if (name === 'history') {
+    var todayStr = new Date().toISOString().slice(0,10);
+    document.getElementById('hs-date').value = todayStr;
+    loadHistory();
+  }
   if (name === 'admin')   loadUsers();
   if (name === 'home')    loadHomeStats();
 }
@@ -2167,6 +2178,17 @@ async function submitReturn() {
 // ═══════════════════════════════════════════
 // 재고 목록 로드
 // ═══════════════════════════════════════════
+var currentStockWh = 'all';
+
+function setStockWh(wh) {
+  currentStockWh = wh;
+  ['all','D','T','hj'].forEach(function(w) {
+    var el = document.getElementById('st-wh-' + w);
+    if (el) el.classList.toggle('on', w === wh);
+  });
+  loadStock();
+}
+
 async function loadStock() {
   var q    = document.getElementById('st-q').value.trim();
   var list = document.getElementById('stock-list');
@@ -2184,41 +2206,86 @@ async function loadStock() {
     document.getElementById('st-total').textContent = json.total_in || 0;
     document.getElementById('st-today').textContent = json.today_in || 0;
 
+    // 창고 필터
+    if (currentStockWh === 'D')  items = items.filter(function(i){ return i.wh === 'D' && i.kind !== 'hwanjip'; });
+    if (currentStockWh === 'T')  items = items.filter(function(i){ return i.wh === 'T' && i.kind !== 'hwanjip'; });
+    if (currentStockWh === 'hj') items = items.filter(function(i){ return i.kind === 'hwanjip'; });
+
     if (!items.length) {
       list.innerHTML = '<p style="text-align:center;color:var(--txt2);padding:24px 0;font-size:14px">항목 없음</p>';
       return;
     }
 
-    list.innerHTML = items.slice().reverse().map(function(item) {
-      var badgeCls   = item.kind === 'hwanjip' ? 'b-r' : item.wh === 'D' ? 'b-d' : 'b-t';
-      var badgeLabel = item.kind === 'hwanjip' ? '환입' : item.wh === 'D' ? 'D동' : '천막';
-      var qtyTxt     = item.item_type === 'fabric' ? (item.rolls + '롤/' + item.weight + 'kg' + (item.meters ? '/' + item.meters + 'm' : '')) : (item.qty + '개');
-      var catLabel   = item.cat ? '<span class="cat-lbl cl-' + item.cat + '">' + item.cat + '</span>' : '';
-      var depCls     = item.depleted ? 'depleted' : '';
-      var depBadge   = item.depleted ? '<span class="depleted-badge">소진</span>' : '';
+    // 품번 기준 그룹핑
+    var groups = {};
+    var groupOrder = [];
+    items.slice().reverse().forEach(function(item) {
+      var key = item.code || item.name || 'unknown';
+      if (!groups[key]) {
+        groups[key] = { items: [], name: item.name, code: item.code, cat: item.cat, totalQty: 0, totalRolls: 0, totalMeters: 0 };
+        groupOrder.push(key);
+      }
+      groups[key].items.push(item);
+      if (item.item_type === 'fabric') {
+        groups[key].totalRolls  += (item.rolls  || 0);
+        groups[key].totalMeters += (item.meters || 0);
+      } else {
+        groups[key].totalQty += (item.qty || 0);
+      }
+    });
 
-      return '<div class="item ' + depCls + '">' +
-        '<div class="item-top">' +
-          '<div style="min-width:0">' +
-            '<div class="item-name">' + (item.name || '-') + catLabel + depBadge + '</div>' +
-            '<div class="item-code">' + (item.code || '') + (item.lot ? ' · Lot:' + item.lot : '') + '</div>' +
+    var html = groupOrder.map(function(key, gi) {
+      var g = groups[key];
+      var isFabric = g.items[0].item_type === 'fabric';
+      var totalTxt = isFabric
+        ? (g.totalRolls + '롤' + (g.totalMeters ? '/' + g.totalMeters.toFixed(1) + 'm' : ''))
+        : (g.totalQty + '개');
+      var catLabel = g.cat ? '<span class="cat-lbl cl-' + g.cat + '">' + g.cat + '</span>' : '';
+      var count = g.items.length;
+
+      var rows = g.items.map(function(item) {
+        var badgeCls   = item.kind === 'hwanjip' ? 'b-r' : item.wh === 'D' ? 'b-d' : 'b-t';
+        var badgeLabel = item.kind === 'hwanjip' ? '환입' : item.wh === 'D' ? 'D동' : '천막';
+        var qtyTxt     = isFabric ? (item.rolls + '롤/' + item.weight + 'kg' + (item.meters ? '/' + item.meters + 'm' : '')) : (item.qty + '개');
+        var depCls     = item.depleted ? 'depleted' : '';
+        var depBadge   = item.depleted ? '<span class="depleted-badge">소진</span>' : '';
+        var canEdit    = currentUser.role === 'admin' || item.created_by === currentUser.username;
+        return '<div class="stock-row ' + depCls + '" style="padding:10px 0;border-top:1px solid var(--border)">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+            '<div style="min-width:0;flex:1">' +
+              '<div style="font-size:12px;color:var(--txt2)">' + (item.lot ? 'Lot:' + item.lot : '-') + depBadge + '</div>' +
+              '<div style="font-size:12px;color:var(--txt2);margin-top:2px">📍 ' + (item.loc || '-') + ' · ' + item.date + '</div>' +
+            '</div>' +
+            '<div style="text-align:right;flex-shrink:0;margin-left:8px">' +
+              '<span class="badge ' + badgeCls + '" style="display:block;margin-bottom:4px">' + badgeLabel + '</span>' +
+              '<div class="item-qty" style="font-size:13px">' + qtyTxt + '</div>' +
+              (canEdit ? '<button class="edit-btn" data-id="' + item.id + '" style="margin-top:4px;font-size:11px;padding:3px 10px;border:1px solid var(--border2);border-radius:6px;background:var(--card);color:var(--txt);cursor:pointer">수정</button>' : '') +
+            '</div>' +
           '</div>' +
-          '<div class="item-right">' +
-            '<span class="badge ' + badgeCls + '">' + badgeLabel + '</span>' +
-            '<div class="item-qty">' + qtyTxt + '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="item-loc" style="display:flex;justify-content:space-between;align-items:center">' +
-          '<span>📍 ' + (item.loc || '-') + ' · ' + item.date + '</span>' +
-          (currentUser.role === 'admin' || item.created_by === currentUser.username ?
-          '<button class="edit-btn" data-id="' + item.id + '" style="font-size:11px;padding:3px 10px;border:1px solid #d1d5db;border-radius:6px;background:#f9fafb;color:#374151;cursor:pointer">수정</button>' : '') +
-        '</div>' +
         '</div>';
+      }).join('');
+
+      return '<div class="stock-group-card" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px">' +
+        '<div class="stock-group-header" data-gi="' + gi + '" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleStockGroup(' + gi + ')">' +
+          '<div style="min-width:0;flex:1">' +
+            '<div style="font-size:14px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (g.name || '-') + catLabel + '</div>' +
+            '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + (g.code || '') + ' · ' + count + '건</div>' +
+          '</div>' +
+          '<div style="text-align:right;flex-shrink:0;margin-left:8px">' +
+            '<div style="font-size:16px;font-weight:700;color:var(--txt)">' + totalTxt + '</div>' +
+            '<div style="font-size:12px;color:var(--txt2);margin-top:2px" id="stock-arrow-' + gi + '">▼ 펼치기</div>' +
+          '</div>' +
+        '</div>' +
+        '<div id="stock-detail-' + gi + '" style="display:none">' + rows + '</div>' +
+      '</div>';
     }).join('');
+
+    list.innerHTML = html;
 
     // 수정 버튼 이벤트
     document.querySelectorAll('.edit-btn').forEach(function(btn) {
-      btn.addEventListener('click', function() {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
         openEditModal(parseInt(this.dataset.id));
       });
     });
@@ -2226,6 +2293,15 @@ async function loadStock() {
   } catch(e) {
     list.innerHTML = '<p style="text-align:center;color:#9b1c1c;padding:24px 0;font-size:14px">서버에 연결할 수 없습니다</p>';
   }
+}
+
+function toggleStockGroup(gi) {
+  var detail = document.getElementById('stock-detail-' + gi);
+  var arrow  = document.getElementById('stock-arrow-' + gi);
+  if (!detail) return;
+  var open = detail.style.display === 'block';
+  detail.style.display = open ? 'none' : 'block';
+  arrow.textContent = open ? '▼ 펼치기' : '▲ 접기';
 }
 
 

@@ -185,8 +185,8 @@ def get_history():
     today    = date.today()
     today_str = today.isoformat()
 
-    # 3개월(90일) 이전 이력 자동 삭제
-    cutoff = (today - timedelta(days=90)).isoformat()
+    # 2개월(60일) 이전 이력 자동 삭제
+    cutoff = (today - timedelta(days=60)).isoformat()
     data   = load_data()
     before = len(data)
     data   = [d for d in data if not (d.get('kind') == 'out' and d.get('date', '') < cutoff)]
