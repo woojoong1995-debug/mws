@@ -457,6 +457,7 @@
 <div class="app" id="main-app" style="display:none">
 
   <!-- 로고 가운데 -->
+  <div id="header-name" style="display:none"></div>
   <div style="display:flex;justify-content:center;margin-bottom:16px">
     <div style="cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.1)" id="logo-btn">
       <img id="logo-img" src="/a-logo.png" alt="C&Tech" style="height:52px;display:block;object-fit:contain">
@@ -479,15 +480,14 @@
   ══════════════════════════════════════ -->
   <div id="sec-home" class="section active">
     <div class="home-header">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
           <div class="home-greeting" id="home-greeting">안녕하세요 👋</div>
           <div class="home-date" id="home-date"></div>
         </div>
-        <div style="text-align:right;flex-shrink:0;margin-left:12px">
-          <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:4px" id="header-name"></div>
-          <button id="btn-change-pw" style="font-size:11px;color:var(--txt2);background:none;border:none;cursor:pointer;text-decoration:underline;margin-right:6px">비밀번호 변경</button>
-          <button id="btn-logout" style="font-size:11px;color:var(--txt2);background:none;border:none;cursor:pointer;text-decoration:underline">로그아웃</button>
+        <div style="display:flex;gap:8px;flex-shrink:0;margin-left:12px">
+          <button id="btn-change-pw" style="font-size:12px;color:var(--txt2);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer">비밀번호 변경</button>
+          <button id="btn-logout" style="font-size:12px;color:#ff3b30;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer">로그아웃</button>
         </div>
       </div>
     </div>
