@@ -960,6 +960,19 @@
 
 </div><!-- /.app -->
 
+<!-- 홈 이동 확인 모달 -->
+<div id="home-confirm-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:2000;justify-content:center;align-items:center">
+  <div style="background:var(--card);border-radius:16px;padding:24px;width:calc(100% - 48px);max-width:320px;position:relative;z-index:2001;text-align:center">
+    <div style="font-size:32px;margin-bottom:12px">🏠</div>
+    <h3 style="font-size:16px;font-weight:700;color:var(--txt);margin-bottom:8px">홈으로 이동</h3>
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:20px">홈 화면으로 돌아가시겠습니까?</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button id="btn-home-cancel" style="padding:12px;background:var(--border);color:var(--txt);border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">취소</button>
+      <button id="btn-home-confirm" style="padding:12px;background:var(--txt);color:var(--card);border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">홈으로</button>
+    </div>
+  </div>
+</div>
+
 <!-- 데이터 초기화 확인 모달 -->
 <div id="reset-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:center">
   <div style="background:#fff;border-radius:16px;padding:24px;width:calc(100% - 48px);max-width:380px;position:relative;z-index:1001">
@@ -1616,14 +1629,18 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('nav-home')    .addEventListener('click', function(){ switchTab('home',     this); });
   document.getElementById('logo-btn').addEventListener('click', function(){
     if (currentTab === 'home') return;
-    if (confirm('홈으로 돌아가시겠습니까?')) {
-      // nav가 숨겨져 있어도 동작하도록 직접 처리
-      currentTab = '';
-      document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
-      document.getElementById('sec-home').classList.add('active');
-      currentTab = 'home';
-      loadHomeStats();
-    }
+    document.getElementById('home-confirm-modal').style.display = 'flex';
+  });
+  document.getElementById('btn-home-cancel').addEventListener('click', function(){
+    document.getElementById('home-confirm-modal').style.display = 'none';
+  });
+  document.getElementById('btn-home-confirm').addEventListener('click', function(){
+    document.getElementById('home-confirm-modal').style.display = 'none';
+    currentTab = '';
+    document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('sec-home').classList.add('active');
+    currentTab = 'home';
+    loadHomeStats();
   });
 
   // 다크모드 토글
