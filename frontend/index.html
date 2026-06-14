@@ -391,7 +391,7 @@
 
     <!-- 로고 -->
     <div style="text-align:center;margin-bottom:24px">
-      <img src="/logo.png" style="height:52px;object-fit:contain">
+      <img id="login-logo-img" src="/a-logo.jpeg" style="height:52px;object-fit:contain">
       <p style="font-size:12px;color:var(--txt2);margin-top:6px">재고 관리 시스템</p>
     </div>
 
@@ -459,7 +459,7 @@
   <!-- 로고 + 사용자 정보 -->
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
     <div class="app-title" style="margin-bottom:0;text-align:left;cursor:pointer;padding:8px;margin:-8px;-webkit-tap-highlight-color:rgba(0,0,0,0.1)" id="logo-btn">
-      <img src="/logo.png" alt="C&Tech" style="height:36px;display:block">
+      <img id="logo-img" src="/a-logo.jpeg" alt="C&Tech" style="height:36px;display:block">
     </div>
     <div style="text-align:right">
       <div style="font-size:13px;font-weight:600;color:var(--txt)" id="header-name"></div>
@@ -1647,12 +1647,22 @@ document.addEventListener('DOMContentLoaded', function () {
   var savedTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
   document.getElementById('btn-theme').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+  updateLogoTheme(savedTheme);
+  function updateLogoTheme(theme) {
+    var src = theme === 'dark' ? '/b-logo.jpeg' : '/a-logo.jpeg';
+    var logoImg = document.getElementById('logo-img');
+    var loginLogoImg = document.getElementById('login-logo-img');
+    if (logoImg) logoImg.src = src;
+    if (loginLogoImg) loginLogoImg.src = src;
+  }
+
   document.getElementById('btn-theme').addEventListener('click', function(){
     var cur = document.documentElement.getAttribute('data-theme');
     var next = cur === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
     this.textContent = next === 'dark' ? '☀️' : '🌙';
+    updateLogoTheme(next);
   });
 
   // ─────────────────────────────────────
