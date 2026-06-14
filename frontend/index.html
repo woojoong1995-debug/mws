@@ -456,17 +456,10 @@
 
 <div class="app" id="main-app" style="display:none">
 
-  <!-- 로고 + 사용자 정보 -->
-  <div style="position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:16px;min-height:60px">
-    <!-- 가운데 로고 -->
+  <!-- 로고 가운데 -->
+  <div style="display:flex;justify-content:center;margin-bottom:16px">
     <div style="cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.1)" id="logo-btn">
       <img id="logo-img" src="/a-logo.png" alt="C&Tech" style="height:52px;display:block;object-fit:contain">
-    </div>
-    <!-- 오른쪽 사용자 정보 -->
-    <div style="position:absolute;right:0;text-align:right">
-      <div style="font-size:13px;font-weight:600;color:var(--txt)" id="header-name"></div>
-      <button id="btn-change-pw" style="font-size:11px;color:var(--txt2);background:none;border:none;cursor:pointer;text-decoration:underline;margin-right:6px">비밀번호 변경</button>
-      <button id="btn-logout" style="font-size:11px;color:var(--txt2);background:none;border:none;cursor:pointer;text-decoration:underline">로그아웃</button>
     </div>
   </div>
 
@@ -486,8 +479,17 @@
   ══════════════════════════════════════ -->
   <div id="sec-home" class="section active">
     <div class="home-header">
-      <div class="home-greeting" id="home-greeting">안녕하세요 👋</div>
-      <div class="home-date" id="home-date"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="home-greeting" id="home-greeting">안녕하세요 👋</div>
+          <div class="home-date" id="home-date"></div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:12px">
+          <div style="font-size:13px;font-weight:600;color:var(--txt);margin-bottom:4px" id="header-name"></div>
+          <button id="btn-change-pw" style="font-size:11px;color:var(--txt2);background:none;border:none;cursor:pointer;text-decoration:underline;margin-right:6px">비밀번호 변경</button>
+          <button id="btn-logout" style="font-size:11px;color:var(--txt2);background:none;border:none;cursor:pointer;text-decoration:underline">로그아웃</button>
+        </div>
+      </div>
     </div>
     <div class="home-stats">
       <div class="home-stat">
