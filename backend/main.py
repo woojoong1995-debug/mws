@@ -89,9 +89,9 @@ def index():
     return send_from_directory(FRONTEND_DIR, 'index.html')
 
 # 로고 이미지
-@app.route('/logo.jpg')
+@app.route('/logo.png')
 def logo():
-    return send_from_directory(FRONTEND_DIR, 'logo.jpg')
+    return send_from_directory(FRONTEND_DIR, 'logo.png')
 
 
 if __name__ == '__main__':

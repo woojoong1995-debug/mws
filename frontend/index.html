@@ -395,7 +395,7 @@
 
     <!-- 로고 -->
     <div style="text-align:center;margin-bottom:24px">
-      <img src="/logo.jpg" style="height:52px;object-fit:contain">
+      <img src="/logo.png" style="height:52px;object-fit:contain">
       <p style="font-size:12px;color:var(--txt2);margin-top:6px">재고 관리 시스템</p>
     </div>
 
@@ -463,7 +463,7 @@
   <!-- 로고 + 사용자 정보 -->
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
     <div class="app-title" style="margin-bottom:0;text-align:left;cursor:pointer" id="logo-btn">
-      <img src="/logo.jpg" alt="C&Tech" style="height:36px">
+      <img src="/logo.png" alt="C&Tech" style="height:36px">
     </div>
     <div style="text-align:right">
       <div style="font-size:13px;font-weight:600;color:var(--txt)" id="header-name"></div>
@@ -549,20 +549,28 @@
       <div id="in-type-fabric" class="tbtn">원단</div>
     </div>
 
-    <!-- 창고 선택 -->
-    <label>창고</label>
-    <select id="in-wh">
-      <option value="">선택하세요</option>
-      <option value="D">D동</option>
-      <option value="T">천막동</option>
-    </select>
+    <!-- 식별표 촬영 -->
+    <input type="file" id="ocr-file-in" accept="image/*" capture="environment" style="display:none">
+    <button id="btn-ocr-camera-in" class="btn btn-light" style="margin-bottom:4px">📷 식별표 촬영으로 자동 입력</button>
 
-    <!-- 보관 방식 -->
-    <label>보관 방식</label>
-    <select id="in-st">
-      <option value="rack">렉 보관</option>
-      <option value="floor">바닥 보관</option>
-    </select>
+    <!-- 창고 + 보관방식 -->
+    <div class="row2">
+      <div>
+        <label>창고</label>
+        <select id="in-wh">
+          <option value="">선택하세요</option>
+          <option value="D">D동</option>
+          <option value="T">천막동</option>
+        </select>
+      </div>
+      <div>
+        <label>보관 방식</label>
+        <select id="in-st">
+          <option value="rack">렉 보관</option>
+          <option value="floor">바닥 보관</option>
+        </select>
+      </div>
+    </div>
 
     <!-- 렉 보관: 구역 + 번호 + 층 -->
     <div id="in-rack-fields">
@@ -595,37 +603,60 @@
     <!-- 위치 미리보기 -->
     <div id="in-loc-preview" class="loc-tip" style="display:none"></div>
 
-    <!-- 품목 정보 -->
-    <label>카테고리</label>
-    <select id="in-cat">
-      <option value="">자동 감지</option>
-      <option value="카톤">카톤</option>
-      <option value="원단">원단</option>
-      <option value="단상자">단상자</option>
-      <option value="인박스">인박스</option>
-      <option value="손발원단">손발원단</option>
-      <option value="기타">기타</option>
-    </select>
-
+    <!-- 품목명 -->
     <label>품목명</label>
     <input type="text" id="in-name" placeholder="품목명">
 
-    <label>품번</label>
-    <input type="text" id="in-code" placeholder="예: G21E000270">
-
-    <label>Lot No.</label>
-    <input type="text" id="in-lot" placeholder="예: GE141D">
-
-    <!-- 일반: 수량 + PO번호 -->
-    <div id="in-qty-normal">
-      <label>수량</label>
-      <input type="number" id="in-qty" min="0" placeholder="0">
-      <label>PO 번호</label>
-      <input type="text" id="in-po" placeholder="PO-2024">
+    <!-- 카테고리 + 품번 -->
+    <div class="row2">
+      <div>
+        <label>카테고리</label>
+        <select id="in-cat">
+          <option value="">자동 감지</option>
+          <option value="카톤">카톤</option>
+          <option value="원단">원단</option>
+          <option value="단상자">단상자</option>
+          <option value="인박스">인박스</option>
+          <option value="손발원단">손발원단</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+      <div>
+        <label>품번</label>
+        <input type="text" id="in-code" placeholder="예: G21E000270">
+      </div>
     </div>
 
-    <!-- 원단: 롤수 + 무게 + 길이(m) -->
+    <!-- Lot No. + 수량 + PO번호 (일반) -->
+    <div id="in-qty-normal">
+      <div class="row3">
+        <div>
+          <label>Lot No.</label>
+          <input type="text" id="in-lot" placeholder="예: GE141D">
+        </div>
+        <div>
+          <label>수량</label>
+          <input type="number" id="in-qty" min="0" placeholder="0">
+        </div>
+        <div>
+          <label>PO 번호</label>
+          <input type="text" id="in-po" placeholder="PO-2024">
+        </div>
+      </div>
+    </div>
+
+    <!-- 원단: Lot + 롤수 + 무게 + 길이 -->
     <div id="in-qty-fabric" style="display:none">
+      <div class="row2">
+        <div>
+          <label>Lot No.</label>
+          <input type="text" id="in-lot-fabric-hidden" style="display:none" placeholder="예: GE141D">
+        </div>
+        <div>
+          <label>PO / 루트</label>
+          <input type="text" id="in-route" placeholder="루트번호">
+        </div>
+      </div>
       <div class="row3">
         <div><label>롤 수</label><input type="number" id="in-rolls" min="0" step="0.1" placeholder="0.0"></div>
         <div><label>무게 (kg)</label><input type="number" id="in-weight" min="0" step="0.1" placeholder="0.0"></div>
@@ -633,17 +664,22 @@
       </div>
     </div>
 
-    <label>담당자</label>
-    <input type="text" id="in-person" readonly style="background:#f3f4f6;color:var(--txt2);cursor:not-allowed">
-    
-    <label>입고일</label>
-    <input type="date" id="in-date">
+    <!-- 담당자 + 입고일 + 비고 -->
+    <div class="row3">
+      <div>
+        <label>담당자</label>
+        <input type="text" id="in-person" readonly style="background:var(--border);color:var(--txt2);cursor:not-allowed">
+      </div>
+      <div>
+        <label>입고일</label>
+        <input type="date" id="in-date">
+      </div>
+      <div>
+        <label>비고</label>
+        <input type="text" id="in-note" placeholder="선택">
+      </div>
+    </div>
 
-    <label>비고</label>
-    <input type="text" id="in-note" placeholder="선택 입력">
-
-    <input type="file" id="ocr-file-in" accept="image/*" capture="environment" style="display:none">
-    <button id="btn-ocr-camera-in" class="btn btn-light" style="margin-bottom:8px">📷 식별표 촬영으로 자동 입력</button>
     <button id="btn-submit-in" class="btn btn-dark">입고 등록</button>
   </div>
   </div>
@@ -1590,7 +1626,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // ─────────────────────────────────────
   document.getElementById('nav-home')    .addEventListener('click', function(){ switchTab('home',     this); });
   document.getElementById('logo-btn').addEventListener('click', function(){
-    switchTab('home', document.getElementById('nav-home'));
+    if (currentTab === 'home') return;
+    if (confirm('홈으로 돌아가시겠습니까?')) {
+      switchTab('home', document.getElementById('nav-home'));
+    }
   });
 
   // 다크모드 토글
