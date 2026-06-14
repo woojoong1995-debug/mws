@@ -457,10 +457,12 @@
 <div class="app" id="main-app" style="display:none">
 
   <!-- 로고 + 사용자 정보 -->
-  <div style="position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:12px;min-height:52px">
-    <div style="position:absolute;left:0;cursor:pointer;padding:8px;margin:-8px;-webkit-tap-highlight-color:rgba(0,0,0,0.1)" id="logo-btn">
-      <img id="logo-img" src="/a-logo.png" alt="C&Tech" style="height:48px;display:block;object-fit:contain">
+  <div style="position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:16px;min-height:60px">
+    <!-- 가운데 로고 -->
+    <div style="cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.1)" id="logo-btn">
+      <img id="logo-img" src="/a-logo.png" alt="C&Tech" style="height:52px;display:block;object-fit:contain">
     </div>
+    <!-- 오른쪽 사용자 정보 -->
     <div style="position:absolute;right:0;text-align:right">
       <div style="font-size:13px;font-weight:600;color:var(--txt)" id="header-name"></div>
       <button id="btn-change-pw" style="font-size:11px;color:var(--txt2);background:none;border:none;cursor:pointer;text-decoration:underline;margin-right:6px">비밀번호 변경</button>
