@@ -18,5 +18,5 @@ jobs:
           script: |
             cd /root/mws
             git fetch origin main
-            git checkout origin/main -- frontend/index.html rontend/a-logo.jpeg frontend/b-logo.jpeg backend/main.py backend/inbound.py backend/outbound.py backend/returns.py backend/inventory.py backend/auth.py backend/users.py backend/user_db.py backend/database.py backend/ocr.py
+            git checkout origin/main -- frontend/index.html frontend/a-logo.jpeg frontend/b-logo.jpeg backend/main.py backend/inbound.py backend/outbound.py backend/returns.py backend/inventory.py backend/auth.py backend/users.py backend/user_db.py backend/database.py backend/ocr.py
             systemctl restart warehouse
