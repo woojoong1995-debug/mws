@@ -72,7 +72,7 @@ def check_auth():
     from flask import request
 
     # 로그인/회원가입 API는 인증 없이 허용
-    public_paths = ['/api/auth/login', '/api/auth/register', '/api/auth/me', '/', '/logo.jpg', '/a-logo.jpeg', '/b-logo.jpeg']
+    public_paths = ['/api/auth/login', '/api/auth/register', '/api/auth/me', '/', '/logo.jpg', '/a-logo.png', '/b-logo.png']
     if request.path in public_paths:
         return None
     if request.path.startswith('/static'):
@@ -89,13 +89,13 @@ def index():
     return send_from_directory(FRONTEND_DIR, 'index.html')
 
 # 로고 이미지
-@app.route('/a-logo.jpeg')
-def logo_light():
-    return send_from_directory(FRONTEND_DIR, 'a-logo.jpeg')
+@app.route('/a-logo.png')
+def logo_light_png():
+    return send_from_directory(FRONTEND_DIR, 'a-logo.png')
 
-@app.route('/b-logo.jpeg')
-def logo_dark():
-    return send_from_directory(FRONTEND_DIR, 'b-logo.jpeg')
+@app.route('/b-logo.png')
+def logo_dark_png():
+    return send_from_directory(FRONTEND_DIR, 'b-logo.png')
 
 if __name__ == '__main__':
     print("=" * 50)
