@@ -69,11 +69,7 @@
        탭 네비게이션
     ───────────────────────────────────── */
     .nav {
-      display: flex;
-      background: var(--card);
-      border-radius: var(--r-lg) var(--r-lg) 0 0;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 14px;
+      display: none;
     }
     .nav button {
       flex: 1;
@@ -647,21 +643,12 @@
 
     <!-- 원단: Lot + 롤수 + 무게 + 길이 -->
     <div id="in-qty-fabric" style="display:none">
-      <div class="row2">
-        <div>
-          <label>Lot No.</label>
-          <input type="text" id="in-lot-fabric-hidden" style="display:none" placeholder="예: GE141D">
-        </div>
-        <div>
-          <label>PO / 루트</label>
-          <input type="text" id="in-route" placeholder="루트번호">
-        </div>
-      </div>
       <div class="row3">
         <div><label>롤 수</label><input type="number" id="in-rolls" min="0" step="0.1" placeholder="0.0"></div>
         <div><label>무게 (kg)</label><input type="number" id="in-weight" min="0" step="0.1" placeholder="0.0"></div>
         <div><label>길이 (m)</label><input type="number" id="in-meters" min="0" step="0.1" placeholder="0.0"></div>
       </div>
+      <input type="hidden" id="in-route" value="">
     </div>
 
     <!-- 담당자 + 입고일 + 비고 -->
