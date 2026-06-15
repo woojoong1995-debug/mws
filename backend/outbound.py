@@ -256,3 +256,10 @@ def del_lock(code):
     code = code.upper()
     _locks.pop(code, None)
     return jsonify({'success': True})
+
+@outbound_bp.route('/api/lock/<code>/release', methods=['POST'])
+def release_lock(code):
+    """페이지 종료 시 잠금 해제"""
+    code = code.upper()
+    _locks.pop(code, None)
+    return jsonify({'success': True})

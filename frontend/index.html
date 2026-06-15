@@ -1764,6 +1764,13 @@ document.addEventListener('DOMContentLoaded', function () {
     rn.max = this.value === 'D' ? 14 : 10;
   });
 
+  // 페이지 나갈 때 잠금 해제
+  window.addEventListener('beforeunload', function() {
+    if (selectedDpItem) {
+      navigator.sendBeacon(API + '/lock/' + encodeURIComponent(selectedDpItem.code) + '/release', '{}');
+    }
+  });
+
 }); // DOMContentLoaded 끝
 
 
@@ -2053,7 +2060,7 @@ async function selectDpItem(item) {
   try {
     var lockRes = await fetch(API + '/lock/' + encodeURIComponent(item.code), { credentials: 'include' });
     var lockJson = await lockRes.json();
-    if (lockJson.locked) {
+    if (lockJson.locked && lockJson.name !== currentUser.name) {
       showToast('⚠️ ' + lockJson.name + ' 님이 작업 중입니다!');
       return;
     }
