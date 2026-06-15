@@ -550,7 +550,7 @@
     </div>
 
     <!-- 식별표 촬영 -->
-    <input type="file" id="ocr-file-in" accept="image/*" capture="environment" style="display:none">
+    <input type="file" id="ocr-file-in" accept="image/*" style="display:none">
     <button id="btn-ocr-camera-in" class="btn btn-light" style="margin-bottom:4px">📷 식별표 촬영으로 자동 입력</button>
 
     <!-- 창고 + 보관방식 -->
@@ -926,7 +926,7 @@
       식별표를 찍으면 항목을 자동으로 읽어서 입고/환입 화면에 채워줘요
     </p>
 
-    <input type="file" id="ocr-file" accept="image/*" capture="environment" style="display:none">
+    <input type="file" id="ocr-file" accept="image/*" style="display:none">
     <div id="ocr-area" class="ocr-area">
       <i class="ti ti-camera" style="font-size:36px;color:var(--txt2)"></i>
       <p style="font-size:14px;color:var(--txt2);margin-top:8px">탭하여 사진 촬영 / 갤러리 선택</p>
@@ -1676,13 +1676,33 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('ocr-file-in').click();
   });
   document.getElementById('ocr-file-in').addEventListener('change', function(e){
-    doOCR(e).then(function(){ applyOcrToInbound(); });
+    var btn = document.getElementById('btn-ocr-camera-in');
+    btn.textContent = '🔄 식별 중...';
+    btn.disabled = true;
+    doOCR(e).then(function(){
+      applyOcrToInbound();
+      btn.textContent = '📷 식별표 촬영으로 자동 입력';
+      btn.disabled = false;
+    }).catch(function(){
+      btn.textContent = '📷 식별표 촬영으로 자동 입력';
+      btn.disabled = false;
+    });
   });
   document.getElementById('btn-ocr-camera-hj').addEventListener('click', function(){
     document.getElementById('ocr-file-hj').click();
   });
   document.getElementById('ocr-file-hj').addEventListener('change', function(e){
-    doOCR(e).then(function(){ applyOcrToReturn(); });
+    var btn = document.getElementById('btn-ocr-camera-hj');
+    btn.textContent = '🔄 식별 중...';
+    btn.disabled = true;
+    doOCR(e).then(function(){
+      applyOcrToReturn();
+      btn.textContent = '📷 식별표 촬영으로 자동 입력';
+      btn.disabled = false;
+    }).catch(function(){
+      btn.textContent = '📷 식별표 촬영으로 자동 입력';
+      btn.disabled = false;
+    });
   });
 
   // ─────────────────────────────────────
