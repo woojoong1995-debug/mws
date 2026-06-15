@@ -26,7 +26,9 @@
 
 from flask import Flask, send_from_directory, session, jsonify
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit, join_room
 import sys, os
+
 sys.path.insert(0, os.path.dirname(__file__))  # 현재 디렉토리를 모듈 경로에 추가
 
 import secrets
@@ -42,6 +44,7 @@ from ocr       import ocr_bp
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  # 쿠키/세션 포함 허용
+socketio = SocketIO(app, cors_allowed_origins='*')  # SocketIO 초기화
 
 # 세션 암호화 키 (서버 재시작 시 새로 생성)
 app.secret_key = '9e8e2ecca4466912b4ab36ad6da281f214b9478c2502f8fe8f7693f11f75c18d'
@@ -105,4 +108,4 @@ if __name__ == '__main__':
     print("")
     print("  기본 운영자: admin / admin1234")
     print("=" * 50)
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
