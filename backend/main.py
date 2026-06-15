@@ -80,6 +80,8 @@ def check_auth():
         return None
     if request.path.startswith('/static'):
         return None
+    if request.path.startswith('/api/lock'):
+        return None
 
     # API 요청인데 로그인 안 된 경우
     if request.path.startswith('/api/') and 'user_id' not in session:
