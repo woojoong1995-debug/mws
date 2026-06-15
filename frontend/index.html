@@ -1771,15 +1771,6 @@ document.addEventListener('DOMContentLoaded', function () {
 // 탭 전환
 // ═══════════════════════════════════════════
 var currentTab = '';
-
-// 원단 수량 표시 - 입력된 값만 표시
-function fabricQtyTxt(item) {
-  var parts = [];
-  if (item.rolls) parts.push(item.rolls + '롤');
-  if (item.weight) parts.push(item.weight + 'kg');
-  if (item.meters) parts.push(item.meters + 'm');
-  return parts.length ? parts.join('/') : '-';
-}
 function switchTab(name, btn) {
   if (currentTab === name) return;
   currentTab = name;
@@ -2058,6 +2049,22 @@ async function searchBySuffix() {
 // 불출: 품목 선택 → FIFO 목록 표시
 // ═══════════════════════════════════════════
 async function selectDpItem(item) {
+  // 잠금 확인
+  try {
+    var lockRes = await fetch(API + '/lock/' + encodeURIComponent(item.code), { credentials: 'include' });
+    var lockJson = await lockRes.json();
+    if (lockJson.locked) {
+      showToast('⚠️ ' + lockJson.name + ' 님이 작업 중입니다!');
+      return;
+    }
+  } catch(e) {}
+  // 잠금 등록
+  fetch(API + '/lock', {
+    method: 'POST', credentials: 'include',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ code: item.code })
+  });
+
   selectedDpItem   = item;
   selectedFifoItem = null;
 
@@ -2083,7 +2090,7 @@ async function selectDpItem(item) {
 
     // FIFO 목록 렌더링
     var rows = list.map(function(m, idx) {
-      var qty  = m.item_type === 'fabric' ? fabricQtyTxt(m) : (m.qty + '개');
+      var qty  = m.item_type === 'fabric' ? (m.rolls + '롤/' + m.weight + 'kg' + (m.meters ? '/' + m.meters + 'm' : '')) : (m.qty + '개');
       var lotTxt = m.lot ? ' · Lot:' + m.lot : '';
       var tag  = m.kind === 'hwanjip' ? '<span class="hj-tag">환입</span>' : '';
       return '<div class="fifo-row" data-id="' + m.id + '">' +
@@ -2190,6 +2197,7 @@ async function submitDispatch() {
     var json = await res.json();
     if (json.success) {
       showToast('✓ 불출 확정 완료!');
+      if (selectedDpItem) fetch(API + '/lock/' + encodeURIComponent(selectedDpItem.code), { method: 'DELETE', credentials: 'include' });
       resetDispatch();
     } else {
       showToast('오류: ' + json.message);
@@ -2204,6 +2212,7 @@ async function submitDispatch() {
 // 불출 초기화 (다시 선택)
 // ═══════════════════════════════════════════
 function resetDispatch() {
+  if (selectedDpItem) fetch(API + '/lock/' + encodeURIComponent(selectedDpItem.code), { method: 'DELETE', credentials: 'include' });
   selectedDpItem   = null;
   selectedFifoItem = null;
   document.getElementById('dp-suffix').value = '';
@@ -2335,20 +2344,16 @@ async function loadStock() {
     var html = groupOrder.map(function(key, gi) {
       var g = groups[key];
       var isFabric = g.items[0].item_type === 'fabric';
-      var totalParts = [];
-      if (isFabric) {
-        if (g.totalRolls) totalParts.push(g.totalRolls + '롤');
-        if (g.items.reduce(function(s,i){ return s+(i.weight||0); }, 0)) totalParts.push(g.items.reduce(function(s,i){ return s+(i.weight||0); }, 0) + 'kg');
-        if (g.totalMeters) totalParts.push(g.totalMeters.toFixed(1) + 'm');
-      }
-      var totalTxt = isFabric ? (totalParts.join('/') || '-') : (g.totalQty + '개');
+      var totalTxt = isFabric
+        ? (g.totalRolls + '롤' + (g.totalMeters ? '/' + g.totalMeters.toFixed(1) + 'm' : ''))
+        : (g.totalQty + '개');
       var catLabel = g.cat ? '<span class="cat-lbl cl-' + g.cat + '">' + g.cat + '</span>' : '';
       var count = g.items.length;
 
       var rows = g.items.map(function(item) {
         var badgeCls   = item.kind === 'hwanjip' ? 'b-r' : item.wh === 'D' ? 'b-d' : 'b-t';
         var badgeLabel = item.kind === 'hwanjip' ? '환입' : item.wh === 'D' ? 'D동' : '천막';
-        var qtyTxt     = isFabric ? fabricQtyTxt(item) : (item.qty + '개');
+        var qtyTxt     = isFabric ? (item.rolls + '롤/' + item.weight + 'kg' + (item.meters ? '/' + item.meters + 'm' : '')) : (item.qty + '개');
         var depCls     = item.depleted ? 'depleted' : '';
         var depBadge   = item.depleted ? '<span class="depleted-badge">소진</span>' : '';
         var canEdit    = currentUser.role === 'admin' || item.created_by === currentUser.username;
@@ -2459,18 +2464,14 @@ async function loadHistory() {
     var html = groupOrder.map(function(key, gi) {
       var g = groups[key];
       var isFabric = g.items[0].item_type === 'fabric';
-      var totalParts = [];
-      if (isFabric) {
-        if (g.totalRolls) totalParts.push(g.totalRolls + '롤');
-        if (g.items.reduce(function(s,i){ return s+(i.weight||0); }, 0)) totalParts.push(g.items.reduce(function(s,i){ return s+(i.weight||0); }, 0) + 'kg');
-        if (g.totalMeters) totalParts.push(g.totalMeters.toFixed(1) + 'm');
-      }
-      var totalTxt = isFabric ? (totalParts.join('/') || '-') : (g.totalQty + '개');
+      var totalTxt = isFabric
+        ? (g.totalRolls + '롤' + (g.totalMeters ? '/' + g.totalMeters.toFixed(1) + 'm' : ''))
+        : (g.totalQty + '개');
       var count = g.items.length;
 
       var rows = g.items.map(function(item) {
         var qtyTxt = isFabric
-          ? fabricQtyTxt(item)
+          ? (item.rolls + '롤/' + item.weight + 'kg' + (item.meters ? '/' + item.meters + 'm' : ''))
           : (item.qty + '개');
         return '<div style="padding:10px 0;border-top:1px solid var(--border)">' +
           '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
