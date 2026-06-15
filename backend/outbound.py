@@ -51,7 +51,7 @@ def get_fifo():
         if d.get('kind') in ('in', 'hwanjip')
         and (d.get('code') or '').upper().endswith(code.upper())
         and not d.get('depleted')
-        and ((d.get('qty') or 0) > 0 or (d.get('rolls') or 0) > 0)
+        and ((d.get('qty') or 0) > 0 or (d.get('rolls') or 0) > 0 or (d.get('meters') or 0) > 0)
     ]
 
     # 정렬: 환입 1순위, 그 다음 입고일 오름차순
@@ -105,6 +105,7 @@ def add_outbound():
                     # 원단: 롤수와 무게 차감
                     item['rolls']  = max(0, (item.get('rolls')  or 0) - (body.get('rolls')  or 0))
                     item['weight'] = max(0, (item.get('weight') or 0) - (body.get('weight') or 0))
+                    item['meters'] = max(0, (item.get('meters') or 0) - (body.get('meters') or 0))
                     item['qty']    = item['rolls']
                 else:
                     # 일반: 수량 차감
@@ -152,6 +153,7 @@ def cancel_outbound(record_id):
                 if out.get('item_type') == 'fabric':
                     item['rolls']  = (item.get('rolls')  or 0) + (out.get('rolls')  or 0)
                     item['weight'] = (item.get('weight') or 0) + (out.get('weight') or 0)
+                    item['meters'] = (item.get('meters') or 0) + (out.get('meters') or 0)
                     item['qty']    = item['rolls']
                 else:
                     item['qty'] = (item.get('qty') or 0) + (out.get('qty') or 0)
