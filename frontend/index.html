@@ -289,7 +289,7 @@
     ───────────────────────────────────── */
     .toast {
       position: fixed;
-      top: 80px;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
       background: var(--txt);
@@ -685,7 +685,10 @@
 
     <!-- 1단계: 품번 끝자리 입력 -->
     <div class="card" id="dp-step1">
-      <label style="margin-top:0;font-size:14px;font-weight:600;color:var(--txt)">품번 끝자리 입력</label>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <label style="margin-top:0;font-size:14px;font-weight:600;color:var(--txt)">품번 끝자리 입력</label>
+        <button id="btn-unlock" onclick="unlockAll()" style="font-size:11px;padding:4px 10px;background:rgba(255,59,48,0.1);color:#ff3b30;border:1px solid rgba(255,59,48,0.3);border-radius:6px;cursor:pointer">🔓 잠금 해제</button>
+      </div>
       <p style="font-size:12px;color:var(--txt2);margin-bottom:10px">예: 0017 입력하면 해당 품목 목록이 나와요</p>
       <input type="text" id="dp-suffix" placeholder="끝자리 입력 (예: 0017)" maxlength="8">
     </div>
@@ -1640,6 +1643,11 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   document.getElementById('btn-home-confirm').addEventListener('click', function(){
     document.getElementById('home-confirm-modal').style.display = 'none';
+    // 잠금 해제
+    if (selectedDpItem) {
+      fetch(API + '/lock/' + encodeURIComponent(selectedDpItem.code), { method: 'DELETE', credentials: 'include' });
+      selectedDpItem = null;
+    }
     currentTab = '';
     document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('sec-home').classList.add('active');
@@ -1762,13 +1770,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var rn = document.getElementById('edit-rn');
     rl.textContent = this.value === 'D' ? '렉 번호 (1~14)' : '렉 번호 (1~10)';
     rn.max = this.value === 'D' ? 14 : 10;
-  });
-
-  // 페이지 나갈 때 잠금 해제
-  window.addEventListener('beforeunload', function() {
-    if (selectedDpItem) {
-      navigator.sendBeacon(API + '/lock/' + encodeURIComponent(selectedDpItem.code) + '/release', '{}');
-    }
   });
 
 }); // DOMContentLoaded 끝
@@ -2060,7 +2061,7 @@ async function selectDpItem(item) {
   try {
     var lockRes = await fetch(API + '/lock/' + encodeURIComponent(item.code), { credentials: 'include' });
     var lockJson = await lockRes.json();
-    if (lockJson.locked && lockJson.name !== currentUser.name) {
+    if (lockJson.locked) {
       showToast('⚠️ ' + lockJson.name + ' 님이 작업 중입니다!');
       return;
     }
@@ -2620,6 +2621,19 @@ function buildEditLoc() {
 }
 
 // 수정 모달 저장
+function unlockAll() {
+  if (selectedDpItem) {
+    fetch(API + '/lock/' + encodeURIComponent(selectedDpItem.code), { method: 'DELETE', credentials: 'include' });
+  }
+  // 현재 검색된 품번도 해제
+  var suffix = document.getElementById('dp-suffix').value.trim();
+  if (suffix) {
+    fetch(API + '/lock/' + encodeURIComponent(suffix), { method: 'DELETE', credentials: 'include' });
+  }
+  resetDispatch();
+  showToast('🔓 잠금이 해제됐습니다');
+}
+
 function setEditType(type) {
   document.getElementById('edit-type-normal').classList.toggle('on', type === 'normal');
   document.getElementById('edit-type-fabric').classList.toggle('on', type === 'fabric');
