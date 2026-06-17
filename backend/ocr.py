@@ -71,22 +71,40 @@ def parse_label(text):
         '비고': '',
         '유형': '일반'
     }
-    # 품목명: "품 명" 또는 "품명" 오른쪽 또는 다음 줄에서 잡기
-    name_match = re.search(r'품\s*명\s+(.+?)(?=품\s*번|규\s*격|수\s*량|$)', full)
-    if name_match:
-        candidate = name_match.group(1).strip()
-        candidate = re.sub(r'\s*(수\s*량|품\s*번|규\s*격|Lot).*', '', candidate, flags=re.IGNORECASE)
-        if candidate:
-            result['품목명'] = candidate
 
-    # 위에서 못 찾았으면: 품번 코드 바로 앞 줄에서 찾기
+    # 1. 품번 먼저 추출 (품목명 fallback에서 사용하므로)
+    code_match = re.search(r'\b([A-Z]\d{2}[A-Z]\d{6})\b', full)
+    if code_match:
+        result['품번'] = code_match.group(1)
+
+    # 2. 품목명: 품목식별표 다음 줄에서 먼저 찾기
+    skip = ['품목식별표', '품명', '품번', '규격', '수량', 'Lot', '식별표']
+    for i, line in enumerate(lines):
+        if '품목식별표' in line or '식별표' in line:
+            for j in range(i+1, min(i+4, len(lines))):
+                candidate = lines[j].strip()
+                candidate = re.sub(r'[A-Z]\d{2}[A-Z]\d{6}', '', candidate).strip()
+                candidate = re.sub(r'\b[A-Z]{2}\d{4}[A-Z]?\b', '', candidate).strip()
+                if candidate and not any(k in candidate for k in skip) and re.search(r'[가-힣]', candidate):
+                    result['품목명'] = candidate
+                    break
+        break
+
+    # 위에서 못 찾았으면: "품명" 키워드 오른쪽에서 찾기
+    if not result['품목명']:
+        name_match = re.search(r'품\s*명\s+(.+?)(?=품\s*번|규\s*격|수\s*량|$)', full)
+        if name_match:
+            candidate = name_match.group(1).strip()
+            candidate = re.sub(r'\s*(수\s*량|품\s*번|규\s*격|Lot).*', '', candidate, flags=re.IGNORECASE)
+            if candidate:
+                result['품목명'] = candidate
+
+    # 그래도 못 찾았으면: 품번 코드 위로 거슬러 올라가며 찾기
     if not result['품목명'] and result['품번']:
         for i, line in enumerate(lines):
             if result['품번'] in line and i > 0:
-                skip = ['품목식별표', '품명', '품번', '규격', '수량', 'Lot', '식별표']
                 for j in range(i-1, -1, -1):
                     candidate = lines[j].strip()
-                    # 품번/Lot 패턴 제거
                     candidate = re.sub(r'[A-Z]\d{2}[A-Z]\d{6}', '', candidate).strip()
                     candidate = re.sub(r'\b[A-Z]{2}\d{4}[A-Z]?\b', '', candidate).strip()
                     candidate = re.sub(r'품목식별표', '', candidate).strip()
@@ -95,55 +113,54 @@ def parse_label(text):
                         break
                 break
 
-    # 품번: 영문+숫자 조합
-    code_match = re.search(r'\b([A-Z]\d{2}[A-Z]\d{6})\b', full)
-    if code_match:
-        result['품번'] = code_match.group(1)
-
-    # 수량: "수 량" 오른쪽 숫자 (콤마 포함, 단위 제외)
+    # 3. 수량
     qty_match = re.search(r'수\s*량\s+(\d[\d,]*)', full)
     if qty_match:
         result['수량'] = qty_match.group(1).replace(',', '')
 
-    # Lot No
+    # 4. Lot No
     lot_match = re.search(r'Lot\s*No\.?\s+([A-Z0-9]+)', full, re.IGNORECASE)
     if lot_match:
         result['LotNo'] = lot_match.group(1)
 
-    # 입고일: 연도 4자리 또는 2자리, 구분자 -, ., /
+    # 5. 입고일
     date_match = re.search(r'입\s*고\s*일\s+(\d{2,4})[-./](\d{2})[-./](\d{2})', full)
     if date_match:
         year = date_match.group(1)
         if len(year) == 2:
-            year = '20' + year  # 26 → 2026
+            year = '20' + year
         result['입고일'] = f"{year}-{date_match.group(2)}-{date_match.group(3)}"
 
-    # 규격
+    # 6. 규격
     spec_match = re.search(r'규\s*격\s+([^\s]+)', full)
     if spec_match:
         result['규격'] = spec_match.group(1)
 
-    # 롤수: 숫자 + 롤
+    # 7. 공급처
+    supplier_match = re.search(r'공\s*급\s*처\s+([^\s]+)', full)
+    if supplier_match:
+        result['공급처'] = supplier_match.group(1).strip()
+
+    # 8. 롤수
     roll_match = re.search(r'(\d+\.?\d*)\s*롤', full)
     if roll_match:
         result['롤수'] = roll_match.group(1)
         result['유형'] = '원단'
 
-    # 무게: 숫자 + kg
+    # 9. 무게
     weight_match = re.search(r'(\d+\.?\d*)\s*(?:kg|KG)', full)
     if weight_match:
         result['무게'] = weight_match.group(1)
         result['유형'] = '원단'
 
-    # 원단 자동 감지
+    # 10. 원단 자동 감지
     if '원단' in result['품목명'] or '원단' in full:
         result['유형'] = '원단'
 
-    # 비고
+    # 11. 비고
     note_match = re.search(r'비\s*고\s+(.+?)(?=\s*$)', full)
     if note_match:
         val = note_match.group(1).strip()
-        # "적합" 같은 스탬프 제외
         if val and '적합' not in val:
             result['비고'] = val
 
