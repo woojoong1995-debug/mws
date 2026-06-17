@@ -84,9 +84,12 @@ def parse_label(text):
         for i, line in enumerate(lines):
             if result['품번'] in line and i > 0:
                 skip = ['품목식별표', '품명', '품번', '규격', '수량', 'Lot', '식별표']
-                # 바로 위 줄부터 거슬러 올라가며 찾기
                 for j in range(i-1, -1, -1):
                     candidate = lines[j].strip()
+                    # 품번/Lot 패턴 제거
+                    candidate = re.sub(r'[A-Z]\d{2}[A-Z]\d{6}', '', candidate).strip()
+                    candidate = re.sub(r'\b[A-Z]{2}\d{4}[A-Z]?\b', '', candidate).strip()
+                    candidate = re.sub(r'품목식별표', '', candidate).strip()
                     if candidate and not any(k in candidate for k in skip) and re.search(r'[가-힣]', candidate):
                         result['품목명'] = candidate
                         break
