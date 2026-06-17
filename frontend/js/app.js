@@ -618,4 +618,58 @@ async function doChangePassword() {
     msgDiv.textContent      = '서버에 연결 오류';
   }
 }
+
+function switchTab(name, btn) {
+  if (currentTab === name) return;
+  currentTab = name;
+
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.querySelectorAll('.nav button').forEach(function(b) { b.classList.remove('active'); });
+
+  var targetSection = document.getElementById('sec-' + name);
+  if (targetSection) targetSection.classList.add('active');
+
+  var navBtn = btn;
+  if (!navBtn || !navBtn.closest || !navBtn.closest('.nav')) {
+    navBtn = document.getElementById('nav-' + name);
+  }
+  if (navBtn) navBtn.classList.add('active');
+
+  // ✅ 이 부분 추가: 홈으로 갈 때 입고/환입 폼 초기화
+  if (name === 'home') {
+    // 입고 초기화
+    ['in-name','in-code','in-lot','in-lot-fabric','in-qty','in-rn',
+     'in-fl','in-floc','in-route','in-po','in-rolls','in-weight','in-meters','in-note'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    var inCat = document.getElementById('in-cat');
+    if (inCat) inCat.value = '';
+    var inPrev = document.getElementById('in-loc-preview');
+    if (inPrev) inPrev.style.display = 'none';
+    setType('in', 'normal');
+
+    // 환입 초기화
+    ['hj-code','hj-name','hj-lot','hj-qty','hj-po','hj-rolls',
+     'hj-weight','hj-meters','hj-route','hj-rn','hj-fl','hj-floc','hj-note'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    var hjCat = document.getElementById('hj-cat');
+    if (hjCat) hjCat.value = '';
+    var hjPrev = document.getElementById('hj-loc-preview');
+    if (hjPrev) hjPrev.style.display = 'none';
+    setType('hj', 'normal');
+  }
+
+  if (name === 'stock')   if (typeof loadStock === 'function') loadStock();
+  if (name === 'history') {
+    var todayStr = new Date().toISOString().slice(0, 10);
+    var dateInput = document.getElementById('hs-date');
+    if (dateInput) dateInput.value = todayStr;
+    if (typeof loadHistory === 'function') loadHistory();
+  }
+  if (name === 'admin')   if (typeof loadUsers === 'function') loadUsers();
+  if (name === 'home')    if (typeof loadHomeStats === 'function') loadHomeStats();
+}
 // ═══════════════════════════════════════════
