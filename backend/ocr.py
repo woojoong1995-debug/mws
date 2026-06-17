@@ -71,21 +71,25 @@ def parse_label(text):
         '비고': '',
         '유형': '일반'
     }
-    # 품목명: "품 명" 오른쪽 또는 다음 줄에서 잡기
-    name_match = re.search(r'품\s+명\s+(.+?)(?=품\s*번|규\s*격|수\s*량|$)', full)
-    if not name_match:
-        # 다음 줄에 있는 경우 (text 원본에서 찾기)
-        name_match2 = re.search(r'품\s+명\s*\n\s*(.+)', text)
-        if name_match2:
-            candidate = name_match2.group(1).strip()
-            if candidate:
-                result['품목명'] = candidate
-    else:
+    # 품목명: "품 명" 또는 "품명" 오른쪽 또는 다음 줄에서 잡기
+    name_match = re.search(r'품\s*명\s+(.+?)(?=품\s*번|규\s*격|수\s*량|$)', full)
+    if name_match:
         candidate = name_match.group(1).strip()
         candidate = re.sub(r'\s*(수\s*량|품\s*번|규\s*격|Lot).*', '', candidate, flags=re.IGNORECASE)
         candidate = candidate.strip()
         if candidate:
             result['품목명'] = candidate
+
+    # 위에서 못 찾았으면: 품번 코드 바로 앞 줄에서 찾기
+    if not result['품목명'] and result['품번']:
+        for i, line in enumerate(lines):
+            if result['품번'] in line and i > 0:
+                # 품번 줄 바로 위 줄이 품목명
+                candidate = lines[i-1].strip()
+                skip = ['품목식별표', '품명', '품번', '규격', '수량', 'Lot']
+                if candidate and not any(k in candidate for k in skip):
+                    result['품목명'] = candidate
+                    break
 
     # 품번: 영문+숫자 조합
     code_match = re.search(r'\b([A-Z]\d{2}[A-Z]\d{6})\b', full)
