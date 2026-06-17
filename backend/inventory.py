@@ -153,8 +153,8 @@ def update_record(record_id):
             # 운영자거나 본인이 윽록한 항목만 수정가능
             if current_role != 'admin' and item.get('created_by', '') != current_user:
                 return jsonify({'success': False, 'message': '본인이 등록한 항목만 수정할 수 있습니다'}), 403
-            # 기존 데이터에 수정 내용 덮어쓰기
-            data[i] = body
+            # 기존 데이터에 수정 내용 병합 (창고, 위치 ,LotNo 등 기존 필드 보전)
+            data[i].update(body)
             data[i]['id'] = record_id  # ID 유지
             found = True
             break
