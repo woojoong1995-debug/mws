@@ -108,10 +108,20 @@ def parse_label(text):
     if date_match:
         result['입고일'] = f"{date_match.group(1)}-{date_match.group(2)}-{date_match.group(3)}"
 
-    # 품목명: 첫 번째 줄 또는 한글 포함된 줄
-    for line in lines:
-        if re.search(r'[가-힣]', line) and len(line) > 2:
-            result['품목명'] = line
-            break
+    # 품목명: "품명" 또는 "품 명" 키워드 다음 텍스트
+    skip_keywords = ['품목식별표', '품목 식별표', '식별표', '품명', '품 명',
+                     '품번', '규격', '수량', '입고일', '생산일', '비고', '공급처', '제조처', '상태', '사용기한']
+    name_match = re.search(r'품\s*명\s+(.+)', full)
+    if name_match:
+        candidate = name_match.group(1).strip()
+        candidate = re.sub(r'[A-Z]\d{2}[A-Z]\d{6}.*', '', candidate).strip()
+        if candidate:
+            result['품목명'] = candidate
+    else:
+        for line in lines:
+            if re.search(r'[가-힣]', line) and len(line) > 2:
+                if not any(kw in line for kw in skip_keywords):
+                    result['품목명'] = line
+                    break
 
     return result
