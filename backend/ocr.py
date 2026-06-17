@@ -76,7 +76,6 @@ def parse_label(text):
     if name_match:
         candidate = name_match.group(1).strip()
         candidate = re.sub(r'\s*(수\s*량|품\s*번|규\s*격|Lot).*', '', candidate, flags=re.IGNORECASE)
-        candidate = candidate.strip()
         if candidate:
             result['품목명'] = candidate
 
@@ -84,12 +83,14 @@ def parse_label(text):
     if not result['품목명'] and result['품번']:
         for i, line in enumerate(lines):
             if result['품번'] in line and i > 0:
-                # 품번 줄 바로 위 줄이 품목명
-                candidate = lines[i-1].strip()
-                skip = ['품목식별표', '품명', '품번', '규격', '수량', 'Lot']
-                if candidate and not any(k in candidate for k in skip):
-                    result['품목명'] = candidate
-                    break
+                skip = ['품목식별표', '품명', '품번', '규격', '수량', 'Lot', '식별표']
+                # 바로 위 줄부터 거슬러 올라가며 찾기
+                for j in range(i-1, -1, -1):
+                    candidate = lines[j].strip()
+                    if candidate and not any(k in candidate for k in skip) and re.search(r'[가-힣]', candidate):
+                        result['품목명'] = candidate
+                        break
+                break
 
     # 품번: 영문+숫자 조합
     code_match = re.search(r'\b([A-Z]\d{2}[A-Z]\d{6})\b', full)
