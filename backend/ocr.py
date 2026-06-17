@@ -79,13 +79,9 @@ def parse_label(text):
         result['품번'] = code_match.group(1)
 
     # Lot No
-    lot_match = re.search(r'Lot\s*No[.:]?\s*([A-Z0-9]+)', full, re.IGNORECASE)
+    lot_match = re.search(r'Lot\s*No\.?\s+([A-Z0-9]+)', full, re.IGNORECASE)
     if lot_match:
         result['LotNo'] = lot_match.group(1)
-    else:
-        lot_match2 = re.search(r'\b([A-Z]{2}\d{4})\b', full)
-        if lot_match2 and lot_match2.group(1) != result['품번']:
-            result['LotNo'] = lot_match2.group(1)
 
     # 수량
     qty_match = re.search(r'수\s*량\s*[:]?\s*(\d[\d,]*)', full)
@@ -113,7 +109,7 @@ def parse_label(text):
         result['규격'] = spec_match.group(1)
 
     # ✅ 품목명: "품 명" 키워드 다음 텍스트만 잡기
-    name_match = re.search(r'품\s+명\s+(.+?)(?=\s*품\s*번|\s*규\s*격|\s*수\s*량|\n|$)', text)
+    name_match = re.search(r'품\s+명\s+(.+?)(?=품\s*번|규\s*격|수\s*량|$)', full)
     if name_match:
         candidate = name_match.group(1).strip()
         candidate = re.sub(r'\s*(수\s*량|품\s*번|규\s*격|Lot).*', '', candidate, flags=re.IGNORECASE)
