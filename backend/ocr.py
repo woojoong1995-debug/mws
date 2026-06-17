@@ -112,11 +112,11 @@ def parse_label(text):
     if spec_match:
         result['규격'] = spec_match.group(1)
 
-    # ✅ 품목명: "품 명" 키워드 바로 다음 줄 또는 텍스트
-    name_match = re.search(r'품\s*명\s*([^\n]+)', text)
+    # ✅ 품목명: "품 명" 또는 "품목명" 키워드 바로 다음 텍스트
+    name_match = re.search(r'품\s*목\s*명\s*([^\n]+)|품\s*명\s*([^\n]+)', text)
     if name_match:
-        candidate = name_match.group(1).strip()
-        # 품번 패턴 등 불필요한 텍스트 제거
+        candidate = (name_match.group(1) or name_match.group(2) or '').strip()
+        # 뒤에 붙는 불필요한 텍스트 제거
         candidate = re.sub(r'\s*(수\s*량|품\s*번|규\s*격|Lot).*', '', candidate, flags=re.IGNORECASE)
         candidate = candidate.strip()
         if candidate:
