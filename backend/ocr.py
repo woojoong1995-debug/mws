@@ -50,9 +50,8 @@ def do_ocr():
     if not full_text:
         return jsonify({'success': False, 'message': '텍스트를 찾을 수 없습니다'}), 400
 
-    # 텍스트에서 필드 파싱
     ocr_data = parse_label(full_text)
-    return jsonify({'success': True, 'data': ocr_data})
+    return jsonify({'success': True, 'data': ocr_data, 'raw': full_text})
 
 
 def parse_label(text):
