@@ -72,10 +72,16 @@ def parse_label(text):
         '비고': '',
         '유형': '일반'
     }
-
-    # 품목명: "품 명" 오른쪽 값 ("품목식별표" 제외)
+    # 품목명: "품 명" 오른쪽 또는 다음 줄에서 잡기
     name_match = re.search(r'품\s+명\s+(.+?)(?=품\s*번|규\s*격|수\s*량|$)', full)
-    if name_match:
+    if not name_match:
+        # 다음 줄에 있는 경우 (text 원본에서 찾기)
+        name_match2 = re.search(r'품\s+명\s*\n\s*(.+)', text)
+        if name_match2:
+            candidate = name_match2.group(1).strip()
+            if candidate:
+                result['품목명'] = candidate
+    else:
         candidate = name_match.group(1).strip()
         candidate = re.sub(r'\s*(수\s*량|품\s*번|규\s*격|Lot).*', '', candidate, flags=re.IGNORECASE)
         candidate = candidate.strip()
