@@ -28,7 +28,7 @@ def do_ocr():
         json={
             'requests': [{
                 'image': {'content': image_data},
-                'features': [{'type': 'TEXT_DETECTION', 'maxResults': 1}]
+                'features': [{'type': 'DOCUMENT_TEXT_DETECTION', 'maxResults': 1}]
             }]
         },
         timeout=30
