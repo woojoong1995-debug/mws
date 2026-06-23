@@ -48,7 +48,7 @@ async function doOCR(event) {
       var url = URL.createObjectURL(file);
       img.onload = function() {
         var canvas = document.createElement('canvas');
-        var maxSize = 900;
+        var maxSize = 600;
         var w = img.width, h = img.height;
         if (w > maxSize || h > maxSize) {
           if (w > h) { h = h * maxSize / w; w = maxSize; }
@@ -56,7 +56,7 @@ async function doOCR(event) {
         }
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        var dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
         URL.revokeObjectURL(url);
         resolve(dataUrl.split(',')[1]);
       };
