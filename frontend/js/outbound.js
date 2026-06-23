@@ -200,6 +200,7 @@ async function submitDispatch() {
   try {
     var res  = await fetch(API + '/outbound', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         item_type : dpType,

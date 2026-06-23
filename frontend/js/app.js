@@ -380,9 +380,8 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // ─────────────────────────────────────
-  // 탭 이벤트
+  // 로고 클릭 → 홈 확인 모달
   // ─────────────────────────────────────
-  document.getElementById('nav-home')    .addEventListener('click', function(){ switchTab('home',     this); });
   document.getElementById('logo-btn').addEventListener('click', function(){
     if (currentTab === 'home') return;
     document.getElementById('home-confirm-modal').style.display = 'flex';
@@ -520,7 +519,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 // ═══════════════════════════════════════════
-// 탭 전환 (어떤 상황에서도 튕기지 않는 안전 버전)
+// 탭 전환
 // ═══════════════════════════════════════════
 var currentTab = '';
 
@@ -532,110 +531,18 @@ function switchTab(name, btn) {
   document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
   document.querySelectorAll('.nav button').forEach(function(b) { b.classList.remove('active'); });
 
-  // 2. 선택한 섹션 활성화 (안전 검사)
-  var targetSection = document.getElementById('sec-' + name);
-  if (targetSection) {
-    targetSection.classList.add('active');
-  }
-
-  // 3. [핵심] 네비게이션 버튼 불 켜기 (에러 방어막)
-  var navBtn = btn;
-  // 만약 btn이 안 넘어왔거나, 홈 화면의 대시보드 버튼이 넘어온 경우 하단 바에서 직접 찾습니다.
-  if (!navBtn || !navBtn.closest || !navBtn.closest('.nav')) {
-    navBtn = document.getElementById('nav-' + name);
-  }
-  // 찾은 버튼이 존재할 때만 클래스를 추가해서 에러를 원천 차단합니다.
-  if (navBtn) {
-    navBtn.classList.add('active');
-  }
-
-  // 4. 탭별 데이터 로드 (안전하게 실행 가능)
-  if (name === 'stock')   if (typeof loadStock === 'function') loadStock();
-  if (name === 'history') {
-    var todayStr = new Date().toISOString().slice(0, 10);
-    var dateInput = document.getElementById('hs-date');
-    if (dateInput) dateInput.value = todayStr;
-    if (typeof loadHistory === 'function') loadHistory();
-  }
-  if (name === 'admin')   if (typeof loadUsers === 'function') loadUsers();
-  if (name === 'home')    if (typeof loadHomeStats === 'function') loadHomeStats();
-}
-
-// 혹시 파일이 쪼개지면서 스코프(범위)가 꼬였을 경우를 대비해 전역 window에 명시적으로 연결
-window.switchTab = switchTab;
-
-// ═══════════════════════════════════════════
-// 홈 통계 로드
-// ═══════════════════════════════════════════
-async function loadHomeStats() {
-  try {
-    var today = new Date().toISOString().slice(0,10);
-    var invRes = await fetch(API + '/inventory', { credentials: 'include' });
-    var outRes = await fetch(API + '/history?kind=out&date=' + today, { credentials: 'include' });
-    var inv = await invRes.json();
-    var out = await outRes.json();
-    document.getElementById('home-today-in').textContent    = inv.today_in  || 0;
-    document.getElementById('home-total-in').textContent    = inv.total_in  || 0;
-    document.getElementById('home-total-stock').textContent = (inv.data || []).length;
-    document.getElementById('home-today-out').textContent   = out.today     || 0;
-  } catch(e) { console.log('홈 통계 로드 실패', e); }
-}
-
-async function doChangePassword() {
-  var current = document.getElementById('pw-current').value.trim();
-  var newPw   = document.getElementById('pw-new').value.trim();
-  var msgDiv  = document.getElementById('pw-msg');
-
-  if (!current || !newPw) {
-    msgDiv.style.display    = 'block';
-    msgDiv.style.background = '#fef2f2';
-    msgDiv.style.color      = '#dc2626';
-    msgDiv.textContent      = '모든 항목을 입력하세요';
-    return;
-  }
-
-  try {
-    var res = await fetch(API + '/auth/change-password', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ current, new_password: newPw })
-    });
-    var json = await res.json();
-    masgDiv.style.display = 'block';
-    msgDiv.style.background = json.success ? '#f0fdf4' : '#fef2f2';
-    msgDiv.style.color = json.success ? '#166534' : '#dc2626';
-    msgDiv.textContent = json.message;
-    if (json.success) {
-      setTimeoiut(function(){
-        document.getElementById('pw-modal').style.display = 'none';
-      }, 1500);
-    }
-  } catch(e) {
-    msgDiv.style.display    = 'block';
-    msgDiv.style.background = '#fef2f2';
-    msgDiv.style.color      = '#dc2626';
-    msgDiv.textContent      = '서버에 연결 오류';
-  }
-}
-
-function switchTab(name, btn) {
-  if (currentTab === name) return;
-  currentTab = name;
-
-  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
-  document.querySelectorAll('.nav button').forEach(function(b) { b.classList.remove('active'); });
-
+  // 2. 선택한 섹션 활성화
   var targetSection = document.getElementById('sec-' + name);
   if (targetSection) targetSection.classList.add('active');
 
+  // 3. 네비게이션 버튼 활성화
   var navBtn = btn;
   if (!navBtn || !navBtn.closest || !navBtn.closest('.nav')) {
     navBtn = document.getElementById('nav-' + name);
   }
   if (navBtn) navBtn.classList.add('active');
 
-  // ✅ 이 부분 추가: 홈으로 갈 때 입고/환입 폼 초기화
+  // 4. 홈으로 갈 때 입고/환입 폼 초기화
   if (name === 'home') {
     // 입고 초기화
     ['in-name','in-code','in-lot','in-lot-fabric','in-qty','in-rn',
@@ -662,14 +569,77 @@ function switchTab(name, btn) {
     setType('hj', 'normal');
   }
 
-  if (name === 'stock')   if (typeof loadStock === 'function') loadStock();
+  // 5. 탭별 데이터 로드
+  if (name === 'stock')   if (typeof loadStock    === 'function') loadStock();
   if (name === 'history') {
     var todayStr = new Date().toISOString().slice(0, 10);
     var dateInput = document.getElementById('hs-date');
     if (dateInput) dateInput.value = todayStr;
     if (typeof loadHistory === 'function') loadHistory();
   }
-  if (name === 'admin')   if (typeof loadUsers === 'function') loadUsers();
+  if (name === 'admin')   if (typeof loadUsers    === 'function') loadUsers();
   if (name === 'home')    if (typeof loadHomeStats === 'function') loadHomeStats();
 }
+
+// 전역 등록
+window.switchTab = switchTab;
+
+
 // ═══════════════════════════════════════════
+// 홈 통계 로드
+// ═══════════════════════════════════════════
+async function loadHomeStats() {
+  try {
+    var today = new Date().toISOString().slice(0,10);
+    var invRes = await fetch(API + '/inventory', { credentials: 'include' });
+    var outRes = await fetch(API + '/history?kind=out&date=' + today, { credentials: 'include' });
+    var inv = await invRes.json();
+    var out = await outRes.json();
+    document.getElementById('home-today-in').textContent    = inv.today_in  || 0;
+    document.getElementById('home-total-in').textContent    = inv.total_in  || 0;
+    document.getElementById('home-total-stock').textContent = (inv.data || []).length;
+    document.getElementById('home-today-out').textContent   = out.today     || 0;
+  } catch(e) { console.log('홈 통계 로드 실패', e); }
+}
+
+
+// ═══════════════════════════════════════════
+// 비밀번호 변경
+// ═══════════════════════════════════════════
+async function doChangePassword() {
+  var current = document.getElementById('pw-current').value.trim();
+  var newPw   = document.getElementById('pw-new').value.trim();
+  var msgDiv  = document.getElementById('pw-msg');
+
+  if (!current || !newPw) {
+    msgDiv.style.display    = 'block';
+    msgDiv.style.background = '#fef2f2';
+    msgDiv.style.color      = '#dc2626';
+    msgDiv.textContent      = '모든 항목을 입력하세요';
+    return;
+  }
+
+  try {
+    var res = await fetch(API + '/auth/change-password', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current, new_password: newPw })
+    });
+    var json = await res.json();
+    msgDiv.style.display    = 'block';
+    msgDiv.style.background = json.success ? '#f0fdf4' : '#fef2f2';
+    msgDiv.style.color      = json.success ? '#166534' : '#dc2626';
+    msgDiv.textContent      = json.message;
+    if (json.success) {
+      setTimeout(function(){
+        document.getElementById('pw-modal').style.display = 'none';
+      }, 1500);
+    }
+  } catch(e) {
+    msgDiv.style.display    = 'block';
+    msgDiv.style.background = '#fef2f2';
+    msgDiv.style.color      = '#dc2626';
+    msgDiv.textContent      = '서버 연결 오류';
+  }
+}
