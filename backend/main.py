@@ -17,7 +17,7 @@ from outbound  import outbound_bp
 from returns   import returns_bp
 from inventory import inventory_bp
 from ocr       import ocr_bp
-from requests  import requests_bp
+from req  import requests_bp
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
