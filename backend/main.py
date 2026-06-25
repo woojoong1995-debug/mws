@@ -23,7 +23,8 @@ app = Flask(__name__)
 CORS(app, supports_credentials=True)
 socketio = SocketIO(app, cors_allowed_origins='*')
 
-app.secret_key = '9e8e2ecca4466912b4ab36ad6da281f214b9478c2502f8fe8f7693f11f75c18d'
+import os
+app.secret_key = os.environ.get('SECRET_KEY', 'local-dev-key')
 app.permanent_session_lifetime = timedelta(days=7)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), '..', 'frontend')
