@@ -6,7 +6,8 @@
     "password": "ac9689e2272427085e35b9d3e3e8bed88cb3434828b43b86fc0596cad4c6e270",
     "role": "admin",
     "status": "active",
-    "created": "2026-06-06"
+    "created": "2026-06-06",
+    "team": "material"
   },
   {
     "id": 1780721454025,
@@ -15,6 +16,37 @@
     "password": "da2d4f1b9ca69fb8beb43e73845983463d4f46bbe9dddd075b575572474075ff",
     "role": "user",
     "status": "active",
-    "created": "2026-06-06"
+    "created": "2026-06-06",
+    "team": "material"
+  },
+  {
+    "id": 1782287776257,
+    "name": "생산테스트",
+    "username": "test2",
+    "password": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+    "role": "user",
+    "team": "production",
+    "status": "active",
+    "created": "2026-06-24"
+  },
+  {
+    "id": 1782287827938,
+    "name": "자재테스트",
+    "username": "test1",
+    "password": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+    "role": "user",
+    "team": "material",
+    "status": "active",
+    "created": "2026-06-24"
+  },
+  {
+    "id": 1782288135748,
+    "name": "생산테스트",
+    "username": "test3",
+    "password": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+    "role": "user",
+    "team": "production",
+    "status": "active",
+    "created": "2026-06-24"
   }
 ]

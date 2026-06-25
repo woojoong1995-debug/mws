@@ -40,6 +40,7 @@ def load_users():
             'username': 'admin',
             'password': hash_password('admin1234'),
             'role'    : 'admin',   # 운영자
+            'team'    : 'material', # 팀원 소속
             'status'  : 'active',  # 바로 활성화
             'created' : time.strftime('%Y-%m-%d'),
         }]
@@ -51,10 +52,28 @@ def load_users():
 
     try:
         with open(USERS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            users = json.load(f)
+            # 기존 계정에 team 필드 없으면 자동으로 'material'로 설정
+            changed = False
+            for u in users:
+                if 'team' not in u:
+                    u['team'] = 'material'
+                    changed = True
+            if changed:
+                save_users(users)
+            return users
     except (json.JSONDecodeError, IOError):
         return []
 
+def get_user_team(user):
+    """
+    사용자의 팀을 반환 합니다.
+    - 운영자(admin)는 팀 구분 없이 전체 접근 가능
+    - team 필드가 없는 기존 계정은 'material'(자재팀)로 자동 설정
+    """
+    if user['role'] == 'admin':
+        return 'admin'
+    return user.get('team', 'material')
 
 def save_users(users):
     """

@@ -244,7 +244,7 @@ def get_lock(code):
     code = code.upper()
     # 5분 지난 잠금은 자동 해제
     now = time.time()
-    if code in _locks and now - _locks[code]['time'] > 300:
+    if code in _locks and now - _locks[code]['time'] > 30:
         del _locks[code]
     if code in _locks:
         return jsonify({'success': True, 'locked': True, 'name': _locks[code]['name']})

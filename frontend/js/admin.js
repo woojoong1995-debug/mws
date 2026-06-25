@@ -38,6 +38,13 @@ async function loadUsers() {
         ? '<span style="font-size:11px;padding:2px 7px;border-radius:6px;background:#ede9fe;color:#5b21b6;font-weight:600;margin-left:4px">운영자</span>'
         : '';
 
+      // 팀 배지
+      var teamMap = { material: { label: '자재팀', bg: '#f0fdf4', color: '#166534' }, production: { label: '생산팀', bg: '#dbeafe', color: '#1d4ed8' } };
+      var tm = teamMap[u.team] || teamMap.material;
+      var teamBadge = u.role !== 'admin'
+        ? '<span style="font-size:11px;padding:2px 7px;border-radius:6px;font-weight:600;margin-left:4px;background:' + tm.bg + ';color:' + tm.color + '">' + tm.label + '</span>'
+        : '';
+
       // 버튼 구성
       var btns = '';
       if (u.status === 'pending') {
@@ -52,7 +59,7 @@ async function loadUsers() {
       return '<div class="item">' +
         '<div class="item-top">' +
           '<div>' +
-            '<div class="item-name">' + u.name + roleBadge + '</div>' +
+            '<div class="item-name">' + u.name + roleBadge + teamBadge + '</div>' +
             '<div class="item-code">@' + u.username + ' · ' + u.created + '</div>' +
           '</div>' +
           '<div class="item-right">' +

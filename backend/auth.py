@@ -45,6 +45,7 @@ def register():
     name     = (body.get('name')     or '').strip()
     username = (body.get('username') or '').strip()
     password = (body.get('password') or '').strip()
+    team     = (body.get('team')     or '').strip()  # 팀 선택 (선택 사항)
 
     if not name:
         return jsonify({'success': False, 'message': '이름을 입력하세요'}), 400
@@ -52,6 +53,8 @@ def register():
         return jsonify({'success': False, 'message': '아이디를 입력하세요'}), 400
     if not password or len(password) < 4:
         return jsonify({'success': False, 'message': '비밀번호는 4자 이상이어야 합니다'}), 400
+    if team not in ('material', 'production'):
+        return jsonify({'success': False, 'message': '팀을 선택 해주세요'}), 400
 
     users = load_users()
 
@@ -66,6 +69,7 @@ def register():
         'username' : username,
         'password' : hash_password(password),  # 암호화 저장
         'role'     : 'user',                   # 기본 역할: 일반 직원
+        'team'     : team,                     # 선택한 팀
         'status'   : 'pending',                # 운영자 승인 대기
         'created'  : time.strftime('%Y-%m-%d'),
     }
@@ -115,6 +119,7 @@ def login():
     session['username']  = user['username']
     session['name']      = user['name']
     session['role']      = user.get('role', 'user')
+    session['team']      = user.get('team', 'material')
     session.permanent    = True  # 브라우저 닫아도 유지
 
     return jsonify({
@@ -124,6 +129,7 @@ def login():
             'name'    : user['name'],
             'username': user['username'],
             'role'    : user.get('role', 'user'),
+            'team'    : user.get('team', 'material')
         }
     })
 
@@ -154,6 +160,7 @@ def get_me():
             'name'    : session.get('name'),
             'username': session.get('username'),
             'role'    : session.get('role', 'user'),
+            'team'    : session.get('team', 'material'),
         }
     })
 

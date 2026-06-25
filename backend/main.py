@@ -17,6 +17,7 @@ from outbound  import outbound_bp
 from returns   import returns_bp
 from inventory import inventory_bp
 from ocr       import ocr_bp
+from requests  import requests_bp
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -28,7 +29,7 @@ app.permanent_session_lifetime = timedelta(days=7)
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), '..', 'frontend')
 
 # Blueprint 등록
-for bp in [auth_bp, users_bp, inbound_bp, outbound_bp, returns_bp, inventory_bp, ocr_bp]:
+for bp in [auth_bp, users_bp, inbound_bp, outbound_bp, returns_bp, inventory_bp, ocr_bp, requests_bp]:
     app.register_blueprint(bp)
 
 # ─────────────────────────────────────

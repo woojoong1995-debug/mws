@@ -55,6 +55,7 @@ def get_users():
             'name'    : u.get('name'),
             'username': u.get('username'),
             'role'    : u.get('role', 'user'),
+            'team'    : u.get('team', 'material'),
             'status'  : u.get('status', 'active'),
             'created' : u.get('created', ''),
         })

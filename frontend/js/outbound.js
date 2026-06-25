@@ -115,7 +115,7 @@ async function selectDpItem(item) {
         '<div class="fifo-n">' + (idx + 1) + '</div>' +
         '<div class="fifo-info">' +
           '<div class="fifo-name">' + (m.name || m.code) + tag + '</div>' +
-          '<div class="fifo-sub">📍 ' + (m.loc || '-') + ' · ' + qty + (m.lot ? ' · Lot:' + m.lot : '') + '</div>' +
+          '<div class="fifo-sub">📍 ' + (m.loc || '-') + ' · ' + qty + (m.lot ? ' · Lot:' + m.lot : '') + (m.po ? ' · <span style="background:#fef9c3;color:#854d0e;padding:1px 5px;border-radius:4px;font-size:11px;font-weight:600">PO:' + m.po + '</span>' : '') + '</div>' +
         '</div>' +
         '<div class="fifo-dt">' + m.date + '</div>' +
         '</div>';
