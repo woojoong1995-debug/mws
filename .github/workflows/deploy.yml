@@ -32,6 +32,7 @@ jobs:
               frontend/js/admin.js \
               frontend/js/edit.js \
               frontend/js/ocr.js \
+              frontend/js/requests.js \
               backend/main.py \
               backend/auth.py \
               backend/users.py \
@@ -41,5 +42,6 @@ jobs:
               backend/inventory.py \
               backend/database.py \
               backend/user_db.py \
-              backend/ocr.py
+              backend/ocr.py \
+              backend/req.py 
             systemctl restart warehouse
