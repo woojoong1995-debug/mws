@@ -40,9 +40,11 @@ async function doOCR(event) {
   };
   reader.readAsDataURL(file);
 
-  document.getElementById('ocr-status').textContent = 'AI가 식별표를 분석하는 중...';
-  document.getElementById('ocr-result').style.display = 'none';
-
+  var ocrStatus = document.getElementById('ocr-status');
+  var ocrResult = document.getElementById('ocr-result');
+  if (ocrStatus) ocrStatus.textContent = 'AI가 식별표를 분석하는 중...';
+  if (ocrResult) ocrResult.style.display = 'none';
+  
   try {
     // 이미지 압축 후 Base64 변환 (모바일 대용량 사진 대응)
     var b64 = await new Promise(function(resolve, reject) {
@@ -88,10 +90,10 @@ async function doOCR(event) {
       return '<div class="ocr-frow"><span class="ocr-fl">' + f.l + '</span><span class="ocr-fv">' + ocrData[f.k] + '</span></div>';
     }).join('');
 
-    document.getElementById('ocr-fc').innerHTML = rows || '<p style="font-size:13px;color:var(--txt2)">읽지 못했습니다</p>';
-    document.getElementById('ocr-result').style.display = 'block';
-    document.getElementById('ocr-status').textContent = '추출 완료! 확인 후 버튼을 눌러주세요';
-
+    var ocrFc = document.getElementById('ocr-fc');
+    if (ocrFc) ocrFc.innerHTML = rows || '<p style="font-size:13px;color:var(--txt2)">읽지 못했습니다</p>';
+    if (ocrResult) ocrResult.style.display = 'block';
+    if (ocrStatus) ocrStatus.textContent = '추출 완료! 확인 후 버튼을 눌러주세요';
   } catch(e) {
     showToast('OCR 오류: ' + (e.message || 'API 호출 실패'));
   }
