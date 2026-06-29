@@ -33,8 +33,10 @@ async function doOCR(event) {
   // 미리보기
   var reader = new FileReader();
   reader.onload = function(e) {
-    document.getElementById('ocr-img').src = e.target.result;
-    document.getElementById('ocr-preview').style.display = 'block';
+    var ocrImg = document.getElementById('ocr-img');
+    var ocrPreview = document.getElementById('ocr-preview');
+    if (ocrImg) ocrImg.src = e.target.result;
+    if (ocrPreview) ocrPreview.style.display = 'block';
   };
   reader.readAsDataURL(file);
 
