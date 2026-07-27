@@ -63,10 +63,19 @@ function updateWh(p) {
 // ═══════════════════════════════════════════
 function updateStorage(p) {
   var v  = document.getElementById(p + '-st').value;
+  var wh = document.getElementById(p + '-wh').value;
   var rf = document.getElementById(p + '-rack-fields');
   var ff = document.getElementById(p + '-floor-fields');
+  var tf = document.getElementById(p + '-t-fields');
   if (rf) rf.style.display = v === 'rack'  ? 'block' : 'none';
-  if (ff) ff.style.display = v === 'floor' ? 'block' : 'none';
+  // 천막동이면 floor-fields 숨기고 t-fields 표시
+  if (wh === 'T') {
+    if (ff) ff.style.display = 'none';
+    if (tf) tf.style.display = 'block';
+  } else {
+    if (ff) ff.style.display = v === 'floor' ? 'block' : 'none';
+    if (tf) tf.style.display = 'none';
+  }
   updateLocPreview(p);
 }
 
