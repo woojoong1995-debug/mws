@@ -77,4 +77,4 @@ if __name__ == '__main__':
     print("  C&Tech 창고 재고 관리 서버 시작!")
     print("  로컬:    http://localhost:5000")
     print("=" * 50)
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    socketio.run(app, debug=True, host='0.0.0.0', port=5001)

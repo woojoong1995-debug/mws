@@ -12,11 +12,26 @@ async function loadHistory() {
   try {
     var params = new URLSearchParams();
     if (histDate) params.set('date', histDate);
-    params.set('kind', histKind);
+
+    // 전산완료 탭은 불출 중 transfer_done=true 인 것만
+    if (histKind === 'transfer') {
+      params.set('kind', 'out');
+      params.set('transfer_done', 'true');
+    } else {
+      params.set('kind', histKind);
+    }
 
     var res  = await fetch(API + '/history?' + params, { credentials: 'include' });
     var json = await res.json();
     var outs = json.data || [];
+
+    // 전산완료 탭: transfer_done 인 것만 필터
+    if (histKind === 'transfer') {
+      outs = outs.filter(function(o){ return o.transfer_done; });
+    } else if (histKind === 'out') {
+      // 불출 탭: 전산완료 안 된 것만
+      outs = outs.filter(function(o){ return !o.transfer_done; });
+    }
 
     // 품번 끝자리 필터
     if (histCode) outs = outs.filter(function(o){ return (o.code || '').toUpperCase().endsWith(histCode); });
@@ -71,6 +86,9 @@ async function loadHistory() {
               '<div class="item-qty" style="font-size:13px">' + qtyTxt + '</div>' +
               (histKind === 'out' ?
               '<button class="cancel-btn" data-id="' + item.id + '" style="margin-top:4px;font-size:11px;padding:3px 10px;border:1px solid #fca5a5;border-radius:6px;background:rgba(220,38,38,0.1);color:#ff453a;cursor:pointer">취소</button>' : '') +
+              (histKind === 'out' ?
+                '<button class="transfer-btn" data-id="' + item.id + '" style="margin-top:4px;font-size:11px;padding:3px 10px;border:1px solid #a78bfa;border-radius:6px;background:rgba(91,33,182,0.1);color:#5b21b6;cursor:pointer">전산 완료</button>'
+              : '') +
             '</div>' +
           '</div>' +
         '</div>';
@@ -98,6 +116,35 @@ async function loadHistory() {
       btn.addEventListener('click', function(e) {
         e.stopPropagation();
         cancelOutbound(parseInt(this.dataset.id));
+      });
+    });
+
+    // 전산완료 버튼 이벤트
+    document.querySelectorAll('.transfer-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var id = parseInt(this.dataset.id);
+        if (!confirm('전산 완료 처리하시겠습니까?')) return;
+        fetch(API + '/record/' + id + '/transfer', {
+          method: 'POST', credentials: 'include'
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(json){
+          if (json.success) {
+          showToast('✓ 전산 완료 처리됐습니다');
+          // 전산완료 탭으로 이동
+          document.querySelectorAll('.hist-tab').forEach(function(b){
+            b.style.background = '#f9fafb'; b.style.color = '#6b7280'; b.classList.remove('on');
+          });
+          var transferTab = document.querySelector('.hist-tab[data-kind="transfer"]');
+          if (transferTab) {
+            transferTab.style.background = '#1a1a1a'; transferTab.style.color = '#fff'; transferTab.classList.add('on');
+          }
+          loadHistory();
+        }
+          else { showToast('오류: ' + json.message); }
+        })
+        .catch(function(){ showToast('서버 연결 오류'); });
       });
     });
 

@@ -14,6 +14,7 @@
 #   - 다음날: 자동으로 완전 삭제
 # =====================================================
 
+import time
 from flask import Blueprint, request, jsonify, Response, session
 from database import load_data, save_data, delete_record, export_to_csv
 from datetime import date
@@ -44,10 +45,10 @@ def get_inventory():
     # 입고/환입 항목만 가져오기
     items = [d for d in data if d.get('kind') in ('in', 'hwanjip')]
 
-    # 어제 이전 소진 항목 제외 (당일 소진은 포함)
+    # 소진 항목 제외
     items = [
         i for i in items
-        if not (i.get('depleted') and i.get('date', '') < today)
+        if not i.get('depleted')
     ]
 
     # 검색어 필터 (품목명, 품번, 위치 중 하나라도 포함되면 표시)
@@ -193,3 +194,20 @@ def reset_data():
         return jsonify({'success': False, 'message': '비밀번호가 틀렸습니다'}), 401
     save_data([])
     return jsonify({'success': True, 'message': '전체 데이터가 초기화됐습니다'})
+
+@inventory_bp.route('/api/record/<int:record_id>/transfer', methods=['POST'])
+def transfer_record(record_id):
+    """불출 이력 전산 완료 처리"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다'}), 401
+
+    data = load_data()
+    item = next((d for d in data if d.get('id') == record_id), None)
+    if not item:
+        return jsonify({'success': False, 'message': '항목을 찾을 수 없습니다'}), 404
+
+    item['transfer_done'] = True
+    item['transfer_by']   = session.get('name', '')
+    item['transfer_at']   = time.strftime('%Y-%m-%d')
+    save_data(data)
+    return jsonify({'success': True, 'message': '전산 완료 처리됐습니다'})

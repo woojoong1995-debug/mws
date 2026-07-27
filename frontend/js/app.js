@@ -199,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('in-rn')  .addEventListener('input',  function(){ updateLocPreview('in'); });
   document.getElementById('in-fl')  .addEventListener('input',  function(){ updateLocPreview('in'); });
   document.getElementById('in-floc').addEventListener('input',  function(){ updateLocPreview('in'); });
+  document.getElementById('in-col') .addEventListener('input',  function(){ updateLocPreview('in'); });
   document.getElementById('in-name').addEventListener('input',  function(){ autoCat('in'); });
   document.getElementById('btn-submit-in').addEventListener('click', submitInbound);
 
@@ -220,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('hj-rn')  .addEventListener('input',  function(){ updateLocPreview('hj'); });
   document.getElementById('hj-fl')  .addEventListener('input',  function(){ updateLocPreview('hj'); });
   document.getElementById('hj-floc').addEventListener('input',  function(){ updateLocPreview('hj'); });
+  document.getElementById('hj-col') .addEventListener('input',  function(){ updateLocPreview('hj'); });
   document.getElementById('hj-name').addEventListener('input',  function(){ autoCat('hj'); });
   document.getElementById('btn-submit-hj').addEventListener('click', submitReturn);
 
@@ -253,6 +255,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // 불출 요청 날짜 필터
+  document.getElementById('rm-date').addEventListener('change', loadReqManage);
+
   // 불출 요청 탭 필터
   document.querySelectorAll('.req-tab').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -262,7 +267,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // 불출 신청
-  document.getElementById('rs-date').addEventListener('change', loadReqStatus);
   document.getElementById('ra-suffix').addEventListener('input', searchRaSuffix);
   document.getElementById('btn-submit-ra').addEventListener('click', submitRequest);
   document.getElementById('btn-reset-ra').addEventListener('click', resetRequest);
@@ -344,28 +348,36 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('edit-floor-fields').style.display = this.value === 'floor' ? 'block' : 'none';
   });
   document.getElementById('edit-wh').addEventListener('change', function(){
-    document.getElementById('edit-rack-label').textContent = this.value === 'D' ? '렉 번호 (1~14)' : '렉 번호 (1~10)';
-    document.getElementById('edit-rn').max = this.value === 'D' ? 14 : 10;
+    var wh = this.value;
+    if (wh === 'T') {
+      // 천막동: 천막동 전용 필드 표시
+      document.getElementById('edit-rack-fields') .style.display = 'none';
+      document.getElementById('edit-floor-fields').style.display = 'none';
+      document.getElementById('edit-t-fields')    .style.display = 'block';
+      document.getElementById('edit-st').value = 'floor';
+    } else {
+      // D동: 렉 보관
+      document.getElementById('edit-rack-fields') .style.display = 'block';
+      document.getElementById('edit-floor-fields').style.display = 'none';
+      document.getElementById('edit-t-fields')    .style.display = 'none';
+      document.getElementById('edit-st').value = 'rack';
+      document.getElementById('edit-rack-label').textContent = '렉 번호 (1~14)';
+      document.getElementById('edit-rn').max = 14;
+    }
   });
 
   // 확정/반려 모달 취소 버튼
   document.getElementById('btn-confirm-cancel').addEventListener('click', function(){
-    if (confirmingRequestId) clearReqLock(confirmingRequestId);
     confirmingRequestId = null;
     document.getElementById('confirm-modal').style.display = 'none';
   });
   document.getElementById('confirm-modal').addEventListener('click', function(e){
     if (e.target === this) {
-      if (confirmingRequestId) clearReqLock(confirmingRequestId);
       confirmingRequestId = null;
       this.style.display = 'none';
     }
   });
-  document.getElementById('btn-reject-cancel') .addEventListener('click', function(){ 
-    if (rejectingRequestId) clearReqLock(rejectingRequestId);
-    rejectingRequestId = null;
-    document.getElementById('reject-modal').style.display = 'none'; 
-  });
+  document.getElementById('btn-reject-cancel') .addEventListener('click', function(){ document.getElementById('reject-modal').style.display = 'none'; });
 
 });
 
@@ -397,6 +409,11 @@ function switchTab(name, btn) {
     setType('hj', 'normal');
   }
 
+    // 탭 진입 시 담당자 자동 입력
+  if (name === 'dispatch' && currentUser) {
+    var dpPerson = document.getElementById('dp-person');
+    if (dpPerson && !dpPerson.value) dpPerson.value = currentUser.name;
+  }
   if (name === 'stock')      if (typeof loadStock     === 'function') loadStock();
   if (name === 'prod-stock') if (typeof loadProdStock === 'function') loadProdStock();
   if (name === 'history') {
@@ -406,7 +423,11 @@ function switchTab(name, btn) {
   }
   if (name === 'admin')      if (typeof loadUsers     === 'function') loadUsers();
   if (name === 'home')       if (typeof loadHomeStats === 'function') loadHomeStats();
-  if (name === 'req-manage') if (typeof loadReqManage === 'function') loadReqManage();
+    if (name === 'req-manage') {
+    var rmDate = document.getElementById('rm-date');
+    if (rmDate && !rmDate.value) rmDate.value = new Date().toISOString().slice(0, 10);
+    if (typeof loadReqManage === 'function') loadReqManage();
+  }
   if (name === 'req-status') if (typeof loadReqStatus === 'function') loadReqStatus();
 }
 window.switchTab = switchTab;

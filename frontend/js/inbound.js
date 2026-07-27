@@ -27,8 +27,33 @@ function updateWh(p) {
   var wh = document.getElementById(p + '-wh').value;
   var rl = document.getElementById(p + '-rack-label');
   var rn = document.getElementById(p + '-rn');
-  if (rl) rl.textContent = wh === 'D' ? '렉 번호 (1~14)' : '렉 번호 (1~10)';
-  if (rn) rn.max = wh === 'D' ? 14 : 10;
+  var st = document.getElementById(p + '-st');
+
+  if (wh === 'T') {
+    // 천막동: 자동으로 바닥 보관으로 전환
+    if (st) st.value = 'floor';
+    updateStorage(p);
+    // 구역 A~D로 전환
+    var zoneEl = document.getElementById(p + '-zone');
+    if (zoneEl) {
+      zoneEl.innerHTML = '<option value="">-</option><option>A</option><option>B</option><option>C</option><option>D</option>';
+    }
+    // 천막동 전용 열 입력 필드 표시
+    var tFloor = document.getElementById(p + '-t-fields');
+    var tFloc  = document.getElementById(p + '-floor-fields');
+    if (tFloor) tFloor.style.display = 'block';
+    if (tFloc)  tFloc.style.display  = 'none';
+  } else {
+    // D동: 자동으로 렉 보관으로 전환
+    if (st) st.value = 'rack';
+    updateStorage(p);
+    var zoneEl = document.getElementById(p + '-zone');
+    if (zoneEl) {
+      zoneEl.innerHTML = '<option value="">-</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option>';
+    }
+    if (rl) rl.textContent = '렉 번호 (1~14)';
+    if (rn) rn.max = 14;
+  }  
   updateLocPreview(p);
 }
 
@@ -63,6 +88,13 @@ function buildLoc(p) {
     var parts = [label, zone ? zone+'구역' : '', rn ? rn+'번 렉' : '', fl ? fl+'층' : ''].filter(Boolean);
     return parts.length > 1 ? parts.join(' ') : '';
   } else {
+    // 천막동: 구역 + 열 번호
+    if (wh === 'T') {
+      var zone = (document.getElementById(p + '-zone') || {}).value || '';
+      var col  = (document.getElementById(p + '-col')  || {}).value || '';
+      if (zone && col) return label + ' ' + zone + '구역 ' + col + '열';
+      return '';
+    }
     var floc = (document.getElementById(p + '-floc') || {}).value || '';
     return floc ? label + ' 바닥 ' + floc : '';
   }
@@ -156,7 +188,7 @@ async function submitInbound() {
     if (json.success) {
       showToast('✓ 입고 등록 완료!');
       // 입력 필드 초기화
-      ['in-name','in-code','in-lot','in-lot-fabric','in-qty','in-rn','in-fl','in-floc','in-route','in-po','in-rolls','in-weight','in-meters','in-note'].forEach(function(id){
+      ['in-name','in-code','in-lot','in-lot-fabric','in-qty','in-rn','in-fl','in-floc','in-col','in-route','in-po','in-rolls','in-weight','in-meters','in-note'].forEach(function(id){
         var el = document.getElementById(id);
         if (el) el.value = '';
       });

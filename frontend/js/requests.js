@@ -7,44 +7,14 @@ var rejectingRequestId  = null;
 var selectedRaItem      = null;
 var selectedRaFifo      = null;
 
-// ─── 작업 잠금 (자재팀 동시 작업 방지) ───
-var _reqLockTimer = null;
 
-async function setReqLock(requestId, name) {
-  await fetch(API + '/lock', {
-    method: 'POST', credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code: 'REQ_' + requestId })
-  }).catch(function(){});
-}
-
-async function clearReqLock(requestId) {
-  await fetch(API + '/lock/REQ_' + requestId, {
-    method: 'DELETE', credentials: 'include'
-  }).catch(function(){});
-}
-
-function showReqLockBanner(name) {
-  var existing = document.getElementById('req-lock-banner');
-  if (existing) existing.remove();
-  var banner = document.createElement('div');
-  banner.id = 'req-lock-banner';
-  banner.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#ff3b30;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2)';
-  banner.textContent = '⚠️ ' + name + ' 님이 작업 중입니다';
-  document.body.appendChild(banner);
-  setTimeout(function(){ banner.remove(); }, 3000);
-}
-
-function hideReqLockBanner() {
-  var b = document.getElementById('req-lock-banner');
-  if (b) b.remove();
-}
 
 // 상태 라벨
 function reqStatusLabel(status) {
-  if (status === 'pending')   return { text: '대기중', bg: '#fef9c3', color: '#854d0e' };
-  if (status === 'confirmed') return { text: '확정',   bg: '#f0fdf4', color: '#166534' };
-  if (status === 'rejected')  return { text: '반려',   bg: '#fef2f2', color: '#991b1b' };
+  if (status === 'pending')   return { text: '대기중',    bg: '#fef9c3', color: '#854d0e' };
+  if (status === 'confirmed') return { text: '확정',      bg: '#f0fdf4', color: '#166534' };
+  if (status === 'rejected')  return { text: '반려',      bg: '#fef2f2', color: '#991b1b' };
+  if (status === 'completed') return { text: '전산완료',  bg: '#ede9fe', color: '#5b21b6' };
   return { text: status, bg: '#f3f4f6', color: '#6b7280' };
 }
 
@@ -222,7 +192,7 @@ function resetRequest() {
   if (maxBtn) maxBtn.style.display = 'none';
   var maxHint = document.getElementById('ra-max-hint');
   if (maxHint) maxHint.textContent = '';
-  selectRaFloor(2);
+  selectRaDest('본사 2층');
 }
 
 
@@ -269,12 +239,8 @@ async function loadReqStatus() {
   var list = document.getElementById('req-status-list');
   list.innerHTML = '<div class="loading">불러오는 중...</div>';
 
-  var dateFilter = document.getElementById('rs-date') ? document.getElementById('rs-date').value : '';
-
   try {
-    var params = new URLSearchParams();
-    if (dateFilter) params.set('date', dateFilter);
-    var res = await fetch(API + '/my-requests?' + params, { credentials: 'include'});
+    var res  = await fetch(API + '/my-requests', { credentials: 'include' });
     var json = await res.json();
     var reqs = json.data || [];
 
@@ -297,14 +263,31 @@ async function loadReqStatus() {
         '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
           '<div style="min-width:0;flex:1">' +
             '<div style="font-size:14px;font-weight:600;color:var(--txt)">' + (r.name || r.code || '-') + '</div>' +
-            '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + (r.code || '') + ' · 신청 ' + r.qty + '개' + (r.floor ? ' · 🏢 ' + r.floor + '층' : '') + '</div>' +
+            '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + (r.code || '') + ' · 신청 ' + r.qty + '개' + (r.floor ? ' · 🏢 ' + r.floor : '') + '</div>' +
             '<div style="font-size:12px;color:var(--txt2);margin-top:2px">📅 ' + (r.date || r.created || '') + (r.note ? ' · ' + r.note : '') + '</div>' +
             extra +
           '</div>' +
           '<span style="font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600;background:' + st.bg + ';color:' + st.color + ';flex-shrink:0;margin-left:8px">' + st.text + '</span>' +
         '</div>' +
+        (r.status === 'pending' ? '<button class="ra-cancel-btn" data-id="' + r.id + '" style="margin-top:8px;width:100%;padding:8px;font-size:13px;font-weight:600;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;cursor:pointer">신청 취소</button>' : '') +
       '</div>';
     }).join('');
+
+    // 생산팀 신청 취소 버튼 이벤트
+    document.querySelectorAll('.ra-cancel-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        if (!confirm('신청을 취소하시겠습니까?')) return;
+        var id = parseInt(this.dataset.id);
+        try {
+          var res  = await fetch(API + '/request/' + id + '/cancel', {
+            method: 'POST', credentials: 'include'
+          });
+          var json = await res.json();
+          if (json.success) { showToast('✓ 신청이 취소됐습니다'); loadReqStatus(); }
+          else { showToast('오류: ' + json.message); }
+        } catch(e) { showToast('서버 연결 오류'); }
+      });
+    });
 
   } catch(e) {
     list.innerHTML = '<p style="text-align:center;color:#9b1c1c;padding:24px 0">서버 연결 오류</p>';
@@ -318,10 +301,14 @@ async function loadReqStatus() {
 async function loadReqManage() {
   var list   = document.getElementById('req-manage-list');
   var status = document.querySelector('.req-tab.on')?.dataset.status || 'pending';
+  var dateFilter = document.getElementById('rm-date') ? document.getElementById('rm-date').value : '';
   list.innerHTML = '<div class="loading">불러오는 중...</div>';
 
   try {
-    var res  = await fetch(API + '/requests?status=' + status, { credentials: 'include' });
+    var params = new URLSearchParams();
+    params.set('status', status);
+    if (dateFilter) params.set('date', dateFilter);
+    var res  = await fetch(API + '/requests?' + params, { credentials: 'include' });
     var json = await res.json();
     var reqs = json.data || [];
 
@@ -344,7 +331,7 @@ async function loadReqManage() {
       if (r.status === 'pending') {
         btns = '<div style="display:flex;gap:8px;margin-top:10px">' +
           '<button class="req-confirm-btn" data-id="' + r.id + '" data-qty="' + r.qty + '" data-name="' + (r.name || r.code) + '" data-code="' + (r.code || '') + '" data-floor="' + (r.floor || '') + '" data-fipo="' + (r.fifo_po || '') + '" ' +
-            'style="flex:1;padding:8px;font-size:13px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">불출 확인</button>' +
+            'style="flex:1;padding:8px;font-size:13px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">불출 확정</button>' +
           '<button class="req-reject-btn" data-id="' + r.id + '" ' +
             'style="flex:1;padding:8px;font-size:13px;font-weight:600;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;cursor:pointer">반려</button>' +
         '</div>';
@@ -354,6 +341,13 @@ async function loadReqManage() {
       if (r.status === 'confirmed') {
         extra = '<div style="font-size:12px;color:#166534;margin-top:4px">✓ 확정 ' + r.qty + '개 · ' + (r.confirmed_by || '') + ' · ' + (r.confirmed_at || '') + '</div>';
         if (r.from_loc) extra += '<div style="font-size:12px;color:var(--txt2)">📍 ' + r.from_loc + '</div>';
+        btns = '<div style="display:flex;gap:8px;margin-top:10px">' +
+          '<button class="req-complete-btn" data-id="' + r.id + '" style="flex:1;padding:8px;font-size:13px;font-weight:600;background:#5b21b6;color:#fff;border:none;border-radius:8px;cursor:pointer">✓ 전산 이동 완료</button>' +
+          '<button class="req-undo-btn" data-id="' + r.id + '" style="flex:1;padding:8px;font-size:13px;font-weight:600;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;cursor:pointer">취소</button>' +
+        '</div>';
+      } else if (r.status === 'completed') {
+        extra = '<div style="font-size:12px;color:#5b21b6;margin-top:4px">✓ 전산완료 · ' + (r.completed_by || '') + ' · ' + (r.completed_at || '') + '</div>';
+        btns = '<button class="req-undo-btn" data-id="' + r.id + '" style="margin-top:10px;width:100%;padding:8px;font-size:13px;font-weight:600;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;cursor:pointer">전산완료 취소</button>';
       } else if (r.status === 'rejected') {
         extra = '<div style="font-size:12px;color:#dc2626;margin-top:4px">✕ ' + (r.reason || '') + '</div>';
       }
@@ -362,7 +356,7 @@ async function loadReqManage() {
         '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
           '<div style="min-width:0;flex:1">' +
             '<div style="font-size:14px;font-weight:600;color:var(--txt)">' + (r.name || r.code || '-') + '</div>' +
-            '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + (r.code || '') + ' · 신청 ' + r.qty + '개' + (r.floor ? ' · 🏢 ' + r.floor + '층' : '') + '</div>' +
+            '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + (r.code || '') + ' · 신청 ' + r.qty + '개' + (r.floor ? ' · 🏢 ' + r.floor : '') + '</div>' +
             '<div style="font-size:12px;color:var(--txt2);margin-top:2px">👤 ' + (r.requested_name || '') + ' · ' + (r.date || r.created || '') + '</div>' +
             (r.note ? '<div style="font-size:12px;color:var(--txt2);margin-top:2px">📝 ' + r.note + '</div>' : '') +
             extra +
@@ -381,18 +375,6 @@ async function loadReqManage() {
         var reqCode = this.dataset.code;
         var reqName = this.dataset.name;
 
-        // 잠금 확인
-        try {
-          var lockRes  = await fetch(API + '/lock/REQ_' + reqId, { credentials: 'include' });
-          var lockJson = await lockRes.json();
-          if (lockJson.locked && lockRes.name !== currentUser.name) {
-            showReqLockBanner(lockJson.name);
-            return;
-          }
-        } catch(e) {}
-
-        // 잠금 등록
-        await setReqLock(reqId, currentUser ? currentUser.name : '');
         confirmingRequestId = reqId;
 
         var reqFloor = this.dataset.floor;
@@ -403,7 +385,7 @@ async function loadReqManage() {
         if (floorEl) {
           if (reqFloor) {
             floorEl.style.display = 'block';
-            floorEl.textContent = '🏢 현장 위치: ' + reqFloor + '층';
+            floorEl.textContent = '🏢 배달 위치: ' + reqFloor;
           } else {
             floorEl.style.display = 'none';
           }
@@ -415,28 +397,14 @@ async function loadReqManage() {
 
     // 반려 버튼
     document.querySelectorAll('.req-reject-btn').forEach(function(btn) {
-      btn.addEventListener('click', async function() {
-        var reqId = parseInt(this.dataset.id);
-        // 잠금 확인
-        try {
-          var lockRes  = await fetch(API + '/lock/REQ_' + reqId, { credentials: 'include'});
-          var lockJson = await lockRes.json();
-          if (lockJson.locked && lockJson.name !== currentUser.name) {
-            showReqLockBanner(lockJson.name);
-            return;
-          }
-        } catch(e) {}
-        // 잠금 등록
-        await setReqLock(reqId, currentUser ? currentUser.name : '');
-        rejectingRequestId = reqId;
+      btn.addEventListener('click', function() {
+        rejectingRequestId = parseInt(this.dataset.id);
         document.getElementById('reject-reason').value = '';
         document.getElementById('reject-modal').style.display = 'flex';
       });
     });
 
-    // 확정 모달 X 버튼 -> 잠금 즉시 해제
     document.getElementById('btn-confirm-cancel').onclick = function() {
-      if (confirmingRequestId) clearReqLock(confirmingRequestId);
       confirmingRequestId = null;
       document.getElementById('confirm-modal').style.display = 'none';
     };
@@ -457,7 +425,6 @@ async function loadReqManage() {
         });
         var json = await res.json();
         if (json.success) {
-          await clearReqLock(confirmingRequestId);  // 잠금 해제
           document.getElementById('confirm-modal').style.display = 'none';
           showToast('✓ 불출 확정 완료!');
           confirmingRequestId = null;
@@ -486,6 +453,38 @@ async function loadReqManage() {
         } else { showToast('오류: ' + json.message); }
       } catch(e) { showToast('서버 연결 오류'); }
     };
+
+    // 전산 이동 완료 버튼 이벤트
+    document.querySelectorAll('.req-complete-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        if (!confirm('전산 이동 완료 처리하시겠습니까?')) return;
+        var id = parseInt(this.dataset.id);
+        try {
+          var res  = await fetch(API + '/request/' + id + '/complete', {
+            method: 'POST', credentials: 'include'
+          });
+          var json = await res.json();
+          if (json.success) { showToast('✓ 전산 이동 완료!'); loadReqManage(); }
+          else { showToast('오류: ' + json.message); }
+        } catch(e) { showToast('서버 연결 오류'); }
+      });
+    });
+
+    // 확정 취소 버튼 이벤트
+    document.querySelectorAll('.req-undo-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        if (!confirm('확정을 취소하고 재고를 복원하시겠습니까?')) return;
+        var id = parseInt(this.dataset.id);
+        try {
+          var res  = await fetch(API + '/request/' + id + '/undo', {
+            method: 'POST', credentials: 'include'
+          });
+          var json = await res.json();
+          if (json.success) { showToast('✓ 확정 취소! 재고가 복원됐습니다'); loadReqManage(); }
+          else { showToast('오류: ' + json.message); }
+        } catch(e) { showToast('서버 연결 오류'); }
+      });
+    });
 
   } catch(e) {
     list.innerHTML = '<p style="text-align:center;color:#9b1c1c;padding:24px 0">서버 연결 오류</p>';
@@ -665,18 +664,21 @@ function setConfirmMax() {
 
 
 // ═══════════════════════════════════════════
-// 생산팀: 층수 선택 토글
+// 생산팀: 배달 위치 선택
 // ═══════════════════════════════════════════
-function selectRaFloor(floor) {
-  document.getElementById('ra-floor').value = floor;
-  var f2 = document.getElementById('ra-floor-2');
-  var f3 = document.getElementById('ra-floor-3');
-  if (!f2 || !f3) return;
-  if (floor === 2 || floor === '2') {
-    f2.style.background = '#1a1a1a'; f2.style.color = '#fff'; f2.style.borderColor = '#1a1a1a';
-    f3.style.background = 'var(--card)'; f3.style.color = 'var(--txt2)'; f3.style.borderColor = 'var(--border2)';
-  } else {
-    f3.style.background = '#1a1a1a'; f3.style.color = '#fff'; f3.style.borderColor = '#1a1a1a';
-    f2.style.background = 'var(--card)'; f2.style.color = 'var(--txt2)'; f2.style.borderColor = 'var(--border2)';
-  }
+function selectRaDest(dest) {
+  document.getElementById('ra-floor').value = dest;
+  var ids = ['ra-dest-1', 'ra-dest-2', 'ra-dest-3'];
+  var vals = ['본사 2층', '본사 3층', '주향'];
+  ids.forEach(function(id, idx) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (vals[idx] === dest) {
+      el.style.background = '#1a1a1a'; el.style.color = '#fff'; el.style.borderColor = '#1a1a1a';
+    } else {
+      el.style.background = 'var(--card)'; el.style.color = 'var(--txt2)'; el.style.borderColor = 'var(--border2)';
+    }
+  });
 }
+
+function selectRaFloor(floor) { selectRaDest(floor); }

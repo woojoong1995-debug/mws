@@ -79,6 +79,7 @@ def get_requests():
         return jsonify({'success': False, 'message': '자재팀만 조회할 수 있습니다'}), 403
 
     status_filter = request.args.get('status', 'pending')
+    date_filter   = request.args.get('date', '')
     data = load_data()
 
     # 불출 신청 항목만 필터링
@@ -88,10 +89,25 @@ def get_requests():
     if status_filter != 'all':
         requests_list = [r for r in requests_list if r.get('status') == status_filter]
 
+    # 날짜 필터 - 기본값은 오늘
+    from datetime import date as _date
+    today = _date.today().isoformat()
+    if date_filter:
+        target_date = date_filter
+    else:
+        target_date = today
+
+    # pending/confirmed 는 날짜 필터 적용, all 은 필터 없음
+    if status_filter != 'all':
+        requests_list = [r for r in requests_list if r.get('confirmed_at', r.get('created', '')) == target_date
+                         or (status_filter == 'pending' and r.get('created', '') == target_date)
+                         or (status_filter == 'completed' and r.get('completed_at', '') == target_date)
+                         or (status_filter == 'rejected' and r.get('rejected_at', '') == target_date)]
+
     # 최신순 정렬
     requests_list = sorted(requests_list, key=lambda x: x.get('created', ''), reverse=True)
 
-    return jsonify({'success': True, 'data': requests_list})
+    return jsonify({'success': True, 'data': requests_list, 'date': target_date})
 
 @requests_bp.route('/api/request/<int:request_id>', methods=['PUT'])
 def confirm_request(request_id):
@@ -228,3 +244,65 @@ def get_my_requests():
     my_requests = sorted(my_requests, key=lambda x: x.get('created', ''), reverse=True)
 
     return jsonify({'success': True, 'data': my_requests})
+
+@requests_bp.route('/api/request/<int:request_id>/cancel', methods=['POST'])
+def cancel_request(request_id):
+    """불출 신청 취소 (생산팀 - 대기중만)"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다'}), 401
+    data = load_data()
+    req = next((d for d in data if d.get('id') == request_id and d.get('kind') == 'request'), None)
+    if not req:
+        return jsonify({'success': False, 'message': '신청 항목을 찾을 수 없습니다'}), 404
+    if req.get('status') != 'pending':
+        return jsonify({'success': False, 'message': '대기중인 신청만 취소할 수 있습니다'}), 400
+    if req.get('requested_by') != session.get('username'):
+        return jsonify({'success': False, 'message': '본인 신청만 취소할 수 있습니다'}), 403
+    data = [d for d in data if d.get('id') != request_id]
+    save_data(data)
+    return jsonify({'success': True, 'message': '신청이 취소됐습니다'})
+
+
+@requests_bp.route('/api/request/<int:request_id>/undo', methods=['POST'])
+def undo_confirm(request_id):
+    """불출 확정 취소 (자재팀 - 재고 복원)"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다'}), 401
+    if session.get('team') != 'material' and session.get('role') != 'admin':
+        return jsonify({'success': False, 'message': '자재팀만 취소할 수 있습니다'}), 403
+    data = load_data()
+    req = next((d for d in data if d.get('id') == request_id and d.get('kind') == 'request'), None)
+    if not req:
+        return jsonify({'success': False, 'message': '신청 항목을 찾을 수 없습니다'}), 404
+    if req.get('status') != ('confirmed', 'completed'):
+        return jsonify({'success': False, 'message': '확정 또는 전산완료 상태만 취소할 수 있습니다'}), 400
+    from_id = req.get('from_id')
+    if from_id:
+        for item in data:
+            if item.get('id') == from_id:
+                item['qty'] = (item.get('qty') or 0) + (req.get('qty') or 0)
+                item['depleted'] = False
+                break
+    data = [d for d in data if d.get('id') != request_id]
+    save_data(data)
+    return jsonify({'success': True, 'message': '확정이 취소되고 재고가 복원됐습니다'})
+
+
+@requests_bp.route('/api/request/<int:request_id>/complete', methods=['POST'])
+def complete_request(request_id):
+    """전산 이동 완료 처리 (자재팀)"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다'}), 401
+    if session.get('team') != 'material' and session.get('role') != 'admin':
+        return jsonify({'success': False, 'message': '자재팀만 완료 처리할 수 있습니다'}), 403
+    data = load_data()
+    req = next((d for d in data if d.get('id') == request_id and d.get('kind') == 'request'), None)
+    if not req:
+        return jsonify({'success': False, 'message': '신청 항목을 찾을 수 없습니다'}), 404
+    if req.get('status') != 'confirmed':
+        return jsonify({'success': False, 'message': '확정된 신청만 완료 처리할 수 있습니다'}), 400
+    req['status']       = 'completed'
+    req['completed_by'] = session.get('name', '')
+    req['completed_at'] = time.strftime('%Y-%m-%d')
+    save_data(data)
+    return jsonify({'success': True, 'message': '전산 이동 완료 처리됐습니다'})

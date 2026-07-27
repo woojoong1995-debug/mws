@@ -38,16 +38,29 @@ function openEditModal(id) {
       document.getElementById('edit-wh').value = item.wh || 'D';
       var loc = item.loc || '';
 
-      // 렉/바닥 구분
-      if (loc.includes('바닥')) {
+      // 렉/바닥/천막동 열 구분
+      var wh = item.wh || 'D';
+      if (wh === 'T' && loc.includes('열')) {
+        // 천막동: 구역 + 열
+        document.getElementById('edit-st').value = 'floor';
+        document.getElementById('edit-rack-fields').style.display = 'none';
+        document.getElementById('edit-floor-fields').style.display = 'none';
+        document.getElementById('edit-t-fields').style.display = 'block';
+        var zoneM = loc.match(/([A-D])구역/);
+        var colM  = loc.match(/(\d+)열/);
+        document.getElementById('edit-t-zone').value = zoneM ? zoneM[1] : '';
+        document.getElementById('edit-col').value    = colM  ? colM[1]  : '';
+      } else if (loc.includes('바닥')) {
         document.getElementById('edit-st').value = 'floor';
         document.getElementById('edit-rack-fields').style.display = 'none';
         document.getElementById('edit-floor-fields').style.display = 'block';
+        document.getElementById('edit-t-fields').style.display = 'none';
         document.getElementById('edit-floc').value = loc.replace(/.*바닥\s*/, '');
       } else {
         document.getElementById('edit-st').value = 'rack';
         document.getElementById('edit-rack-fields').style.display = 'block';
         document.getElementById('edit-floor-fields').style.display = 'none';
+        document.getElementById('edit-t-fields').style.display = 'none';
         // 구역/번호/층 파싱
         var zoneM = loc.match(/([A-F])구역/);
         var rackM = loc.match(/(\d+)번 렉/);
@@ -68,6 +81,15 @@ function buildEditLoc() {
   var wh    = document.getElementById('edit-wh').value;
   var label = wh === 'D' ? 'D동' : '천막동';
   var st    = document.getElementById('edit-st').value;
+
+  // 천막동: 구역 + 열
+  if (wh === 'T') {
+    var zone = document.getElementById('edit-t-zone').value;
+    var col  = document.getElementById('edit-col').value;
+    if (zone && col) return label + ' ' + zone + '구역 ' + col + '열';
+    return label;
+  }
+
   if (st === 'rack') {
     var zone  = document.getElementById('edit-zone').value;
     var rn    = document.getElementById('edit-rn').value;

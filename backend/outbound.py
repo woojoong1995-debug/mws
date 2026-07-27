@@ -209,6 +209,11 @@ def get_history():
     if date_filter:
         outs = [o for o in outs if o.get('date', '') == date_filter]
 
+    # 전산완료 필터
+    transfer_filter = request.args.get('transfer_done', '')
+    if transfer_filter == 'true':
+        outs = [o for o in outs if o.get('transfer_done')]
+
     # 최신순 정렬
     outs = sorted(outs, key=lambda x: x.get('date', ''), reverse=True)
 
@@ -244,7 +249,7 @@ def get_lock(code):
     code = code.upper()
     # 5분 지난 잠금은 자동 해제
     now = time.time()
-    if code in _locks and now - _locks[code]['time'] > 30:
+    if code in _locks and now - _locks[code]['time'] > 300:
         del _locks[code]
     if code in _locks:
         return jsonify({'success': True, 'locked': True, 'name': _locks[code]['name']})

@@ -267,6 +267,22 @@
       <label>바닥 위치</label>
       <input type="text" id="in-floc" placeholder="예: A구역 3번">
     </div>
+    <!-- 천막동 전용: 구역+열 -->
+    <div id="in-t-fields" style="display:none">
+      <div class="row2">
+        <div>
+          <label>구역</label>
+          <select id="in-t-zone" onchange="document.getElementById('in-zone').value=this.value;updateLocPreview('in')">
+            <option value="">-</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option>
+          </select>
+        </div>
+        <div>
+          <label>열 번호</label>
+          <input type="number" id="in-col" min="1" max="10" placeholder="1~10">
+        </div>
+      </div>
+    </div>
     <div id="in-loc-preview" class="loc-tip" style="display:none"></div>
     <label>품목명</label>
     <input type="text" id="in-name" placeholder="품목명">
@@ -415,6 +431,22 @@
       <label>바닥 위치</label>
       <input type="text" id="hj-floc" placeholder="예: A구역 3번">
     </div>
+    <!-- 천막동 전용: 구역+열 -->
+    <div id="hj-t-fields" style="display:none">
+      <div class="row2">
+        <div>
+          <label>구역</label>
+          <select id="hj-t-zone" onchange="document.getElementById('hj-zone').value=this.value;updateLocPreview('hj')">
+            <option value="">-</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option>
+          </select>
+        </div>
+        <div>
+          <label>열 번호</label>
+          <input type="number" id="hj-col" min="1" max="10" placeholder="1~10">
+        </div>
+      </div>
+    </div>
     <div id="hj-loc-preview" class="loc-tip" style="display:none"></div>
     <label>품목명</label>
     <input type="text" id="hj-name" placeholder="품목명">
@@ -498,6 +530,7 @@
       <button class="hist-tab on" data-kind="out" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#1a1a1a;color:#fff;cursor:pointer">불출</button>
       <button class="hist-tab" data-kind="in" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">입고</button>
       <button class="hist-tab" data-kind="hwanjip" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">환입</button>
+      <button class="hist-tab" data-kind="transfer" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">전산완료</button>
     </div>
     <div class="stats">
       <div class="stat"><div class="stat-l">전체 불출</div><div class="stat-v" id="hs-total">0</div></div>
@@ -526,11 +559,17 @@
       <div class="stat"><div class="stat-l">대기 중</div><div class="stat-v" id="rm-pending" style="color:#dc2626">0</div></div>
       <div class="stat"><div class="stat-l">오늘 확정</div><div class="stat-v" id="rm-confirmed">0</div></div>
     </div>
+    <!-- 날짜 필터 -->
+    <div class="card" style="padding:12px 16px;margin-bottom:10px">
+      <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">날짜 선택 (기본: 오늘)</label>
+      <input type="date" id="rm-date" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:var(--card);color:var(--txt)">
+    </div>
     <!-- 상태 필터 -->
-    <div style="display:flex;gap:6px;margin-bottom:12px">
-      <button class="req-tab on" data-status="pending" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#1a1a1a;color:#fff;cursor:pointer">대기중</button>
-      <button class="req-tab" data-status="confirmed" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">확정</button>
-      <button class="req-tab" data-status="rejected" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">반려</button>
+    <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto">
+      <button class="req-tab on" data-status="pending" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#1a1a1a;color:#fff;cursor:pointer;white-space:nowrap">대기중</button>
+      <button class="req-tab" data-status="confirmed" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer;white-space:nowrap">확정</button>
+      <button class="req-tab" data-status="rejected" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer;white-space:nowrap">반려</button>
+      <button class="req-tab" data-status="completed" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer;white-space:nowrap">전산완료</button>
     </div>
     <div id="req-manage-list"></div>
   </div>
@@ -562,19 +601,23 @@
       </div>
       <div id="ra-fifo-wrap"></div>
       <div class="card">
-        <!-- 층수 선택 -->
-        <label style="margin-top:0">층수 선택</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-          <div id="ra-floor-2" onclick="selectRaFloor(2)"
+        <!-- 배달 위치 선택 -->
+        <label style="margin-top:0">배달 위치</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+          <div id="ra-dest-1" onclick="selectRaDest('본사 2층')"
             style="padding:11px;font-size:14px;font-weight:600;border:2px solid #1a1a1a;border-radius:8px;cursor:pointer;text-align:center;background:#1a1a1a;color:#fff">
-            2층
+            본사 2층
           </div>
-          <div id="ra-floor-3" onclick="selectRaFloor(3)"
+          <div id="ra-dest-2" onclick="selectRaDest('본사 3층')"
             style="padding:11px;font-size:14px;font-weight:600;border:2px solid var(--border2);border-radius:8px;cursor:pointer;text-align:center;background:var(--card);color:var(--txt2)">
-            3층
+            본사 3층
+          </div>
+          <div id="ra-dest-3" onclick="selectRaDest('주향')"
+            style="padding:11px;font-size:14px;font-weight:600;border:2px solid var(--border2);border-radius:8px;cursor:pointer;text-align:center;background:var(--card);color:var(--txt2)">
+            주향
           </div>
         </div>
-        <input type="hidden" id="ra-floor" value="2">
+        <input type="hidden" id="ra-floor" value="본사 2층">
 
         <!-- PO 번호: 재고에 있는 PO는 위 FIFO 목록에서 노란 배지로 표시됩니다 -->
 
@@ -601,10 +644,6 @@
   ══════════════════════════════════════ -->
   <div id="sec-req-status" class="section">
     <p style="font-size:13px;color:var(--txt2);margin-bottom:12px;padding:0 4px">내가 신청한 불출 목록입니다</p>
-    <div class="card" style="padding:12px 16px;margin-bottom:10px">
-      <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">날짜 선택</label>
-      <input type="date" id="rs-date" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:var(--card);color:var(--txt)">
-    </div>
     <div id="req-status-list"></div>
   </div>
 
@@ -699,7 +738,7 @@
         style="padding:11px 16px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:8px;cursor:pointer;white-space:nowrap">MAX</button>
     </div>
 
-    <button id="btn-confirm-ok" style="width:100%;padding:13px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">불출 확인</button>
+    <button id="btn-confirm-ok" style="width:100%;padding:13px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">불출 확정</button>
   </div>
 </div>
 
@@ -808,6 +847,22 @@
     <div id="edit-floor-fields" style="display:none;margin-top:8px">
       <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">바닥 위치</label>
       <input type="text" id="edit-floc" placeholder="예: A구역 3번" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+    </div>
+    <!-- 천막동 전용: 구역+열 -->
+    <div id="edit-t-fields" style="display:none;margin-top:8px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">구역</label>
+          <select id="edit-t-zone" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+            <option value="">-</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">열 번호</label>
+          <input type="number" id="edit-col" min="1" max="10" placeholder="1~10" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+        </div>
+      </div>
     </div>
     <div style="margin-top:12px">
       <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">입고일</label>
