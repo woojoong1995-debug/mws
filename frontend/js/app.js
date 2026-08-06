@@ -9,14 +9,33 @@ async function checkLoginStatus() {
   try {
     var res  = await fetch(API + '/auth/me', { credentials: 'include' });
     var json = await res.json();
-    if (json.success) { currentUser = json.user; showMainApp(); }
-    else              { showAuthScreen(); }
+    if (json.success) {
+      currentUser = json.user;
+      // 아이디/비밀번호 저장
+      var saveEl = document.getElementById('save-login');
+      if (saveEl && saveEl.checked) {
+        localStorage.setItem('saved_username', username);
+        localStorage.setItem('saved_password', password);
+      } else {
+        localStorage.removeItem('saved_username');
+        localStorage.removeItem('saved_password');
+      }
+      showMainApp();
+    } else { errDiv.style.display = 'block'; errDiv.textContent = json.message; }
   } catch(e) { showAuthScreen(); }
 }
 
 function showAuthScreen() {
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-app').style.display = 'none';
+  // 저장된 로그인 정보 불러오기
+  var savedUsername = localStorage.getItem('saved_username');
+  var savedPassword = localStorage.getItem('saved_password');
+  if (savedUsername && savedPassword) {
+    document.getElementById('login-username').value = savedUsername;
+    document.getElementById('login-password').value = savedPassword;
+    document.getElementById('save-login').checked = true;
+  }
 }
 
 // ═══════════════════════════════════════════
