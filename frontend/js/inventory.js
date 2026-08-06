@@ -42,7 +42,7 @@ async function loadStock() {
     // 품번 기준 그룹핑
     var groups = {};
     var groupOrder = [];
-    items.slice().reverse().forEach(function(item) {
+    items.forEach(function(item) {
       var key = item.code || item.name || 'unknown';
       if (!groups[key]) {
         groups[key] = { items: [], name: item.name, code: item.code, cat: item.cat, totalQty: 0, totalRolls: 0, totalMeters: 0 };
