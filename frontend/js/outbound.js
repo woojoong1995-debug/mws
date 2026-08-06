@@ -69,20 +69,8 @@ async function searchBySuffix() {
 async function selectDpItem(item) {
   // 잠금 확인
   try {
-    var lockRes = await fetch(API + '/lock/' + encodeURIComponent(item.code), { credentials: 'include' });
-    var lockJson = await lockRes.json();
-    if (lockJson.locked) {
-      showToast('⚠️ ' + lockJson.name + ' 님이 작업 중입니다!');
-      return;
-    }
   } catch(e) {}
   // 잠금 등록
-  fetch(API + '/lock', {
-    method: 'POST', credentials: 'include',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ code: item.code })
-  });
-
   selectedDpItem   = item;
   selectedFifoItems = [];
 
@@ -249,8 +237,7 @@ async function submitDispatch() {
     var json = await res.json();
     if (json.success) {
       showToast('✓ 불출 확정 완료!');
-      if (selectedDpItem) fetch(API + '/lock/' + encodeURIComponent(selectedDpItem.code), { method: 'DELETE', credentials: 'include' });
-      resetDispatch();
+          resetDispatch();
     } else {
       showToast('오류: ' + json.message);
     }
@@ -264,7 +251,6 @@ async function submitDispatch() {
 // 불출 초기화 (다시 선택)
 // ═══════════════════════════════════════════
 function resetDispatch() {
-  if (selectedDpItem) fetch(API + '/lock/' + encodeURIComponent(selectedDpItem.code), { method: 'DELETE', credentials: 'include' });
   selectedDpItem   = null;
   selectedFifoItems = [];
   document.getElementById('dp-suffix').value = '';
