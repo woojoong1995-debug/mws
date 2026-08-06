@@ -54,10 +54,10 @@ def get_fifo():
         and ((d.get('qty') or 0) > 0 or (d.get('rolls') or 0) > 0 or (d.get('meters') or 0) > 0)
     ]
 
-    # 정렬: 환입 1순위, 그 다음 입고일 오름차순
+    # 정렬: 환입 1순위, 그 다음 Lot 번호 오름차순, Lot 없으면 날짜순
     matches.sort(key=lambda x: (
         0 if x.get('kind') == 'hwanjip' else 1,  # 환입=0, 입고=1
-        x.get('date', '')                          # 날짜 빠른 순
+        x.get('lot', '') or x.get('date', ''),    # Lot 오름차순 (없으면 날짜순)
     ))
 
     return jsonify({'success': True, 'data': matches})

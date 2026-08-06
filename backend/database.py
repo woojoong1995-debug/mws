@@ -92,10 +92,12 @@ def detect_category(name):
 
 def export_to_csv():
     """
-    전체 데이터를 CSV 문자열로 변환합니다.
+    현재 재고 데이터를 CSV 문자열로 변환합니다.
     BOM 포함 UTF-8 -> 엑셀에서 한글 깨짐 방지
     """
     data = load_data()
+    # 현재 재고만 (입고+환입 중 소진 안 된 것)
+    data = [d for d in data if d.get('kind') in ('in', 'hwanjip') and not d.get('depleted')]
     if not data:
         return ''
 

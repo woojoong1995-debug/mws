@@ -64,6 +64,11 @@ def get_inventory():
     if cat:
         items = [i for i in items if (i.get('cat') or '기타') == cat]
 
+    # Lot 오름차순 정렬 (없으면 날짜순)
+    items.sort(key=lambda x: (
+        x.get('lot', '') or x.get('date', '')
+    ))
+
     # 통계 계산 (필터 없이 전체 기준)
     all_in    = [d for d in data if d.get('kind') == 'in']
     total_in  = len(all_in)
