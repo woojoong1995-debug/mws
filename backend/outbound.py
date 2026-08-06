@@ -95,23 +95,23 @@ def add_outbound():
         return jsonify({'success': False, 'message': '담당자 이름을 입력하세요'}), 400
 
     data = load_data()
-    from_id = body.get('from_id')
+    from_id  = body.get('from_id')
+    from_ids = body.get('from_ids', [])
+    if from_id and from_id not in from_ids:
+        from_ids.append(from_id)
 
-    # 선택한 입고 항목에서 수량 차감
-    if from_id:
+    # 선택한 입고 항목들에서 수량 차감 (다중 선택 지원)
+    for fid in from_ids:
         for item in data:
-            if item.get('id') == from_id:
+            if item.get('id') == fid:
                 if body.get('item_type') == 'fabric':
-                    # 원단: 롤수와 무게 차감
                     item['rolls']  = max(0, (item.get('rolls')  or 0) - (body.get('rolls')  or 0))
                     item['weight'] = max(0, (item.get('weight') or 0) - (body.get('weight') or 0))
                     item['meters'] = max(0, (item.get('meters') or 0) - (body.get('meters') or 0))
                     item['qty']    = item['rolls']
                 else:
-                    # 일반: 수량 차감
                     item['qty'] = max(0, (item.get('qty') or 0) - (body.get('qty') or 0))
 
-                # 수량이 0이 되면 소진 처리
                 if item.get('qty', 0) <= 0:
                     item['depleted'] = True
                 break
@@ -225,46 +225,3 @@ def get_history():
         'today'   : len([o for o in outs if o.get('date') == today_str])
     })
 
-
-# 불출 작업 중 잠금 (메모리 저장 - 서버 재시작 시 초기화)
-_locks = {}  # { code: { name, time } }
-
-@outbound_bp.route('/api/lock', methods=['POST'])
-def set_lock():
-    """품번 작업 중 잠금"""
-    from flask import session
-    body = request.get_json()
-    code = (body.get('code') or '').strip().upper()
-    if not code:
-        return jsonify({'success': False}), 400
-    _locks[code] = {
-        'name': session.get('name', '누군가'),
-        'time': time.time()
-    }
-    return jsonify({'success': True})
-
-@outbound_bp.route('/api/lock/<code>', methods=['GET'])
-def get_lock(code):
-    """잠금 상태 확인"""
-    code = code.upper()
-    # 5분 지난 잠금은 자동 해제
-    now = time.time()
-    if code in _locks and now - _locks[code]['time'] > 300:
-        del _locks[code]
-    if code in _locks:
-        return jsonify({'success': True, 'locked': True, 'name': _locks[code]['name']})
-    return jsonify({'success': True, 'locked': False})
-
-@outbound_bp.route('/api/lock/<code>', methods=['DELETE'])
-def del_lock(code):
-    """잠금 해제"""
-    code = code.upper()
-    _locks.pop(code, None)
-    return jsonify({'success': True})
-
-@outbound_bp.route('/api/lock/<code>/release', methods=['POST'])
-def release_lock(code):
-    """페이지 종료 시 잠금 해제"""
-    code = code.upper()
-    _locks.pop(code, None)
-    return jsonify({'success': True})

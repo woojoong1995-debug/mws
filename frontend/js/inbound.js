@@ -211,3 +211,106 @@ async function submitInbound() {
   }
 }
 
+
+
+// ═══════════════════════════════════════════
+// 입고: 이전 입고 데이터에서 품목 검색 (🔍 버튼)
+// ═══════════════════════════════════════════
+async function searchPrevInbound() {
+  var name = document.getElementById('in-name').value.trim();
+  var list = document.getElementById('in-search-list');
+
+  try {
+    var res  = await fetch(API + '/inventory?q=' + encodeURIComponent(name), { credentials: 'include' });
+    var json = await res.json();
+    var items = json.data || [];
+
+    if (!items.length) {
+      list.style.display = 'block';
+      list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--txt2);text-align:center">검색 결과 없음</div>';
+      return;
+    }
+
+    // 품번 기준 중복 제거 (최신 것만)
+    var seen = {}, unique = [];
+    items.forEach(function(item) {
+      var key = item.code || item.name;
+      if (!seen[key]) { seen[key] = true; unique.push(item); }
+    });
+
+    list.style.display = 'block';
+    list.innerHTML = unique.map(function(item) {
+      return '<div class="prev-in-item" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px" ' +
+        'data-name="' + (item.name || '') + '" ' +
+        'data-code="' + (item.code || '') + '" ' +
+        'data-lot="'  + (item.lot  || '') + '" ' +
+        'data-wh="'   + (item.wh   || '') + '" ' +
+        'data-loc="'  + (item.loc  || '') + '" ' +
+        'data-cat="'  + (item.cat  || '') + '" ' +
+        'data-po="'   + (item.po   || '') + '" ' +
+        'data-type="' + (item.item_type || 'normal') + '">' +
+        '<div style="font-weight:600;color:var(--txt)">' + (item.name || '-') + '</div>' +
+        '<div style="color:var(--txt2);margin-top:2px">' + (item.code || '') + (item.lot ? ' · Lot:' + item.lot : '') + ' · ' + (item.loc || '') + '</div>' +
+      '</div>';
+    }).join('');
+
+    // 항목 클릭 시 자동 입력
+    list.querySelectorAll('.prev-in-item').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var d = this.dataset;
+
+        // 품목 유형 설정
+        setType('in', d.type === 'fabric' ? 'fabric' : 'normal');
+
+        // 기본 정보 입력
+        document.getElementById('in-name').value = d.name;
+        document.getElementById('in-code').value = d.code;
+        var catEl = document.getElementById('in-cat');
+        if (catEl && d.cat) catEl.value = d.cat;
+        var poEl = document.getElementById('in-po');
+        if (poEl && d.po) poEl.value = d.po;
+
+        // 창고 설정
+        var whEl = document.getElementById('in-wh');
+        if (whEl && d.wh) {
+          whEl.value = d.wh;
+          updateWh('in');
+        }
+
+        // 위치 파싱해서 자동 입력
+        var loc = d.loc || '';
+        if (d.wh === 'T') {
+          // 천막동: 구역 + 열
+          var zoneM = loc.match(/([A-D])구역/);
+          var colM  = loc.match(/(\d+)열/);
+          var tzEl  = document.getElementById('in-t-zone');
+          var colEl = document.getElementById('in-col');
+          if (tzEl && zoneM) { tzEl.value = zoneM[1]; document.getElementById('in-zone').value = zoneM[1]; }
+          if (colEl && colM) colEl.value = colM[1];
+        } else {
+          // D동: 구역 + 렉 + 층
+          var zoneM  = loc.match(/([A-F])구역/);
+          var rackM  = loc.match(/(\d+)번 렉/);
+          var floorM = loc.match(/(\d+)층/);
+          if (zoneM)  document.getElementById('in-zone').value = zoneM[1];
+          if (rackM)  document.getElementById('in-rn').value   = rackM[1];
+          if (floorM) document.getElementById('in-fl').value   = floorM[1];
+        }
+
+        updateLocPreview('in');
+        list.style.display = 'none';
+      });
+    });
+
+  } catch(e) {
+    showToast('검색 오류');
+  }
+}
+
+// 품목명 입력창 외부 클릭 시 검색 목록 닫기
+document.addEventListener('click', function(e) {
+  var list = document.getElementById('in-search-list');
+  if (list && !list.contains(e.target) && e.target.id !== 'in-name') {
+    list.style.display = 'none';
+  }
+});
