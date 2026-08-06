@@ -121,9 +121,20 @@ async function selectDpItem(item) {
         rows +
       '</div>';
 
-    // 체크박스 클릭 이벤트
+    // 행 전체 클릭 시 체크 토글
+    wrap.querySelectorAll('.fifo-row').forEach(function(row) {
+      row.addEventListener('click', function() {
+        var chk = this.querySelector('.fifo-chk');
+        if (!chk) return;
+        chk.checked = !chk.checked;
+        // change 이벤트 수동 발생
+        chk.dispatchEvent(new Event('change'));
+      });
+    });
+
     wrap.querySelectorAll('.fifo-chk').forEach(function(chk) {
-      chk.addEventListener('change', function() {
+      chk.addEventListener('change', function(e) {
+        e.stopPropagation();
         var id    = parseInt(this.dataset.id);
         var found = list.find(function(m){ return m.id === id; });
         if (!found) return;
