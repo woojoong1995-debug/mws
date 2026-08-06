@@ -123,12 +123,12 @@ def export_csv():
     if not csv_content:
         return jsonify({'success': False, 'message': '내보낼 데이터가 없습니다'}), 404
 
-    filename = f"창고재고_{date.today().strftime('%Y-%m-%d')}.csv"
+    filename = f"warehouse_{date.today().strftime('%Y-%m-%d')}.csv"
     return Response(
         csv_content,
         mimetype='text/csv; charset=utf-8',
         headers={
-            'Content-Disposition': f"attachment; filename*=UTF-8''{filename}"
+            'Content-Disposition': f"attachment; filename={filename}"
         }
     )
 
