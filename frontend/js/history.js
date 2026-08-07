@@ -79,6 +79,8 @@ async function loadHistory() {
             '<div style="min-width:0;flex:1">' +
               '<div style="font-size:12px;color:var(--txt2)">' + (item.lot ? 'Lot:' + item.lot : '') + '</div>' +
               '<div style="font-size:12px;color:var(--txt2);margin-top:2px">📍 ' + (item.from_loc || '-') + '</div>' +
+              (item.lot ? '<div style="font-size:12px;color:var(--txt2);margin-top:2px">Lot: ' + item.lot + '</div>' : '') +
+              (item.po  ? '<div style="font-size:12px;margin-top:2px"><span style="background:#fef9c3;color:#854d0e;padding:1px 5px;border-radius:4px;font-size:11px;font-weight:600">PO: ' + item.po + '</span></div>' : '') +
               '<div style="font-size:12px;margin-top:2px"><b style="color:var(--blue)">' + (item.person || '미입력') + '</b> · ' + (item.date || '') + '</div>' +
               (item.note ? '<div style="font-size:11px;color:var(--txt2);margin-top:2px">📝 ' + item.note + '</div>' : '') +
             '</div>' +

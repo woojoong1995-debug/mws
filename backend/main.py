@@ -25,7 +25,7 @@ socketio = SocketIO(app, cors_allowed_origins='*')
 
 import os
 app.secret_key = os.environ.get('SECRET_KEY', 'local-dev-key')
-app.permanent_session_lifetime = timedelta(days=7)
+app.permanent_session_lifetime = timedelta(hours=4)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), '..', 'frontend')
 

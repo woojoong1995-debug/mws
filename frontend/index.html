@@ -459,7 +459,11 @@
     </div>
     <div id="hj-loc-preview" class="loc-tip" style="display:none"></div>
     <label>품목명</label>
-    <input type="text" id="hj-name" placeholder="품목명">
+    <div style="display:flex;gap:8px">
+      <input type="text" id="hj-name" placeholder="품목명" style="flex:1">
+      <button onclick="searchPrevReturn()" style="padding:9px 14px;font-size:16px;background:#f3f4f6;border:1px solid var(--border2);border-radius:var(--r-md);cursor:pointer;flex-shrink:0">🔍</button>
+    </div>
+    <div id="hj-search-list" style="display:none;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);margin-top:4px;max-height:200px;overflow-y:auto"></div>
     <div class="row2">
       <div>
         <label>카테고리</label>

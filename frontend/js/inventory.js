@@ -56,6 +56,7 @@ async function loadStock() {
         groups[key].totalQty += (item.qty || 0);
       }
     });
+    groupOrder.sort();
 
     var html = groupOrder.map(function(key, gi) {
       var g = groups[key];
@@ -78,6 +79,7 @@ async function loadStock() {
             '<div style="min-width:0;flex:1">' +
               '<div style="font-size:12px;color:var(--txt2)">' + (item.lot ? 'Lot:' + item.lot : '-') + depBadge + '</div>' +
               '<div style="font-size:12px;color:var(--txt2);margin-top:2px">📍 ' + (item.loc || '-') + ' · ' + item.date + '</div>' +
+              (item.po ? '<div style="font-size:12px;margin-top:2px"><span style="background:#fef9c3;color:#854d0e;padding:1px 5px;border-radius:4px;font-size:11px;font-weight:600">PO: ' + item.po + '</span></div>' : '') +
             '</div>' +
             '<div style="text-align:right;flex-shrink:0;margin-left:8px">' +
               '<span class="badge ' + badgeCls + '" style="display:block;margin-bottom:4px">' + badgeLabel + '</span>' +
