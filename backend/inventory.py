@@ -64,9 +64,18 @@ def get_inventory():
     if cat:
         items = [i for i in items if (i.get('cat') or '기타') == cat]
 
-    # Lot 오름차순 정렬 (없으면 날짜순)
+    # 정렬 규칙:
+    #   1순위) 루트번호(Lot) 오름차순  (없으면 날짜순)
+    #   2순위) 같은 루트번호끼리는 수량 적은 것 먼저 (오름차순)
+    #          - 원단이면 롤수 기준, 일반이면 개수 기준
+    def _qty_of(x):
+        if x.get('item_type') == 'fabric':
+            return x.get('rolls') or 0
+        return x.get('qty') or 0
+
     items.sort(key=lambda x: (
-        x.get('lot', '') or x.get('date', '')
+        x.get('lot', '') or x.get('date', ''),  # 1순위: 루트번호 오름차순
+        _qty_of(x),                              # 2순위: 수량 적은 것 먼저
     ))
 
     # 통계 계산 (필터 없이 전체 기준)

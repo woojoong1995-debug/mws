@@ -210,6 +210,13 @@ function setMaxQty() {
 // ═══════════════════════════════════════════
 // 불출 확정
 // ═══════════════════════════════════════════
+// ★ 이번 업데이트:
+//   여러 출처를 한꺼번에 선택해서 불출하지만,
+//   이력에는 "출처별로 각각 독립된 불출 건"으로 쪼개서 저장합니다.
+//   → 이력 화면에서 취소·전산완료를 건별로 따로 할 수 있게 됩니다.
+//
+//   입력한 총 수량을 FIFO 순서대로 앞 항목부터 채워서(min) 나눠 담고,
+//   각 출처마다 별도의 /api/outbound 요청을 보냅니다.
 async function submitDispatch() {
   if (!selectedDpItem)   { showToast('품목을 먼저 선택하세요'); return; }
   if (!selectedFifoItems || selectedFifoItems.length === 0) { showToast('불출할 항목을 선택하세요'); return; }
@@ -228,29 +235,72 @@ async function submitDispatch() {
   }
   if (!qty) { showToast('수량을 입력하세요'); return; }
 
-  try {
-    var res  = await fetch(API + '/outbound', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        item_type : dpType,
-        code      : selectedDpItem.code,
-        name      : selectedDpItem.name,
-        person, qty, rolls, weight, meters,
-        from_ids : selectedFifoItems.map(function(m){ return m.id; }),
-        from_id  : selectedFifoItems[0].id,
-        from_loc : selectedFifoItems.map(function(m){ return m.loc || '' }).join(', '),
-        date     : document.getElementById('dp-date').value,
-        note     : document.getElementById('dp-note').value,
-      })
+  var dateVal = document.getElementById('dp-date').value;
+  var noteVal = document.getElementById('dp-note').value;
+
+  // ── 선택한 항목들에 총 수량을 FIFO 순서로 나눠 담아 "건별"로 만들기 ──
+  // 각 출처에서 실제로 빼는 수량 + Lot/위치/루트/PO를 담은 요청 목록
+  var payloads = [];
+  if (dpType === 'fabric') {
+    var remRolls = rolls, remWeight = weight, remMeters = meters;
+    selectedFifoItems.forEach(function(m) {
+      var takeRolls  = Math.min(remRolls,  m.rolls  || 0);
+      var takeWeight = Math.min(remWeight, m.weight || 0);
+      var takeMeters = Math.min(remMeters, m.meters || 0);
+      remRolls  -= takeRolls;
+      remWeight -= takeWeight;
+      remMeters -= takeMeters;
+      // 실제로 빼는 게 없으면 건너뜀
+      if (takeRolls <= 0 && takeWeight <= 0 && takeMeters <= 0) return;
+      payloads.push({
+        item_type: 'fabric',
+        code: selectedDpItem.code, name: selectedDpItem.name,
+        person: person,
+        from_id: m.id,                 // 이 건이 차감할 대상 (단일)
+        from_loc: m.loc || '',
+        lot: m.lot || '', route: m.route || '', po: m.po || '',
+        rolls: takeRolls, weight: takeWeight, meters: takeMeters, qty: takeRolls,
+        date: dateVal, note: noteVal
+      });
     });
-    var json = await res.json();
-    if (json.success) {
-      showToast('✓ 불출 확정 완료!');
-          resetDispatch();
-    } else {
-      showToast('오류: ' + json.message);
+  } else {
+    var remQty = qty;
+    selectedFifoItems.forEach(function(m) {
+      var take = Math.min(remQty, m.qty || 0);
+      remQty -= take;
+      if (take <= 0) return;
+      payloads.push({
+        item_type: 'normal',
+        code: selectedDpItem.code, name: selectedDpItem.name,
+        person: person,
+        from_id: m.id,
+        from_loc: m.loc || '',
+        lot: m.lot || '', route: m.route || '', po: m.po || '',
+        qty: take,
+        date: dateVal, note: noteVal
+      });
+    });
+  }
+
+  if (!payloads.length) { showToast('불출할 수량이 없습니다'); return; }
+
+  // ── 출처별로 각각 별도 불출 건 저장 ──
+  try {
+    var okCount = 0;
+    for (var i = 0; i < payloads.length; i++) {
+      var res  = await fetch(API + '/outbound', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payloads[i])
+      });
+      var json = await res.json();
+      if (json.success) okCount++;
+      else showToast('오류: ' + json.message);
+    }
+    if (okCount > 0) {
+      showToast('✓ 불출 확정 완료! (' + okCount + '건)');
+      resetDispatch();
     }
   } catch(e) {
     showToast('서버 연결 오류');
@@ -277,4 +327,3 @@ function resetDispatch() {
   if (dpPerson && currentUser) dpPerson.value = currentUser.name;
   setType('dp', 'normal');
 }
-

@@ -1008,48 +1008,6 @@
     "depleted": false
   },
   {
-    "id": 1781097924352,
-    "kind": "in",
-    "item_type": "normal",
-    "wh": "T",
-    "loc": "천막동 F구역 6번 렉 2층",
-    "name": "카톤.뷰티팩토리30매패드공용",
-    "code": "G11E000017",
-    "lot": "GF07B0",
-    "cat": "카톤",
-    "qty": 0,
-    "rolls": 0,
-    "weight": 0,
-    "route": "",
-    "po": "",
-    "person": "일괄입고",
-    "created_by": "admin",
-    "date": "2026-01-02",
-    "note": "",
-    "depleted": true
-  },
-  {
-    "id": 1781097924353,
-    "kind": "in",
-    "item_type": "normal",
-    "wh": "T",
-    "loc": "천막동 F구역 9번 렉 2층",
-    "name": "카톤.뷰티팩토리30매패드공용",
-    "code": "G11E000017",
-    "lot": "GF07B0",
-    "cat": "카톤",
-    "qty": 0,
-    "rolls": 0,
-    "weight": 0,
-    "route": "",
-    "po": "",
-    "person": "일괄입고",
-    "created_by": "admin",
-    "date": "2026-01-03",
-    "note": "",
-    "depleted": true
-  },
-  {
     "id": 1781097924354,
     "kind": "in",
     "item_type": "normal",
@@ -5112,7 +5070,7 @@
     "code": "A21X000017",
     "lot": "GF074F",
     "cat": "원단",
-    "qty": 7840,
+    "qty": 0,
     "rolls": 0,
     "weight": 0,
     "route": "",
@@ -5121,7 +5079,7 @@
     "created_by": "admin",
     "date": "2026-01-07",
     "note": "",
-    "depleted": false
+    "depleted": true
   },
   {
     "id": 1781097924549,
@@ -9759,5 +9717,24 @@
     "kind": "in",
     "depleted": false,
     "id": 1786019816251
+  },
+  {
+    "item_type": "normal",
+    "code": "A21X000017",
+    "name": "원단.엠보사각패드100g(65*68.30매)",
+    "person": "김우중",
+    "from_id": 1781097924548,
+    "from_loc": "D동 F구역 3번 렉 3층",
+    "lot": "GF074F",
+    "route": "",
+    "po": "",
+    "qty": 7840,
+    "date": "2026-08-07",
+    "note": "",
+    "kind": "out",
+    "id": 1786115491978310000,
+    "transfer_done": true,
+    "transfer_by": "김우중",
+    "transfer_at": "2026-08-08"
   }
 ]

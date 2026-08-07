@@ -1,6 +1,10 @@
 // ═══════════════════════════════════════════
 // 불출 이력 로드 (날짜 필터 포함)
 // ═══════════════════════════════════════════
+// ★ 이번 업데이트:
+//   불출을 출처별로 각각 저장하므로, 이력도 품번으로 묶지 않고
+//   "한 건(한 줄)씩 따로" 나열합니다. 각 건마다 취소·전산완료 버튼이 붙어요.
+//   각 줄에는 위치 / 루트번호 / 루트(원단) / PO(일반) / 수량이 표시됩니다.
 async function loadHistory() {
   var list = document.getElementById('history-list');
   list.innerHTML = '<div class="loading">불러오는 중...</div>';
@@ -25,11 +29,10 @@ async function loadHistory() {
     var json = await res.json();
     var outs = json.data || [];
 
-    // 전산완료 탭: transfer_done 인 것만 필터
+    // 전산완료 탭: transfer_done 인 것만 / 불출 탭: 전산완료 안 된 것만
     if (histKind === 'transfer') {
       outs = outs.filter(function(o){ return o.transfer_done; });
     } else if (histKind === 'out') {
-      // 불출 탭: 전산완료 안 된 것만
       outs = outs.filter(function(o){ return !o.transfer_done; });
     }
 
@@ -44,70 +47,51 @@ async function loadHistory() {
       return;
     }
 
-    // 품번 기준 그룹핑
-    var groups = {};
-    var groupOrder = [];
-    outs.forEach(function(item) {
-      var key = item.code || item.name || 'unknown';
-      if (!groups[key]) {
-        groups[key] = { items: [], name: item.name, code: item.code, totalQty: 0, totalRolls: 0, totalMeters: 0 };
-        groupOrder.push(key);
-      }
-      groups[key].items.push(item);
-      if (item.item_type === 'fabric') {
-        groups[key].totalRolls  += (item.rolls  || 0);
-        groups[key].totalMeters += (item.meters || 0);
-      } else {
-        groups[key].totalQty += (item.qty || 0);
-      }
-    });
+    // 최신순 정렬 (id가 클수록 최신)
+    outs.sort(function(a, b){ return (b.id || 0) - (a.id || 0); });
 
-    var html = groupOrder.map(function(key, gi) {
-      var g = groups[key];
-      var isFabric = g.items[0].item_type === 'fabric';
-      var totalTxt = isFabric
-        ? (g.totalRolls + '롤' + (g.totalMeters ? '/' + g.totalMeters.toFixed(1) + 'm' : ''))
-        : (g.totalQty + '개');
-      var count = g.items.length;
+    // ── 한 건(한 줄)씩 카드로 나열 ──
+    var html = outs.map(function(item) {
+      var isFabric = item.item_type === 'fabric';
+      var qtyTxt = isFabric
+        ? (item.rolls + '롤/' + item.weight + 'kg' + (item.meters ? '/' + item.meters + 'm' : ''))
+        : (item.qty + '개');
 
-      var rows = g.items.map(function(item) {
-        var qtyTxt = isFabric
-          ? (item.rolls + '롤/' + item.weight + 'kg' + (item.meters ? '/' + item.meters + 'm' : ''))
-          : (item.qty + '개');
-        return '<div style="padding:10px 0;border-top:1px solid var(--border)">' +
-          '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
-            '<div style="min-width:0;flex:1">' +
-              '<div style="font-size:12px;color:var(--txt2)">' + (item.lot ? 'Lot:' + item.lot : '') + '</div>' +
-              '<div style="font-size:12px;color:var(--txt2);margin-top:2px">📍 ' + (item.from_loc || '-') + '</div>' +
-              (item.lot ? '<div style="font-size:12px;color:var(--txt2);margin-top:2px">Lot: ' + item.lot + '</div>' : '') +
-              (item.po  ? '<div style="font-size:12px;margin-top:2px"><span style="background:#fef9c3;color:#854d0e;padding:1px 5px;border-radius:4px;font-size:11px;font-weight:600">PO: ' + item.po + '</span></div>' : '') +
-              '<div style="font-size:12px;margin-top:2px"><b style="color:var(--blue)">' + (item.person || '미입력') + '</b> · ' + (item.date || '') + '</div>' +
-              (item.note ? '<div style="font-size:11px;color:var(--txt2);margin-top:2px">📝 ' + item.note + '</div>' : '') +
-            '</div>' +
-            '<div style="text-align:right;flex-shrink:0;margin-left:8px">' +
-              '<div class="item-qty" style="font-size:13px">' + qtyTxt + '</div>' +
-              (histKind === 'out' ?
-              '<button class="cancel-btn" data-id="' + item.id + '" style="margin-top:4px;font-size:11px;padding:3px 10px;border:1px solid #fca5a5;border-radius:6px;background:rgba(220,38,38,0.1);color:#ff453a;cursor:pointer">취소</button>' : '') +
-              (histKind === 'out' ?
-                '<button class="transfer-btn" data-id="' + item.id + '" style="margin-top:4px;font-size:11px;padding:3px 10px;border:1px solid #a78bfa;border-radius:6px;background:rgba(91,33,182,0.1);color:#5b21b6;cursor:pointer">전산 완료</button>'
-              : '') +
-            '</div>' +
-          '</div>' +
-        '</div>';
-      }).join('');
+      // 위치 (신방식 from_loc, 없으면 loc)
+      var locTxt = item.from_loc || item.loc || '-';
+
+      // 루트번호(lot) / 루트(route, 원단) / PO(일반) 배지 줄
+      var metaParts = [];
+      if (item.lot)   metaParts.push('루트번호:' + item.lot);
+      if (item.route) metaParts.push('<span style="background:var(--blue-bg);color:var(--blue);padding:1px 5px;border-radius:4px;font-size:11px;font-weight:600">루트:' + item.route + '</span>');
+      if (item.po)    metaParts.push('<span style="background:#fef9c3;color:#854d0e;padding:1px 5px;border-radius:4px;font-size:11px;font-weight:600">PO:' + item.po + '</span>');
+      var metaLine = metaParts.length
+        ? '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + metaParts.join(' · ') + '</div>'
+        : '';
+
+      // 버튼 (불출 탭에서만 취소·전산완료)
+      var btns = '';
+      if (histKind === 'out') {
+        btns =
+          '<button class="cancel-btn" data-id="' + item.id + '" style="margin-top:4px;font-size:11px;padding:3px 10px;border:1px solid #fca5a5;border-radius:6px;background:rgba(220,38,38,0.1);color:#ff453a;cursor:pointer">취소</button>' +
+          '<button class="transfer-btn" data-id="' + item.id + '" style="margin-top:4px;font-size:11px;padding:3px 10px;border:1px solid #a78bfa;border-radius:6px;background:rgba(91,33,182,0.1);color:#5b21b6;cursor:pointer">전산 완료</button>';
+      }
 
       return '<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleHistGroup(' + gi + ')">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
           '<div style="min-width:0;flex:1">' +
-            '<div style="font-size:14px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (g.name || '-') + '</div>' +
-            '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + (g.code || '') + ' · ' + count + '건</div>' +
+            '<div style="font-size:14px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (item.name || '-') + '</div>' +
+            '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + (item.code || '') + '</div>' +
+            '<div style="font-size:12px;color:var(--txt2);margin-top:6px">📍 ' + locTxt + '</div>' +
+            metaLine +
+            '<div style="font-size:12px;margin-top:4px"><b style="color:var(--blue)">' + (item.person || '미입력') + '</b> · ' + (item.date || '') + '</div>' +
+            (item.note ? '<div style="font-size:11px;color:var(--txt2);margin-top:2px">📝 ' + item.note + '</div>' : '') +
           '</div>' +
-          '<div style="text-align:right;flex-shrink:0;margin-left:8px">' +
-            '<div style="font-size:16px;font-weight:700;color:var(--txt)">' + totalTxt + '</div>' +
-            '<div style="font-size:12px;color:var(--txt2);margin-top:2px" id="hist-arrow-' + gi + '">▼ 펼치기</div>' +
+          '<div style="text-align:right;flex-shrink:0;margin-left:8px;display:flex;flex-direction:column;align-items:flex-end">' +
+            '<div class="item-qty" style="font-size:15px;font-weight:700">' + qtyTxt + '</div>' +
+            btns +
           '</div>' +
         '</div>' +
-        '<div id="hist-detail-' + gi + '" style="display:none">' + rows + '</div>' +
       '</div>';
     }).join('');
 
@@ -133,18 +117,19 @@ async function loadHistory() {
         .then(function(r){ return r.json(); })
         .then(function(json){
           if (json.success) {
-          showToast('✓ 전산 완료 처리됐습니다');
-          // 전산완료 탭으로 이동
-          document.querySelectorAll('.hist-tab').forEach(function(b){
-            b.style.background = '#f9fafb'; b.style.color = '#6b7280'; b.classList.remove('on');
-          });
-          var transferTab = document.querySelector('.hist-tab[data-kind="transfer"]');
-          if (transferTab) {
-            transferTab.style.background = '#1a1a1a'; transferTab.style.color = '#fff'; transferTab.classList.add('on');
+            showToast('✓ 전산 완료 처리됐습니다');
+            // 전산완료 탭으로 이동
+            document.querySelectorAll('.hist-tab').forEach(function(b){
+              b.style.background = '#f9fafb'; b.style.color = '#6b7280'; b.classList.remove('on');
+            });
+            var transferTab = document.querySelector('.hist-tab[data-kind="transfer"]');
+            if (transferTab) {
+              transferTab.style.background = '#1a1a1a'; transferTab.style.color = '#fff'; transferTab.classList.add('on');
+            }
+            loadHistory();
+          } else {
+            showToast('오류: ' + json.message);
           }
-          loadHistory();
-        }
-          else { showToast('오류: ' + json.message); }
         })
         .catch(function(){ showToast('서버 연결 오류'); });
       });
@@ -155,6 +140,7 @@ async function loadHistory() {
   }
 }
 
+// (그룹 펼치기 함수는 더 이상 쓰지 않지만, 다른 곳 호출 대비 남겨둠)
 function toggleHistGroup(gi) {
   var detail = document.getElementById('hist-detail-' + gi);
   var arrow  = document.getElementById('hist-arrow-' + gi);
@@ -163,4 +149,3 @@ function toggleHistGroup(gi) {
   detail.style.display = open ? 'none' : 'block';
   arrow.textContent = open ? '▼ 펼치기' : '▲ 접기';
 }
-
