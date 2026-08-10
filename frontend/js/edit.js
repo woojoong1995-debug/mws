@@ -20,6 +20,7 @@ function openEditModal(id) {
       document.getElementById('edit-title').textContent = item.name || '항목 수정';
       document.getElementById('edit-name').value  = item.name  || '';
       document.getElementById('edit-code').value  = item.code  || '';
+      document.getElementById('edit-lot').value   = item.lot   || '';
       document.getElementById('edit-date').value  = item.date  || '';
       document.getElementById('edit-note').value  = item.note  || '';
       document.getElementById('edit-cat').value = item.cat || '기타';
@@ -118,6 +119,7 @@ async function saveEdit() {
   var updatedData = Object.assign({}, editingData, {
     name  : document.getElementById('edit-name').value.trim(),
     code  : document.getElementById('edit-code').value.trim(),
+    lot   : document.getElementById('edit-lot').value.trim(),
     wh    : document.getElementById('edit-wh').value,
     loc   : loc,
     date  : document.getElementById('edit-date').value,

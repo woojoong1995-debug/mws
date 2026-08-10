@@ -144,9 +144,15 @@ def add_outbound():
                 break
 
     # 불출 이력 저장 (한 건)
-    # 여러 건이 연속 저장돼도 ID가 겹치지 않도록 나노초 기반 사용
+    # 여러 건이 연속 저장돼도 ID가 겹치지 않도록,
+    # 밀리초 타임스탬프에 기존 데이터에 없는 값이 나올 때까지 +1
+    # (나노초는 숫자가 너무 커서 프론트 JS 정밀도가 깨지므로 사용하지 않음)
     body['kind'] = 'out'
-    body['id']   = time.time_ns()
+    new_id = int(time.time() * 1000)
+    existing_ids = {d.get('id') for d in data}
+    while new_id in existing_ids:
+        new_id += 1
+    body['id'] = new_id
     data.append(body)
     save_data(data)
 
