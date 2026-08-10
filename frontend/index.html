@@ -385,8 +385,8 @@
         </div>
         <label>담당자</label>
         <input type="text" id="dp-person" readonly style="background:#f3f4f6;color:var(--txt2);cursor:not-allowed">
-        <label>불출 날짜</label>
-        <input type="date" id="dp-date">
+        <!-- 불출 날짜는 항상 당일로 자동 고정 (화면에서 숨김) -->
+        <input type="hidden" id="dp-date">
         <label>비고</label>
         <input type="text" id="dp-note" placeholder="선택 입력">
         <button id="btn-submit-dp" class="btn btn-dark">불출 확정</button>

@@ -1,4 +1,14 @@
 // ═══════════════════════════════════════════
+// 오늘 날짜 (YYYY-MM-DD, 로컬 기준)
+// ═══════════════════════════════════════════
+function todayStr() {
+  var d = new Date();
+  var m = String(d.getMonth() + 1).padStart(2, '0');
+  var day = String(d.getDate()).padStart(2, '0');
+  return d.getFullYear() + '-' + m + '-' + day;
+}
+
+// ═══════════════════════════════════════════
 // 불출: 품번 끝자리로 품목 검색
 // ═══════════════════════════════════════════
 async function searchBySuffix() {
@@ -235,7 +245,7 @@ async function submitDispatch() {
   }
   if (!qty) { showToast('수량을 입력하세요'); return; }
 
-  var dateVal = document.getElementById('dp-date').value;
+  var dateVal = todayStr();  // 불출 날짜는 항상 당일로 고정
   var noteVal = document.getElementById('dp-note').value;
 
   // ── 선택한 항목들에 총 수량을 FIFO 순서로 나눠 담아 "건별"로 만들기 ──
