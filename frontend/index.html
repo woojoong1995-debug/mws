@@ -292,7 +292,6 @@
     <label>품목명</label>
     <div style="display:flex;gap:8px">
       <input type="text" id="in-name" placeholder="품목명" style="flex:1">
-      <button onclick="searchPrevInbound()" style="padding:9px 14px;font-size:16px;background:#f3f4f6;border:1px solid var(--border2);border-radius:var(--r-md);cursor:pointer;flex-shrink:0">🔍</button>
     </div>
     <!-- 이전 입고 검색 결과 -->
     <div id="in-search-list" style="display:none;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);margin-top:4px;max-height:200px;overflow-y:auto"></div>
@@ -311,7 +310,10 @@
       </div>
       <div>
         <label>품번</label>
-        <input type="text" id="in-code" placeholder="예: G21E000270">
+        <div style="position:relative">
+          <input type="text" id="in-code" placeholder="예: G21E000270" style="width:100%;padding-right:38px">
+          <button onclick="searchPrevInbound()" title="품번으로 이전 입고 검색" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);padding:2px 6px;font-size:16px;background:transparent;border:none;cursor:pointer;line-height:1">🔍</button>
+        </div>
       </div>
     </div>
     <div id="in-qty-normal">

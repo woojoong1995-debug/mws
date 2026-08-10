@@ -217,11 +217,16 @@ async function submitInbound() {
 // 입고: 이전 입고 데이터에서 품목 검색 (🔍 버튼)
 // ═══════════════════════════════════════════
 async function searchPrevInbound() {
+  // 품번(in-code)으로 검색. 비어 있으면 품목명으로 폴백.
+  var code = document.getElementById('in-code').value.trim();
   var name = document.getElementById('in-name').value.trim();
+  var query = code || name;
   var list = document.getElementById('in-search-list');
 
+  if (!query) { showToast('품번을 입력하세요'); return; }
+
   try {
-    var res  = await fetch(API + '/inventory?q=' + encodeURIComponent(name), { credentials: 'include' });
+    var res  = await fetch(API + '/inventory?q=' + encodeURIComponent(query), { credentials: 'include' });
     var json = await res.json();
     var items = json.data || [];
 
@@ -232,8 +237,13 @@ async function searchPrevInbound() {
     }
 
     // 품번 기준 중복 제거 (최신 것만)
+    // ★ inventory API는 루트번호 오름차순이라 그대로 뽑으면 오래된 게 나옴.
+    //    날짜 최신순으로 먼저 정렬한 뒤 첫 번째(가장 최근 입고)만 남긴다.
+    var sorted = items.slice().sort(function(a, b){
+      return (b.date || '').localeCompare(a.date || '');
+    });
     var seen = {}, unique = [];
-    items.forEach(function(item) {
+    sorted.forEach(function(item) {
       var key = item.code || item.name;
       if (!seen[key]) { seen[key] = true; unique.push(item); }
     });
@@ -250,7 +260,7 @@ async function searchPrevInbound() {
         'data-po="'   + (item.po   || '') + '" ' +
         'data-type="' + (item.item_type || 'normal') + '">' +
         '<div style="font-weight:600;color:var(--txt)">' + (item.name || '-') + '</div>' +
-        '<div style="color:var(--txt2);margin-top:2px">' + (item.code || '') + (item.lot ? ' · Lot:' + item.lot : '') + ' · ' + (item.loc || '') + '</div>' +
+        '<div style="color:var(--txt2);margin-top:2px">' + (item.code || '') + (item.lot ? ' · 루트번호:' + item.lot : '') + '</div>' +
       '</div>';
     }).join('');
 
@@ -270,31 +280,17 @@ async function searchPrevInbound() {
         var poEl = document.getElementById('in-po');
         if (poEl && d.po) poEl.value = d.po;
 
-        // 창고 설정
+        // 루트번호(Lot) 자동 입력 (일반/원단 입력칸 둘 다 채움)
+        var lotEl  = document.getElementById('in-lot');
+        var lotFEl = document.getElementById('in-lot-fabric');
+        if (lotEl)  lotEl.value  = d.lot || '';
+        if (lotFEl) lotFEl.value = d.lot || '';
+
+        // 창고만 설정 (위치=구역/열/렉/층은 매번 새로 입력하므로 자동입력 안 함)
         var whEl = document.getElementById('in-wh');
         if (whEl && d.wh) {
           whEl.value = d.wh;
           updateWh('in');
-        }
-
-        // 위치 파싱해서 자동 입력
-        var loc = d.loc || '';
-        if (d.wh === 'T') {
-          // 천막동: 구역 + 열
-          var zoneM = loc.match(/([A-D])구역/);
-          var colM  = loc.match(/(\d+)열/);
-          var tzEl  = document.getElementById('in-t-zone');
-          var colEl = document.getElementById('in-col');
-          if (tzEl && zoneM) { tzEl.value = zoneM[1]; document.getElementById('in-zone').value = zoneM[1]; }
-          if (colEl && colM) colEl.value = colM[1];
-        } else {
-          // D동: 구역 + 렉 + 층
-          var zoneM  = loc.match(/([A-F])구역/);
-          var rackM  = loc.match(/(\d+)번 렉/);
-          var floorM = loc.match(/(\d+)층/);
-          if (zoneM)  document.getElementById('in-zone').value = zoneM[1];
-          if (rackM)  document.getElementById('in-rn').value   = rackM[1];
-          if (floorM) document.getElementById('in-fl').value   = floorM[1];
         }
 
         updateLocPreview('in');
