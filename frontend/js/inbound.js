@@ -16,6 +16,34 @@ function setType(prefix, type) {
   var fabricDiv = document.getElementById(prefix + '-qty-fabric');
   if (normalDiv) normalDiv.style.display = type === 'normal' ? 'block' : 'none';
   if (fabricDiv) fabricDiv.style.display = type === 'fabric' ? 'block' : 'none';
+
+  // ── 카테고리 버튼 세트 전환 (입고/환입만 해당) ──
+  var catNormal = document.getElementById(prefix + '-cat-normal');
+  var catFabric = document.getElementById(prefix + '-cat-fabric');
+  if (catNormal && catFabric) {
+    catNormal.style.display = type === 'normal' ? 'grid' : 'none';
+    catFabric.style.display = type === 'fabric' ? 'grid' : 'none';
+    // 유형이 바뀌면 이전 카테고리 선택은 초기화 (일반↔원단은 카테고리가 다르므로)
+    var catHidden = document.getElementById(prefix + '-cat');
+    if (catHidden) catHidden.value = '';
+    document.querySelectorAll('.cat-choice[data-p="' + prefix + '"]').forEach(function(el){
+      el.classList.remove('on');
+    });
+  }
+}
+
+
+// ═══════════════════════════════════════════
+// 카테고리 버튼 선택
+// prefix: 'in'/'hj', cat: 저장할 카테고리 문자열
+// ═══════════════════════════════════════════
+function pickCat(prefix, cat) {
+  var hidden = document.getElementById(prefix + '-cat');
+  if (hidden) hidden.value = cat;
+  // 같은 그룹 버튼들 중 선택된 것만 하이라이트
+  document.querySelectorAll('.cat-choice[data-p="' + prefix + '"]').forEach(function(el){
+    el.classList.toggle('on', el.dataset.cat === cat);
+  });
 }
 
 
@@ -140,8 +168,14 @@ function detectCat(name) {
 
 function autoCat(p) {
   var name = document.getElementById(p + '-name').value;
-  var cat  = document.getElementById(p + '-cat');
-  if (cat && !cat.value) cat.value = detectCat(name);
+  var hidden = document.getElementById(p + '-cat');
+  if (!hidden || hidden.value) return;  // 이미 선택돼 있으면 건드리지 않음
+  var guess = detectCat(name);
+  // 감지한 카테고리 버튼이 현재 유형 세트에 있으면 그 버튼을 선택
+  var btn = document.querySelector('.cat-choice[data-p="' + p + '"][data-cat="' + guess + '"]');
+  if (btn && btn.closest('div').style.display !== 'none') {
+    pickCat(p, guess);
+  }
 }
 
 
@@ -168,6 +202,9 @@ async function submitInbound() {
   if (!name) { showToast('품목명을 입력하세요'); return; }
   if (!loc)  { showToast('위치를 입력하세요');   return; }
 
+  var catVal = document.getElementById('in-cat').value;
+  if (!catVal) { showToast('카테고리를 선택하세요'); return; }
+
   var qty = 0, rolls = 0, weight = 0, meters = 0;
   if (inType === 'fabric') {
     rolls  = parseFloat(document.getElementById('in-rolls').value)   || 0;
@@ -184,7 +221,7 @@ async function submitInbound() {
     wh, name, loc, qty, rolls, weight, meters,
     code  : document.getElementById('in-code').value.trim(),
     lot   : (inType === 'fabric' ? document.getElementById('in-lot-fabric').value.trim() : document.getElementById('in-lot').value.trim()),
-    cat   : document.getElementById('in-cat').value || detectCat(name),
+    cat   : catVal,
     po    : inType === 'normal' ? document.getElementById('in-po').value    : '',
     route : inType === 'fabric' ? document.getElementById('in-route').value : '',
     date  : document.getElementById('in-date').value,
@@ -202,6 +239,7 @@ async function submitInbound() {
         if (el) el.value = '';
       });
       document.getElementById('in-cat').value = '';
+      document.querySelectorAll('.cat-choice[data-p="in"]').forEach(function(el){ el.classList.remove('on'); });
       document.getElementById('in-loc-preview').style.display = 'none';
     } else {
       showToast('오류: ' + json.message);
@@ -275,8 +313,8 @@ async function searchPrevInbound() {
         // 기본 정보 입력
         document.getElementById('in-name').value = d.name;
         document.getElementById('in-code').value = d.code;
-        var catEl = document.getElementById('in-cat');
-        if (catEl && d.cat) catEl.value = d.cat;
+        // 카테고리는 버튼으로 선택 표시 (setType이 초기화한 뒤 다시 선택)
+        if (d.cat) pickCat('in', d.cat);
         var poEl = document.getElementById('in-po');
         if (poEl && d.po) poEl.value = d.po;
 

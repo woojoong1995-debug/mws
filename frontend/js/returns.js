@@ -10,6 +10,9 @@ async function submitReturn() {
   if (!code) { showToast('품번을 입력하세요');   return; }
   if (!loc)  { showToast('위치를 입력하세요');   return; }
 
+  var catVal = document.getElementById('hj-cat').value;
+  if (!catVal) { showToast('카테고리를 선택하세요'); return; }
+
   var qty = 0, rolls = 0, weight = 0, meters = 0;
   if (hjType === 'fabric') {
     rolls  = parseFloat(document.getElementById('hj-rolls').value)   || 0;
@@ -26,7 +29,7 @@ async function submitReturn() {
     person: document.getElementById('hj-person').value,
     wh, code, name, loc, qty, rolls, weight, meters,
     lot   : document.getElementById('hj-lot').value.trim(),
-    cat   : document.getElementById('hj-cat').value || detectCat(name),
+    cat   : catVal,
     po    : hjType === 'normal' ? document.getElementById('hj-po').value    : '',
     route : hjType === 'fabric' ? document.getElementById('hj-route').value : '',
     date  : document.getElementById('hj-date').value,
@@ -43,6 +46,7 @@ async function submitReturn() {
         if (el) el.value = '';
       });
       document.getElementById('hj-cat').value = '';
+      document.querySelectorAll('.cat-choice[data-p="hj"]').forEach(function(el){ el.classList.remove('on'); });
       document.getElementById('hj-loc-preview').style.display = 'none';
     } else {
       showToast('오류: ' + json.message);
@@ -98,8 +102,7 @@ async function searchPrevReturn() {
         setType('hj', d.type === 'fabric' ? 'fabric' : 'normal');
         document.getElementById('hj-name').value = d.name;
         document.getElementById('hj-code').value = d.code;
-        var catEl = document.getElementById('hj-cat');
-        if (catEl && d.cat) catEl.value = d.cat;
+        if (d.cat) pickCat('hj', d.cat);
         list.style.display = 'none';
       });
     });

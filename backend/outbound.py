@@ -20,7 +20,7 @@
 #   기존(sources 없이 오는) 요청도 그대로 동작하도록 하위호환 유지.
 # =====================================================
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from database import load_data, save_data, add_record
 from datetime import date
 import time
@@ -112,6 +112,10 @@ def add_outbound():
         1. from_id 항목에서 수량 차감 (수량 0 되면 depleted=True)
         2. 불출 이력 1건 저장
     """
+    # 운영자(admin) 아이디는 불출 불가 (입고/환입/관리만 가능)
+    if session.get('role') == 'admin':
+        return jsonify({'success': False, 'message': '운영자 계정은 불출할 수 없습니다'}), 403
+
     body = request.get_json()
     if not body:
         return jsonify({'success': False, 'message': '데이터가 없습니다'}), 400
@@ -174,6 +178,10 @@ def cancel_outbound(record_id):
 
     ★ sources가 있으면 출처별로 정확히 복원, 없으면 예전 방식으로 복원.
     """
+    # 운영자(admin) 아이디는 불출 취소도 불가
+    if session.get('role') == 'admin':
+        return jsonify({'success': False, 'message': '운영자 계정은 불출 취소를 할 수 없습니다'}), 403
+
     data = load_data()
 
     # 취소할 불출 이력 찾기

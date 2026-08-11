@@ -369,3 +369,24 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 500;
       -webkit-tap-highlight-color: transparent;
     }
+
+/* ── 카테고리 선택 버튼 (입고/환입) ── */
+.cat-choice {
+  padding: 10px;
+  font-size: 13px;
+  border: 1px solid var(--border2);
+  border-radius: var(--r-md);
+  background: #f9fafb;
+  color: var(--txt2);
+  cursor: pointer;
+  text-align: center;
+  font-weight: 500;
+}
+.cat-choice.on {
+  border: 2px solid var(--txt);
+  color: var(--txt);
+  font-weight: 700;
+  background: #fff;
+}
+[data-theme="dark"] .cat-choice     { background: #2c2c2e; color: #8e8e93; border-color: #3a3a3c; }
+[data-theme="dark"] .cat-choice.on  { background: #3a3a3c; color: #f2f2f7; border-color: #f2f2f7; }

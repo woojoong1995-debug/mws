@@ -172,7 +172,7 @@
         <div class="home-icon-wrap" style="background:linear-gradient(135deg,#1c1c1e,#3a3a3c)"><i class="ti ti-package-import" style="color:#fff"></i></div>
         <span class="home-icon-label">입고</span>
       </div>
-      <div class="home-icon-btn" onclick="switchTab('dispatch', document.getElementById('nav-dispatch'))">
+      <div class="home-icon-btn" id="home-dispatch-btn" onclick="switchTab('dispatch', document.getElementById('nav-dispatch'))">
         <div class="home-icon-wrap" style="background:linear-gradient(135deg,#0a84ff,#0066cc)"><i class="ti ti-package-export" style="color:#fff"></i></div>
         <span class="home-icon-label">불출</span>
       </div>
@@ -298,15 +298,17 @@
     <div class="row2">
       <div>
         <label>카테고리</label>
-        <select id="in-cat">
-          <option value="">자동 감지</option>
-          <option value="카톤">카톤</option>
-          <option value="원단">원단</option>
-          <option value="단상자">단상자</option>
-          <option value="인박스">인박스</option>
-          <option value="손발원단">손발원단</option>
-          <option value="기타">기타</option>
-        </select>
+        <!-- 유형(일반/원단)에 따라 다른 버튼 세트가 보임. 선택값은 hidden input(in-cat)에 저장 -->
+        <input type="hidden" id="in-cat">
+        <div id="in-cat-normal" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <div class="cat-choice" data-p="in" data-cat="카톤" onclick="pickCat('in','카톤')">카톤</div>
+          <div class="cat-choice" data-p="in" data-cat="인박스" onclick="pickCat('in','인박스')">인박스</div>
+          <div class="cat-choice" data-p="in" data-cat="단상자" onclick="pickCat('in','단상자')">단상자</div>
+        </div>
+        <div id="in-cat-fabric" style="display:none;grid-template-columns:1fr 1fr;gap:6px">
+          <div class="cat-choice" data-p="in" data-cat="원단" onclick="pickCat('in','원단')">원단</div>
+          <div class="cat-choice" data-p="in" data-cat="손발원단" onclick="pickCat('in','손발원단')">손발원단</div>
+        </div>
       </div>
       <div>
         <label>품번</label>
@@ -469,15 +471,16 @@
     <div class="row2">
       <div>
         <label>카테고리</label>
-        <select id="hj-cat">
-          <option value="">자동 감지</option>
-          <option value="카톤">카톤</option>
-          <option value="원단">원단</option>
-          <option value="단상자">단상자</option>
-          <option value="인박스">인박스</option>
-          <option value="손발원단">손발원단</option>
-          <option value="기타">기타</option>
-        </select>
+        <input type="hidden" id="hj-cat">
+        <div id="hj-cat-normal" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <div class="cat-choice" data-p="hj" data-cat="카톤" onclick="pickCat('hj','카톤')">카톤</div>
+          <div class="cat-choice" data-p="hj" data-cat="인박스" onclick="pickCat('hj','인박스')">인박스</div>
+          <div class="cat-choice" data-p="hj" data-cat="단상자" onclick="pickCat('hj','단상자')">단상자</div>
+        </div>
+        <div id="hj-cat-fabric" style="display:none;grid-template-columns:1fr 1fr;gap:6px">
+          <div class="cat-choice" data-p="hj" data-cat="원단" onclick="pickCat('hj','원단')">원단</div>
+          <div class="cat-choice" data-p="hj" data-cat="손발원단" onclick="pickCat('hj','손발원단')">손발원단</div>
+        </div>
       </div>
       <div><label>품번</label><input type="text" id="hj-code" placeholder="예: A11W000064"></div>
     </div>

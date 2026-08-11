@@ -88,6 +88,17 @@ function showMainApp() {
     if (adminBtn) adminBtn.style.display = 'none';
   }
 
+  // 운영자(admin)는 불출 불가 → 불출 탭/홈 버튼 숨김 (입고·환입·관리는 그대로)
+  var dispatchNav = document.getElementById('nav-dispatch');
+  var dispatchHome = document.getElementById('home-dispatch-btn');
+  if (role === 'admin') {
+    if (dispatchNav)  dispatchNav.style.display  = 'none';
+    if (dispatchHome) dispatchHome.style.display = 'none';
+  } else {
+    if (dispatchNav)  dispatchNav.style.display  = 'block';
+    if (dispatchHome) dispatchHome.style.display = 'flex';
+  }
+
   // 담당자 자동 입력
   ['in-person','dp-person','hj-person'].forEach(function(id){
     var el = document.getElementById(id); if (el) el.value = currentUser.name;
