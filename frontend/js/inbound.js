@@ -232,15 +232,15 @@ async function submitInbound() {
     var res  = await fetch(API + '/inbound', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     var json = await res.json();
     if (json.success) {
-      showToast('✓ 입고 등록 완료!');
-      // 입력 필드 초기화
-      ['in-name','in-code','in-lot','in-lot-fabric','in-qty','in-rn','in-fl','in-floc','in-col','in-route','in-po','in-rolls','in-weight','in-meters','in-note'].forEach(function(id){
+      showToast('✓ 입고 등록 완료! 이어서 등록 가능');
+      // ── 연속 등록(이어쓰기) ──
+      // 같은 품목 여러 파레트를 연속 등록하므로,
+      // 품목명·품번·카테고리·유형·창고·위치·루트번호는 남기고
+      // 수량 관련만 비운다. (파레트마다 루트 같음)
+      ['in-qty','in-rolls','in-weight','in-meters','in-note'].forEach(function(id){
         var el = document.getElementById(id);
         if (el) el.value = '';
       });
-      document.getElementById('in-cat').value = '';
-      document.querySelectorAll('.cat-choice[data-p="in"]').forEach(function(el){ el.classList.remove('on'); });
-      document.getElementById('in-loc-preview').style.display = 'none';
     } else {
       showToast('오류: ' + json.message);
     }
@@ -252,10 +252,27 @@ async function submitInbound() {
 
 
 // ═══════════════════════════════════════════
+// 입고: 새 품목 (전체 초기화)
+// ═══════════════════════════════════════════
+function clearInboundForm() {
+  ['in-name','in-code','in-lot','in-lot-fabric','in-qty','in-rn','in-fl','in-floc','in-col','in-route','in-po','in-rolls','in-weight','in-meters','in-note'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('in-cat').value = '';
+  document.querySelectorAll('.cat-choice[data-p="in"]').forEach(function(el){ el.classList.remove('on'); });
+  var prev = document.getElementById('in-loc-preview');
+  if (prev) prev.style.display = 'none';
+  showToast('새 품목 입력 준비 완료');
+}
+
+
+// ═══════════════════════════════════════════
 // 입고: 이전 입고 데이터에서 품목 검색 (🔍 버튼)
 // ═══════════════════════════════════════════
 async function searchPrevInbound() {
-  // 품번(in-code)으로 검색. 비어 있으면 품목명으로 폴백.
+  // 품목 카탈로그에서 품번으로 검색 (재고가 사라져도 검색됨).
+  // 비어 있으면 품목명으로 폴백.
   var code = document.getElementById('in-code').value.trim();
   var name = document.getElementById('in-name').value.trim();
   var query = code || name;
@@ -264,7 +281,7 @@ async function searchPrevInbound() {
   if (!query) { showToast('품번을 입력하세요'); return; }
 
   try {
-    var res  = await fetch(API + '/inventory?q=' + encodeURIComponent(query), { credentials: 'include' });
+    var res  = await fetch(API + '/catalog?q=' + encodeURIComponent(query), { credentials: 'include' });
     var json = await res.json();
     var items = json.data || [];
 
@@ -274,64 +291,30 @@ async function searchPrevInbound() {
       return;
     }
 
-    // 품번 기준 중복 제거 (최신 것만)
-    // ★ inventory API는 루트번호 오름차순이라 그대로 뽑으면 오래된 게 나옴.
-    //    날짜 최신순으로 먼저 정렬한 뒤 첫 번째(가장 최근 입고)만 남긴다.
-    var sorted = items.slice().sort(function(a, b){
-      return (b.date || '').localeCompare(a.date || '');
-    });
-    var seen = {}, unique = [];
-    sorted.forEach(function(item) {
-      var key = item.code || item.name;
-      if (!seen[key]) { seen[key] = true; unique.push(item); }
-    });
-
     list.style.display = 'block';
-    list.innerHTML = unique.map(function(item) {
+    list.innerHTML = items.map(function(item) {
       return '<div class="prev-in-item" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px" ' +
         'data-name="' + (item.name || '') + '" ' +
         'data-code="' + (item.code || '') + '" ' +
-        'data-lot="'  + (item.lot  || '') + '" ' +
-        'data-wh="'   + (item.wh   || '') + '" ' +
-        'data-loc="'  + (item.loc  || '') + '" ' +
         'data-cat="'  + (item.cat  || '') + '" ' +
-        'data-po="'   + (item.po   || '') + '" ' +
         'data-type="' + (item.item_type || 'normal') + '">' +
         '<div style="font-weight:600;color:var(--txt)">' + (item.name || '-') + '</div>' +
-        '<div style="color:var(--txt2);margin-top:2px">' + (item.code || '') + (item.lot ? ' · 루트번호:' + item.lot : '') + '</div>' +
+        '<div style="color:var(--txt2);margin-top:2px">' + (item.code || '') + '</div>' +
       '</div>';
     }).join('');
 
-    // 항목 클릭 시 자동 입력
+    // 항목 클릭 시 자동 입력 (품목명·품번·카테고리·유형만)
     list.querySelectorAll('.prev-in-item').forEach(function(el) {
       el.addEventListener('click', function() {
         var d = this.dataset;
-
         // 품목 유형 설정
         setType('in', d.type === 'fabric' ? 'fabric' : 'normal');
-
         // 기본 정보 입력
         document.getElementById('in-name').value = d.name;
         document.getElementById('in-code').value = d.code;
-        // 카테고리는 버튼으로 선택 표시 (setType이 초기화한 뒤 다시 선택)
+        // 카테고리는 버튼으로 선택 표시
         if (d.cat) pickCat('in', d.cat);
-        var poEl = document.getElementById('in-po');
-        if (poEl && d.po) poEl.value = d.po;
-
-        // 루트번호(Lot) 자동 입력 (일반/원단 입력칸 둘 다 채움)
-        var lotEl  = document.getElementById('in-lot');
-        var lotFEl = document.getElementById('in-lot-fabric');
-        if (lotEl)  lotEl.value  = d.lot || '';
-        if (lotFEl) lotFEl.value = d.lot || '';
-
-        // 창고만 설정 (위치=구역/열/렉/층은 매번 새로 입력하므로 자동입력 안 함)
-        var whEl = document.getElementById('in-wh');
-        if (whEl && d.wh) {
-          whEl.value = d.wh;
-          updateWh('in');
-        }
-
-        updateLocPreview('in');
+        // 위치·루트번호·수량은 카탈로그에 없으므로 새로 입력
         list.style.display = 'none';
       });
     });

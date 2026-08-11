@@ -43,5 +43,6 @@ jobs:
               backend/database.py \
               backend/user_db.py \
               backend/ocr.py \
-              backend/req.py 
+              backend/req.py \
+              backend/catalog.py
             systemctl restart warehouse

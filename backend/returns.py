@@ -15,6 +15,7 @@
 
 from flask import Blueprint, request, jsonify, session
 from database import add_record, detect_category
+from catalog import upsert_catalog
 
 returns_bp = Blueprint('returns', __name__)
 
@@ -68,4 +69,6 @@ def add_return():
     body['depleted'] = False
 
     record = add_record(body)
+    # 품목 카탈로그에 저장 (재고가 사라져도 검색되게)
+    upsert_catalog(body)
     return jsonify({'success': True, 'data': record}), 201
