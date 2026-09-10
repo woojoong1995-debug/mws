@@ -274,7 +274,7 @@ def undo_confirm(request_id):
     req = next((d for d in data if d.get('id') == request_id and d.get('kind') == 'request'), None)
     if not req:
         return jsonify({'success': False, 'message': '신청 항목을 찾을 수 없습니다'}), 404
-    if req.get('status') != ('confirmed', 'completed'):
+    if req.get('status') not in ('confirmed', 'completed'):
         return jsonify({'success': False, 'message': '확정 또는 전산완료 상태만 취소할 수 있습니다'}), 400
     from_id = req.get('from_id')
     if from_id:

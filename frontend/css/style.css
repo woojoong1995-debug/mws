@@ -370,9 +370,9 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-/* ── 카테고리 선택 버튼 (입고/환입) ── */
-.cat-choice {
-  padding: 10px;
+/* ── 불출 카테고리 필터 버튼 ── */
+.dp-cat-btn {
+  padding: 9px 4px;
   font-size: 13px;
   border: 1px solid var(--border2);
   border-radius: var(--r-md);
@@ -382,11 +382,11 @@
   text-align: center;
   font-weight: 500;
 }
-.cat-choice.on {
+.dp-cat-btn.on {
   border: 2px solid var(--txt);
   color: var(--txt);
   font-weight: 700;
   background: #fff;
 }
-[data-theme="dark"] .cat-choice     { background: #2c2c2e; color: #8e8e93; border-color: #3a3a3c; }
-[data-theme="dark"] .cat-choice.on  { background: #3a3a3c; color: #f2f2f7; border-color: #f2f2f7; }
+[data-theme="dark"] .dp-cat-btn    { background: #2c2c2e; color: #8e8e93; border-color: #3a3a3c; }
+[data-theme="dark"] .dp-cat-btn.on { background: #3a3a3c; color: #f2f2f7; border-color: #f2f2f7; }

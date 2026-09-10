@@ -166,3 +166,36 @@ def delete_user(user_id):
     users = [u for u in users if u.get('id') != user_id]
     save_users(users)
     return jsonify({'success': True, 'message': f"{target['name']} 계정이 삭제됐습니다"})
+
+
+@users_bp.route('/api/users/<int:user_id>/set-role', methods=['POST'])
+def set_role(user_id):
+    """
+    사용자 등급 지정 (총괄 admin 전용)
+    role 을 'manager'(관리자) 또는 'user'(일반)로 변경.
+    ※ 'admin'(총괄)으로는 승격시키지 않음 — 총괄은 함부로 늘리지 않기 위해.
+    """
+    err = require_admin()
+    if err: return err
+
+    body = request.get_json() or {}
+    new_role = body.get('role', '')
+    if new_role not in ('manager', 'user'):
+        return jsonify({'success': False, 'message': "role은 manager 또는 user만 가능합니다"}), 400
+
+    # 자기 자신(총괄)의 등급은 바꾸지 못하게
+    if session.get('user_id') == user_id:
+        return jsonify({'success': False, 'message': '자신의 등급은 변경할 수 없습니다'}), 400
+
+    users = load_users()
+    for user in users:
+        if user.get('id') == user_id:
+            # 총괄 계정은 이 API로 강등하지 않음
+            if user.get('role') == 'admin':
+                return jsonify({'success': False, 'message': '총괄 계정의 등급은 변경할 수 없습니다'}), 400
+            user['role'] = new_role
+            save_users(users)
+            label = '관리자' if new_role == 'manager' else '일반'
+            return jsonify({'success': True, 'message': f"{user['name']} 등급이 {label}(으)로 변경됐습니다"})
+
+    return jsonify({'success': False, 'message': '사용자를 찾을 수 없습니다'}), 404

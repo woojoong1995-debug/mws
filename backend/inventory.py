@@ -103,17 +103,21 @@ def cleanup():
     호출 시점:
         페이지 로드 시 프론트엔드에서 자동 호출
     """
-    today   = date.today().isoformat()
+    from datetime import timedelta
+    today    = date.today()
+    today_iso = today.isoformat()
+    # 소진 항목은 3일 지난 것부터 삭제 (그 전엔 취소로 되돌릴 여유를 줌)
+    cutoff   = (today - timedelta(days=3)).isoformat()
     data    = load_data()
     before  = len(data)
 
-    # 소진됐고 날짜가 오늘 이전인 입고/환입 항목 삭제
+    # 소진됐고 소진된 지 3일 넘은 입고/환입 항목 삭제
     cleaned = [
         d for d in data
         if not (
             d.get('depleted')
             and d.get('kind') in ('in', 'hwanjip')
-            and d.get('date', '') < today
+            and d.get('date', '') < cutoff
         )
     ]
 
@@ -165,8 +169,8 @@ def update_record(record_id):
     found = False
     for i, item in enumerate(data):
         if item.get('id') == record_id:
-            # 운영자거나 본인이 윽록한 항목만 수정가능
-            if current_role != 'admin' and item.get('created_by', '') != current_user:
+            # 총괄(admin)·관리자(manager)는 남의 항목도 수정 가능, 일반은 본인 것만
+            if current_role not in ('admin', 'manager') and item.get('created_by', '') != current_user:
                 return jsonify({'success': False, 'message': '본인이 등록한 항목만 수정할 수 있습니다'}), 403
             # 기존 데이터에 수정 내용 병합 (창고, 위치 ,LotNo 등 기존 필드 보전)
             data[i].update(body)

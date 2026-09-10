@@ -84,7 +84,7 @@ async function loadHistory() {
             '<div style="font-size:12px;color:var(--txt2);margin-top:2px">' + (item.code || '') + '</div>' +
             '<div style="font-size:12px;color:var(--txt2);margin-top:6px">📍 ' + locTxt + '</div>' +
             metaLine +
-            '<div style="font-size:12px;margin-top:4px"><b style="color:var(--blue)">' + (item.person || '미입력') + '</b> · ' + (item.date || '') + '</div>' +
+            '<div style="font-size:12px;margin-top:4px"><b style="color:var(--blue)">' + (item.person || '미입력') + '</b> · ' + (item.date || '') + (item.time ? ' ' + item.time : '') + '</div>' +
             (item.note ? '<div style="font-size:11px;color:var(--txt2);margin-top:2px">📝 ' + item.note + '</div>' : '') +
           '</div>' +
           '<div style="text-align:right;flex-shrink:0;margin-left:8px;display:flex;flex-direction:column;align-items:flex-end">' +
@@ -118,14 +118,7 @@ async function loadHistory() {
         .then(function(json){
           if (json.success) {
             showToast('✓ 전산 완료 처리됐습니다');
-            // 전산완료 탭으로 이동
-            document.querySelectorAll('.hist-tab').forEach(function(b){
-              b.style.background = '#f9fafb'; b.style.color = '#6b7280'; b.classList.remove('on');
-            });
-            var transferTab = document.querySelector('.hist-tab[data-kind="transfer"]');
-            if (transferTab) {
-              transferTab.style.background = '#1a1a1a'; transferTab.style.color = '#fff'; transferTab.classList.add('on');
-            }
+            // 탭 이동 없이 제자리에서 목록만 새로고침 (처리한 건은 목록에서 빠짐)
             loadHistory();
           } else {
             showToast('오류: ' + json.message);

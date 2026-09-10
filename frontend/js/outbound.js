@@ -9,6 +9,22 @@ function todayStr() {
 }
 
 // ═══════════════════════════════════════════
+// 불출: 카테고리 필터 선택
+// ═══════════════════════════════════════════
+var dpCatFilter = '';  // 선택된 카테고리 ('' = 전체)
+
+function pickDpCat(btn, cat) {
+  dpCatFilter = cat;
+  document.querySelectorAll('.dp-cat-btn').forEach(function(b){
+    b.classList.toggle('on', b === btn);
+  });
+  // 이미 끝자리를 입력해둔 상태면 즉시 다시 검색
+  var suffix = (document.getElementById('dp-suffix') || {}).value || '';
+  if (suffix.trim().length >= 2 || cat) searchBySuffix();
+}
+
+
+// ═══════════════════════════════════════════
 // 불출: 품번 끝자리로 품목 검색
 // ═══════════════════════════════════════════
 async function searchBySuffix() {
@@ -20,16 +36,21 @@ async function searchBySuffix() {
   selectedDpItem   = null;
   selectedFifoItems = [];
 
-  if (suffix.length < 2) return;
+  // 끝자리도 없고 카테고리도 안 골랐으면 대기
+  if (suffix.length < 2 && !dpCatFilter) return;
 
   try {
-    var res     = await fetch(API + '/fifo?code=' + encodeURIComponent(suffix));
+    // 품번 끝자리(code) + 카테고리(cat) 함께 전송
+    var params = new URLSearchParams();
+    if (suffix) params.set('code', suffix);
+    if (dpCatFilter) params.set('cat', dpCatFilter);
+    var res     = await fetch(API + '/fifo?' + params.toString());
     var json    = await res.json();
     var matches = json.data || [];
 
     if (!matches.length) {
       document.getElementById('dp-step2').style.display = 'block';
-      document.getElementById('dp-item-list').innerHTML = '<p style="text-align:center;color:var(--txt2);padding:16px 0;font-size:14px">해당 품번 없음</p>';
+      document.getElementById('dp-item-list').innerHTML = '<p style="text-align:center;color:var(--txt2);padding:16px 0;font-size:14px">해당 품목 없음</p>';
       return;
     }
 

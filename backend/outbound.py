@@ -43,19 +43,32 @@ def get_fifo():
         - 소진된 항목(수량 0)은 제외
     """
     code = request.args.get('code', '').strip()
-    if not code:
+    cat  = request.args.get('cat', '').strip()   # 카테고리 필터 (선택)
+    if not code and not cat:
         return jsonify({'success': False, 'message': '품번을 입력하세요'}), 400
 
     today = date.today().isoformat()
     data = load_data()
 
     # 해당 품번 입고/환입 항목 필터링
+    # - 품번은 "끝자리 일치"(endswith)만. 중간에 포함된 건 제외.
     # - 소진되지 않은 것만
-    # - 오늘 소진된 것은 포함 (당일은 소진 표시로 보임)
+    # - 카테고리를 지정하면 그 카테고리만
+    def _code_match(d):
+        if not code:
+            return True
+        return (d.get('code') or '').upper().endswith(code.upper())
+
+    def _cat_match(d):
+        if not cat:
+            return True
+        return (d.get('cat') or '기타') == cat
+
     matches = [
         d for d in data
         if d.get('kind') in ('in', 'hwanjip')
-        and (d.get('code') or '').upper().endswith(code.upper())
+        and _code_match(d)
+        and _cat_match(d)
         and not d.get('depleted')
         and ((d.get('qty') or 0) > 0 or (d.get('rolls') or 0) > 0 or (d.get('meters') or 0) > 0)
     ]
@@ -152,6 +165,8 @@ def add_outbound():
     # 밀리초 타임스탬프에 기존 데이터에 없는 값이 나올 때까지 +1
     # (나노초는 숫자가 너무 커서 프론트 JS 정밀도가 깨지므로 사용하지 않음)
     body['kind'] = 'out'
+    # 불출 시각 저장 (HH:MM) — 이력 화면에 날짜와 함께 표시됨
+    body['time'] = time.strftime('%H:%M')
     new_id = int(time.time() * 1000)
     existing_ids = {d.get('id') for d in data}
     while new_id in existing_ids:
@@ -190,40 +205,78 @@ def cancel_outbound(record_id):
         return jsonify({'success': False, 'message': '불출 이력을 찾을 수 없습니다'}), 404
 
     # 이 불출 건의 출처(from_id) 복원
-    # (신방식은 from_id 단일, 예전 기록은 from_ids 다중 → 둘 다 처리)
+    # ★ 원본 재고가 남아있으면 → 수량을 되돌린다
+    #    원본이 이미 삭제됐으면(오래돼서 cleanup됨) → 이력 정보로 새 재고를 만들어 되살린다
+    import time as _time
+
+    def restore_one(fid, info):
+        """
+        fid: 되돌릴 원본 재고 ID
+        info: 되돌릴 수량 정보가 담긴 dict (sources 항목 또는 out 본체)
+        원본이 있으면 수량 더하고, 없으면 새 재고 레코드를 만들어 append.
+        """
+        # 1) 원본이 아직 있으면 수량 복원
+        for item in data:
+            if item.get('id') == fid:
+                if info.get('item_type') == 'fabric':
+                    item['rolls']  = (item.get('rolls')  or 0) + (info.get('rolls')  or 0)
+                    item['weight'] = (item.get('weight') or 0) + (info.get('weight') or 0)
+                    item['meters'] = (item.get('meters') or 0) + (info.get('meters') or 0)
+                    item['qty']    = item['rolls']
+                else:
+                    item['qty'] = (item.get('qty') or 0) + (info.get('qty') or 0)
+                item['depleted'] = False
+                return
+
+        # 2) 원본이 없으면 → 이력 정보로 새 재고 생성 (되살리기)
+        new_item = {
+            'id'        : int(_time.time() * 1000) + len(data),  # 겹치지 않게
+            'kind'      : 'in',   # 재고로 복원
+            'item_type' : info.get('item_type', 'normal'),
+            'code'      : out.get('code', ''),
+            'name'      : out.get('name', ''),
+            'cat'       : out.get('cat', ''),
+            'lot'       : info.get('lot', out.get('lot', '')),
+            'route'     : info.get('route', out.get('route', '')),
+            'po'        : info.get('po', out.get('po', '')),
+            'wh'        : info.get('wh', out.get('wh', '')),
+            'loc'       : info.get('from_loc', out.get('from_loc', '')) or info.get('loc', ''),
+            'date'      : out.get('date', ''),
+            'person'    : out.get('person', ''),
+            'created_by': out.get('created_by', ''),
+            'depleted'  : False,
+        }
+        # 위치 문자열에서 창고(wh) 유추 (이력에 wh가 없을 수 있음)
+        loc_txt = new_item['loc'] or ''
+        if not new_item['wh']:
+            if 'D동' in loc_txt:
+                new_item['wh'] = 'D'
+            elif '천막동' in loc_txt:
+                new_item['wh'] = 'T'
+        if info.get('item_type') == 'fabric':
+            new_item['rolls']  = info.get('rolls')  or 0
+            new_item['weight'] = info.get('weight') or 0
+            new_item['meters'] = info.get('meters') or 0
+            new_item['qty']    = new_item['rolls']
+        else:
+            new_item['qty'] = info.get('qty') or 0
+        data.append(new_item)
+
     sources = out.get('sources', [])
     if sources:
-        # 아주 예전: sources로 묶여 저장된 기록 복원
+        # 예전: sources로 묶여 저장된 기록 복원
         for s in sources:
-            for item in data:
-                if item.get('id') == s.get('id'):
-                    if s.get('item_type') == 'fabric':
-                        item['rolls']  = (item.get('rolls')  or 0) + (s.get('rolls')  or 0)
-                        item['weight'] = (item.get('weight') or 0) + (s.get('weight') or 0)
-                        item['meters'] = (item.get('meters') or 0) + (s.get('meters') or 0)
-                        item['qty']    = item['rolls']
-                    else:
-                        item['qty'] = (item.get('qty') or 0) + (s.get('qty') or 0)
-                    item['depleted'] = False
-                    break
+            restore_one(s.get('id'), s)
     else:
         from_ids = out.get('from_ids', [])
         from_id  = out.get('from_id')
         if from_id and from_id not in from_ids:
             from_ids.append(from_id)
-
-        for fid in from_ids:
-            for item in data:
-                if item.get('id') == fid:
-                    if out.get('item_type') == 'fabric':
-                        item['rolls']  = (item.get('rolls')  or 0) + (out.get('rolls')  or 0)
-                        item['weight'] = (item.get('weight') or 0) + (out.get('weight') or 0)
-                        item['meters'] = (item.get('meters') or 0) + (out.get('meters') or 0)
-                        item['qty']    = item['rolls']
-                    else:
-                        item['qty'] = (item.get('qty') or 0) + (out.get('qty') or 0)
-                    item['depleted'] = False  # 소진 해제
-                    break
+        if from_ids:
+            for fid in from_ids:
+                restore_one(fid, out)
+        else:
+            restore_one(None, out)
 
     # 불출 이력 삭제
     new_data = [d for d in data if d.get('id') != record_id]

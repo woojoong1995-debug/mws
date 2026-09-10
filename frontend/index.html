@@ -127,6 +127,7 @@
     <button id="nav-prod-stock" class="production-tab" style="display:none">재고현황</button>
     <!-- 운영자 탭 -->
     <button id="nav-admin" style="display:none;color:#ff3b30">직원</button>
+    <button id="nav-catalog" class="material-tab" style="display:none;color:#5b21b6">품목관리</button>
   </div>
 
   <!-- ══════════════════════════════════════
@@ -350,9 +351,19 @@
   ══════════════════════════════════════ -->
   <div id="sec-dispatch" class="section">
     <div class="card" id="dp-step1">
-      <label style="margin-top:0;font-size:14px;font-weight:600;color:var(--txt)">품번 끝자리 입력</label>
-      <p style="font-size:12px;color:var(--txt2);margin-bottom:10px">예: 0017 입력하면 해당 품목 목록이 나와요</p>
+      <label style="margin-top:0;font-size:14px;font-weight:600;color:var(--txt)">카테고리 (선택)</label>
+      <div id="dp-cat-filter" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0 14px">
+        <div class="dp-cat-btn on" data-cat="" onclick="pickDpCat(this,'')">전체</div>
+        <div class="dp-cat-btn" data-cat="카톤" onclick="pickDpCat(this,'카톤')">카톤</div>
+        <div class="dp-cat-btn" data-cat="단상자" onclick="pickDpCat(this,'단상자')">단상자</div>
+        <div class="dp-cat-btn" data-cat="인박스" onclick="pickDpCat(this,'인박스')">인박스</div>
+        <div class="dp-cat-btn" data-cat="원단" onclick="pickDpCat(this,'원단')">원단</div>
+        <div class="dp-cat-btn" data-cat="손발원단" onclick="pickDpCat(this,'손발원단')">손발원단</div>
+      </div>
+      <label style="font-size:14px;font-weight:600;color:var(--txt)">품번 끝자리 입력</label>
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:10px">예: 0017 입력하면 <b>17로 끝나는</b> 품목만 나와요</p>
       <input type="text" id="dp-suffix" placeholder="끝자리 입력 (예: 0017)" maxlength="8">
+      <button type="button" class="btn btn-dark" onclick="searchBySuffix()" style="margin-top:8px">검색</button>
     </div>
     <div id="dp-step2" style="display:none">
       <div class="card">
@@ -714,6 +725,17 @@
     </div>
   </div>
 
+  <!-- 품목 카탈로그 관리 (운영자 전용) -->
+  <div id="sec-catalog" class="section">
+    <div class="search-wrap" style="margin-bottom:10px">
+      <input type="text" id="cat-search" placeholder="품번 또는 품목명 검색" oninput="loadCatalog()" style="width:100%">
+    </div>
+    <p style="font-size:12px;color:var(--txt2);margin:0 2px 10px">OCR 오인식 등으로 잘못 저장된 품번을 수정하거나 삭제할 수 있어요. (재고 데이터는 안 건드려요)</p>
+    <div class="card" style="padding:6px 14px">
+      <div id="catalog-list"><div class="loading">불러오는 중...</div></div>
+    </div>
+  </div>
+
 </div><!-- /.app -->
 
 <!-- 홈 이동 확인 모달 -->
@@ -941,6 +963,7 @@
 <script src="/js/edit.js"></script>
 <script src="/js/ocr.js"></script>
 <script src="/js/requests.js"></script>
+<script src="/js/catalog_admin.js"></script>
 
 </body>
 </html>

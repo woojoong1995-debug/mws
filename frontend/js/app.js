@@ -80,12 +80,15 @@ function showMainApp() {
   // 운영자 탭
   var adminTab = document.getElementById('nav-admin');
   var adminBtn = document.getElementById('home-admin-btn');
+  var catalogTab = document.getElementById('nav-catalog');
   if (role === 'admin') {
     adminTab.style.display = 'block';
     if (adminBtn) adminBtn.style.display = 'block';
+    if (catalogTab) catalogTab.style.display = 'block';
   } else {
     adminTab.style.display = 'none';
     if (adminBtn) adminBtn.style.display = 'none';
+    if (catalogTab) catalogTab.style.display = 'none';
   }
 
   // 운영자(admin)는 불출 불가 → 불출 탭/홈 버튼 숨김 (입고·환입·관리는 그대로)
@@ -219,6 +222,8 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('nav-req-status').addEventListener('click', function(){ switchTab('req-status', this); });
   document.getElementById('nav-prod-stock').addEventListener('click', function(){ switchTab('prod-stock', this); });
   document.getElementById('nav-admin')     .addEventListener('click', function(){ switchTab('admin',      this); });
+  var navCatalog = document.getElementById('nav-catalog');
+  if (navCatalog) navCatalog.addEventListener('click', function(){ switchTab('catalog', this); });
 
   // 입고
   document.getElementById('in-type-normal').addEventListener('click', function(){ setType('in','normal'); });
@@ -452,6 +457,7 @@ function switchTab(name, btn) {
     if (typeof loadHistory === 'function') loadHistory();
   }
   if (name === 'admin')      if (typeof loadUsers     === 'function') loadUsers();
+  if (name === 'catalog')    if (typeof loadCatalog   === 'function') loadCatalog();
   if (name === 'home')       if (typeof loadHomeStats === 'function') loadHomeStats();
     if (name === 'req-manage') {
     var rmDate = document.getElementById('rm-date');
