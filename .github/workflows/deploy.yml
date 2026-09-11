@@ -33,6 +33,7 @@ jobs:
               frontend/js/edit.js \
               frontend/js/ocr.js \
               frontend/js/requests.js \
+              frontend/js/catalog_admin.js \
               backend/main.py \
               backend/auth.py \
               backend/users.py \
