@@ -11,15 +11,6 @@ async function checkLoginStatus() {
     var json = await res.json();
     if (json.success) {
       currentUser = json.user;
-      // 아이디/비밀번호 저장
-      var saveEl = document.getElementById('save-login');
-      if (saveEl && saveEl.checked) {
-        localStorage.setItem('saved_username', username);
-        localStorage.setItem('saved_password', password);
-      } else {
-        localStorage.removeItem('saved_username');
-        localStorage.removeItem('saved_password');
-      }
       showMainApp();
     } else { errDiv.style.display = 'block'; errDiv.textContent = json.message; }
   } catch(e) { showAuthScreen(); }
@@ -81,14 +72,17 @@ function showMainApp() {
   var adminTab = document.getElementById('nav-admin');
   var adminBtn = document.getElementById('home-admin-btn');
   var catalogTab = document.getElementById('nav-catalog');
+  var catalogBtn = document.getElementById('home-catalog-btn');
   if (role === 'admin') {
     adminTab.style.display = 'block';
     if (adminBtn) adminBtn.style.display = 'block';
     if (catalogTab) catalogTab.style.display = 'block';
+    if (catalogBtn) catalogBtn.style.display = 'block';
   } else {
     adminTab.style.display = 'none';
     if (adminBtn) adminBtn.style.display = 'none';
     if (catalogTab) catalogTab.style.display = 'none';
+    if (catalogBtn) catalogBtn.style.display = 'none';
   }
 
   // 운영자(admin)는 불출 불가 → 불출 탭/홈 버튼 숨김 (입고·환입·관리는 그대로)
@@ -152,7 +146,20 @@ async function doLogin() {
   try {
     var res  = await fetch(API + '/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify({ username, password }) });
     var json = await res.json();
-    if (json.success) { currentUser = json.user; errDiv.style.display = 'none'; showMainApp(); }
+    if (json.success) {
+      currentUser = json.user;
+      errDiv.style.display = 'none';
+      // 아이디/비밀번호 저장 (체크박스 켜져 있으면 브라우저에 기억)
+      var saveEl = document.getElementById('save-login');
+      if (saveEl && saveEl.checked) {
+        localStorage.setItem('saved_username', username);
+        localStorage.setItem('saved_password', password);
+      } else {
+        localStorage.removeItem('saved_username');
+        localStorage.removeItem('saved_password');
+      }
+      showMainApp();
+    }
     else              { errDiv.style.display = 'block'; errDiv.textContent = json.message; }
   } catch(e) { errDiv.style.display = 'block'; errDiv.textContent = '서버에 연결할 수 없습니다'; }
 }
