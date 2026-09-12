@@ -182,23 +182,11 @@ async function selectDpItem(item) {
         var countEl = document.getElementById('dp-selected-count');
         if (countEl) countEl.textContent = selectedFifoItems.length + '개 선택';
 
-        // 선택된 항목들 합계 자동 입력
-        var totalQty = 0, totalRolls = 0, totalWeight = 0, totalMeters = 0;
+        // 수량은 자동으로 채우지 않음 (직접 입력 또는 MAX 버튼)
+        // 항목 선택만 하고 수량 칸은 비워둔다 → 실수 방지
         var isFabric = selectedFifoItems.length > 0 && selectedFifoItems[0].item_type === 'fabric';
-        selectedFifoItems.forEach(function(m) {
-          if (isFabric) { totalRolls += (m.rolls || 0); totalWeight += (m.weight || 0); totalMeters += (m.meters || 0); }
-          else          { totalQty   += (m.qty   || 0); }
-        });
 
-        if (isFabric) {
-          document.getElementById('dp-rolls').value   = totalRolls;
-          document.getElementById('dp-weight').value  = totalWeight;
-          document.getElementById('dp-meters').value  = totalMeters;
-        } else {
-          document.getElementById('dp-qty').value = totalQty;
-        }
-
-        // 선택한 항목이 있으면 3단계 표시
+        // 선택한 항목이 있으면 3단계(수량 입력) 표시
         if (selectedFifoItems.length > 0) {
           document.getElementById('dp-step3').style.display = 'block';
         }

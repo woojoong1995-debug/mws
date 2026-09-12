@@ -409,8 +409,10 @@
         <input type="hidden" id="dp-date">
         <label>비고</label>
         <input type="text" id="dp-note" placeholder="선택 입력">
-        <button id="btn-submit-dp" class="btn btn-dark">불출 확정</button>
-        <button id="btn-reset-dp" class="btn btn-light">다시 선택</button>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button id="btn-reset-dp" class="btn btn-light" style="flex:1;margin-top:0">다시 선택</button>
+          <button id="btn-submit-dp" class="btn btn-dark" style="flex:2;margin-top:0">불출 확정</button>
+        </div>
       </div>
     </div>
   </div>

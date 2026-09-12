@@ -5061,27 +5061,6 @@
     "depleted": false
   },
   {
-    "id": 1781097924548,
-    "kind": "in",
-    "item_type": "normal",
-    "wh": "D",
-    "loc": "D동 F구역 3번 렉 3층",
-    "name": "원단.엠보사각패드100g(65*68.30매)",
-    "code": "A21X000017",
-    "lot": "GF074F",
-    "cat": "원단",
-    "qty": 0,
-    "rolls": 0,
-    "weight": 0,
-    "route": "",
-    "po": "",
-    "person": "일괄입고",
-    "created_by": "admin",
-    "date": "2026-01-07",
-    "note": "",
-    "depleted": true
-  },
-  {
     "id": 1781097924549,
     "kind": "in",
     "item_type": "normal",
