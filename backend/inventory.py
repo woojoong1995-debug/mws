@@ -1,123 +1,131 @@
 # =====================================================
-# inventory.py - 재고 조회 관련 API
-# =====================================================
-# 역할: 현재 창고에 있는 재고를 조회하는 기능
-#
-# API 목록:
-#   GET  /api/inventory  -> 재고 목록 조회
-#   POST /api/cleanup    -> 소진 항목 자동 정리
-#   GET  /api/export     -> 전체 데이터 CSV 다운로드
-#   DELETE /api/record/<id> -> 레코드 삭제
-#
-# 소진 항목 처리 규칙:
-#   - 당일 소진: 재고에 취소선+소진 배지로 표시
-#   - 다음날: 자동으로 완전 삭제
+# inventory.py - 재고 조회 및 루트번호(Lot) 조회 API
 # =====================================================
 
 import time
 from flask import Blueprint, request, jsonify, Response, session
-from database import load_data, save_data, delete_record, export_to_csv
+from database import load_data, save_data, export_to_csv
+from catalog import load_catalog
 from datetime import date
 
 inventory_bp = Blueprint('inventory', __name__)
 
 
+def _has_stock(item):
+    if item.get('depleted'):
+        return False
+    if item.get('item_type') == 'fabric':
+        fu = item.get('fabric_unit') or 'roll'
+        if fu == 'kg':   return (item.get('weight') or 0) > 0
+        if fu == 'm':    return (item.get('meters') or 0) > 0
+        if fu in ('set', 'ea'): return (item.get('qty') or 0) > 0
+        return (item.get('rolls') or 0) > 0 or (item.get('weight') or 0) > 0
+    return (item.get('qty') or 0) > 0
+
+
+@inventory_bp.route('/api/lots', methods=['GET'])
+def get_lots_by_code():
+    """품번으로 현재 보유 중인 루트번호(Lot) 목록과 카탈로그 규격 정보를 반환합니다."""
+    code = (request.args.get('code') or '').strip().upper()
+    if not code:
+        return jsonify({'success': True, 'lots': [], 'catalog': None})
+
+    data = load_data()
+    lots = []
+    seen = set()
+
+    for d in data:
+        if d.get('kind') in ('in', 'hwanjip') and not d.get('depleted'):
+            c = (d.get('code') or '').strip().upper()
+            if c == code or c.endswith(code):
+                lot = (d.get('lot') or '').strip()
+                if lot and lot not in seen:
+                    seen.add(lot)
+                    lots.append({
+                        'lot': lot,
+                        'wh' : d.get('wh', ''),
+                        'loc': d.get('loc', ''),
+                        'po' : d.get('po', ''),
+                    })
+
+    lots.sort(key=lambda x: x['lot'])
+
+    # 카탈로그에서 규격/단위 정보도 함께 찾기
+    catalog = load_catalog()
+    cat_item = next((c for c in catalog if (c.get('code') or '').strip().upper() == code), None)
+    if not cat_item:
+        cat_item = next((c for c in catalog if (c.get('code') or '').strip().upper().endswith(code)), None)
+
+    return jsonify({'success': True, 'lots': lots, 'catalog': cat_item})
+
+
 @inventory_bp.route('/api/inventory', methods=['GET'])
 def get_inventory():
-    """
-    재고 목록 조회 API
+    q          = request.args.get('q', '').lower().strip()
+    cat        = request.args.get('cat', '')
+    date_param = request.args.get('date', '').strip()
+    today      = date.today().isoformat()
+    data       = load_data()
 
-    쿼리 파라미터:
-        q   : 검색어 (품목명/품번/위치로 검색)
-        cat : 카테고리 필터 (카톤/원단/단상자/인박스/기타)
+    items = [d for d in data if d.get('kind') in ('in', 'hwanjip') and not d.get('depleted')]
 
-    반환:
-        - 입고/환입 항목 목록
-        - 오늘 소진된 항목은 포함 (당일은 소진 표시)
-        - 어제 이전 소진 항목은 제외
-        - 통계: 전체 입고 건수, 오늘 입고 건수
-    """
-    q     = request.args.get('q', '').lower().strip()
-    cat   = request.args.get('cat', '')
-    today = date.today().isoformat()
-    data  = load_data()
-
-    # 입고/환입 항목만 가져오기
-    items = [d for d in data if d.get('kind') in ('in', 'hwanjip')]
-
-    # 소진 항목 제외
-    items = [
-        i for i in items
-        if not i.get('depleted')
-    ]
-
-    # 검색어 필터 (품목명, 품번, 위치 중 하나라도 포함되면 표시)
     if q:
         items = [
             i for i in items
             if q in (i.get('name') or '').lower()
             or q in (i.get('code') or '').lower()
             or q in (i.get('loc')  or '').lower()
+            or q in (i.get('lot')  or '').lower()
         ]
 
-    # 카테고리 필터
     if cat:
         items = [i for i in items if (i.get('cat') or '기타') == cat]
 
-    # 정렬 규칙:
-    #   1순위) 루트번호(Lot) 오름차순  (없으면 날짜순)
-    #   2순위) 같은 루트번호끼리는 수량 적은 것 먼저 (오름차순)
-    #          - 원단이면 롤수 기준, 일반이면 개수 기준
+    if date_param:
+        items = [i for i in items if i.get('date') == date_param]
+
     def _qty_of(x):
         if x.get('item_type') == 'fabric':
+            fu = x.get('fabric_unit') or 'roll'
+            if fu == 'kg': return x.get('weight') or 0
+            if fu == 'm':  return x.get('meters') or 0
+            if fu in ('set', 'ea'): return x.get('qty') or 0
             return x.get('rolls') or 0
         return x.get('qty') or 0
 
     items.sort(key=lambda x: (
-        x.get('lot', '') or x.get('date', ''),  # 1순위: 루트번호 오름차순
-        _qty_of(x),                              # 2순위: 수량 적은 것 먼저
+        x.get('lot', '') or x.get('date', ''),
+        _qty_of(x),
     ))
 
-    # 통계 계산 (필터 없이 전체 기준)
-    all_in    = [d for d in data if d.get('kind') == 'in']
-    total_in  = len(all_in)
-    today_in  = len([d for d in all_in if d.get('date') == today])
+    all_in = [d for d in data if d.get('kind') == 'in']
+    all_hj = [d for d in data if d.get('kind') == 'hwanjip']
 
     return jsonify({
         'success'  : True,
         'data'     : items,
-        'total_in' : total_in,
-        'today_in' : today_in
+        'total_in' : len(all_in),
+        'today_in' : len([d for d in all_in if d.get('date') == today]),
+        'total_hj' : len([d for d in all_hj if not d.get('depleted')]),
+        'today_hj' : len([d for d in all_hj if d.get('date') == today]),
     })
 
 
 @inventory_bp.route('/api/cleanup', methods=['POST'])
 def cleanup():
-    """
-    소진 항목 자동 정리 API
-
-    처리 내용:
-        어제 이전 날짜에 소진된 입고/환입 항목을 자동 삭제
-        (당일 소진된 항목은 유지 - 취소 가능하도록)
-
-    호출 시점:
-        페이지 로드 시 프론트엔드에서 자동 호출
-    """
     from datetime import timedelta
-    today    = date.today()
-    today_iso = today.isoformat()
-    # 소진 항목은 3일 지난 것부터 삭제 (그 전엔 취소로 되돌릴 여유를 줌)
-    cutoff   = (today - timedelta(days=3)).isoformat()
-    data    = load_data()
-    before  = len(data)
+    today  = date.today()
+    cutoff = (today - timedelta(days=3)).isoformat()
+    data   = load_data()
+    before = len(data)
 
-    # 소진됐고 소진된 지 3일 넘은 입고/환입 항목 삭제
+    # 소진된 날짜(depleted_at, 없으면 date) 기준으로 3일 지난 항목 정리
     cleaned = [
         d for d in data
         if not (
             d.get('depleted')
             and d.get('kind') in ('in', 'hwanjip')
-            and d.get('date', '') < cutoff
+            and (d.get('depleted_at') or d.get('date') or '') < cutoff
         )
     ]
 
@@ -130,13 +138,6 @@ def cleanup():
 
 @inventory_bp.route('/api/export', methods=['GET'])
 def export_csv():
-    """
-    전체 데이터 CSV 다운로드 API
-
-    반환:
-        엑셀에서 열 수 있는 UTF-8 BOM CSV 파일
-        파일명: 창고재고_YYYY-MM-DD.csv
-    """
     csv_content = export_to_csv()
     if not csv_content:
         return jsonify({'success': False, 'message': '내보낼 데이터가 없습니다'}), 404
@@ -145,23 +146,16 @@ def export_csv():
     return Response(
         csv_content,
         mimetype='text/csv; charset=utf-8',
-        headers={
-            'Content-Disposition': f"attachment; filename={filename}"
-        }
+        headers={'Content-Disposition': f"attachment; filename={filename}"}
     )
 
 
 @inventory_bp.route('/api/record/<int:record_id>', methods=['PUT'])
 def update_record(record_id):
-    """
-    레코드 수정 API
-    수량 수정, 위치 이동 등에 사용합니다.
-    """
     body = request.get_json()
     if not body:
         return jsonify({'success': False, 'message': '데이터가 없습니다'}), 400
 
-    # 권환 확인: 본인 항목이거나 운영자만 수정 가능
     current_user = session.get('username', '')
     current_role = session.get('role', 'user')
 
@@ -169,12 +163,11 @@ def update_record(record_id):
     found = False
     for i, item in enumerate(data):
         if item.get('id') == record_id:
-            # 총괄(admin)·관리자(manager)는 남의 항목도 수정 가능, 일반은 본인 것만
+            # 총괄(admin)과 관리자(manager)는 누구의 항목이든 수정 가능
             if current_role not in ('admin', 'manager') and item.get('created_by', '') != current_user:
                 return jsonify({'success': False, 'message': '본인이 등록한 항목만 수정할 수 있습니다'}), 403
-            # 기존 데이터에 수정 내용 병합 (창고, 위치 ,LotNo 등 기존 필드 보전)
             data[i].update(body)
-            data[i]['id'] = record_id  # ID 유지
+            data[i]['id'] = record_id
             found = True
             break
 
@@ -187,20 +180,25 @@ def update_record(record_id):
 
 @inventory_bp.route('/api/record/<int:record_id>', methods=['DELETE'])
 def remove_record(record_id):
-    """
-    레코드 삭제 API
-    특정 ID의 레코드를 삭제합니다.
-    """
-    if delete_record(record_id):
-        return jsonify({'success': True, 'message': '삭제 완료'})
-    return jsonify({'success': False, 'message': '항목을 찾을 수 없습니다'}), 404
+    """레코드 삭제 API - 관리자(manager) 및 운영자(admin)는 모든 항목 삭제 가능"""
+    current_user = session.get('username', '')
+    current_role = session.get('role', 'user')
+
+    data = load_data()
+    target = next((d for d in data if d.get('id') == record_id), None)
+    if not target:
+        return jsonify({'success': False, 'message': '항목을 찾을 수 없습니다'}), 404
+
+    if current_role not in ('admin', 'manager') and target.get('created_by', '') != current_user:
+        return jsonify({'success': False, 'message': '본인이 등록한 항목만 삭제할 수 있습니다'}), 403
+
+    new_data = [d for d in data if d.get('id') != record_id]
+    save_data(new_data)
+    return jsonify({'success': True, 'message': '삭제 완료'})
+
 
 @inventory_bp.route('/api/reset-data', methods=['POST'])
 def reset_data():
-    """
-    전체 데이터 초기화 (운영자 전용)
-    비밀번호 확인 후 data.json 전체 삭제
-    """
     if session.get('role') != 'admin':
         return jsonify({'success': False, 'message': '운영자만 가능합니다'}), 403
     body = request.get_json()
@@ -213,9 +211,9 @@ def reset_data():
     save_data([])
     return jsonify({'success': True, 'message': '전체 데이터가 초기화됐습니다'})
 
+
 @inventory_bp.route('/api/record/<int:record_id>/transfer', methods=['POST'])
 def transfer_record(record_id):
-    """불출 이력 전산 완료 처리"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': '로그인이 필요합니다'}), 401
 

@@ -1,20 +1,5 @@
 # =====================================================
-# catalog.py - 품목 카탈로그 (영구 보존)
-# =====================================================
-# 역할:
-#   입고/환입으로 한 번이라도 들어온 품목의 기본 정보를
-#   재고와 별도로 계속 저장한다.
-#   → 재고가 0이 되어 사라져도, 품번으로 검색하면
-#     품목명·카테고리·유형이 자동으로 채워진다. (OCR 재촬영 불필요)
-#
-# 저장 항목 (품번 기준):
-#   code(품번), name(품목명), cat(카테고리), item_type(유형)
-#   ※ 위치·루트번호·수량은 매번 바뀌므로 저장하지 않음
-#
-# 저장 파일: backend/catalog.json (자동 생성)
-#
-# API:
-#   GET /api/catalog?q=검색어  -> 카탈로그 검색 (품번/품목명)
+# catalog.py - 품목 카탈로그 (영구 보존 + 원단 규격/단위 저장)
 # =====================================================
 
 import json
@@ -27,7 +12,6 @@ CATALOG_FILE = os.path.join(os.path.dirname(__file__), 'catalog.json')
 
 
 def load_catalog():
-    """카탈로그 전체 불러오기 (파일 없으면 빈 리스트)"""
     if not os.path.exists(CATALOG_FILE):
         return []
     try:
@@ -38,7 +22,6 @@ def load_catalog():
 
 
 def save_catalog(items):
-    """카탈로그 전체 저장"""
     try:
         with open(CATALOG_FILE, 'w', encoding='utf-8') as f:
             json.dump(items, f, ensure_ascii=False, indent=2)
@@ -49,49 +32,57 @@ def save_catalog(items):
 
 
 def upsert_catalog(record):
-    """
-    입고/환입 등록 시 호출.
-    품번(code) 기준으로 카탈로그에 추가하거나 최신 정보로 갱신한다.
-    품번이 없으면 아무것도 안 함.
-    """
+    """입고/환입 등록 시 품번 기준으로 기본 정보 및 원단 규격/단위를 갱신합니다."""
     code = (record.get('code') or '').strip()
     if not code:
         return
 
-    name      = (record.get('name') or '').strip()
-    cat       = (record.get('cat') or '').strip()
-    item_type = record.get('item_type') or 'normal'
+    name        = (record.get('name') or '').strip()
+    cat         = (record.get('cat') or '').strip()
+    item_type   = record.get('item_type') or 'normal'
+    fabric_unit = record.get('fabric_unit') or ('roll' if item_type == 'fabric' else '')
+    spec_w      = record.get('spec_w') or 0
+    spec_l      = record.get('spec_l') or 0
+    spec_m      = record.get('spec_m') or 0
+    unit_weight = record.get('unit_weight') or 0
 
     catalog = load_catalog()
 
-    # 이미 있으면 갱신
     for item in catalog:
         if (item.get('code') or '').strip() == code:
-            if name: item['name'] = name        # 새 정보로 업데이트
+            if name: item['name'] = name
             if cat:  item['cat']  = cat
             item['item_type'] = item_type
+            # 환입 시 임시로 'kg'만 입력한 경우 기존 'roll' 단위 설정은 덮어쓰지 않음
+            if fabric_unit and not (record.get('kind') == 'hwanjip' and fabric_unit == 'kg' and item.get('fabric_unit') == 'roll'):
+                item['fabric_unit'] = fabric_unit
+            if spec_w and spec_l and spec_m:
+                item['spec_w']      = spec_w
+                item['spec_l']      = spec_l
+                item['spec_m']      = spec_m
+                item['unit_weight'] = round((float(spec_w) * float(spec_l) * float(spec_m)) / 1000000.0, 6)
+            elif unit_weight:
+                item['unit_weight'] = unit_weight
             save_catalog(catalog)
             return
 
-    # 없으면 새로 추가
+    calc_uw = round((float(spec_w) * float(spec_l) * float(spec_m)) / 1000000.0, 6) if (spec_w and spec_l and spec_m) else unit_weight
     catalog.append({
-        'code'     : code,
-        'name'     : name,
-        'cat'      : cat,
-        'item_type': item_type,
+        'code'       : code,
+        'name'       : name,
+        'cat'        : cat,
+        'item_type'  : item_type,
+        'fabric_unit': 'roll' if (record.get('kind') == 'hwanjip' and fabric_unit == 'kg') else fabric_unit,
+        'spec_w'     : spec_w,
+        'spec_l'     : spec_l,
+        'spec_m'     : spec_m,
+        'unit_weight': calc_uw,
     })
     save_catalog(catalog)
 
 
 @catalog_bp.route('/api/catalog', methods=['GET'])
 def search_catalog():
-    """
-    카탈로그 검색 API
-    쿼리 파라미터:
-        q : 검색어 (품번 끝자리 또는 품목명 일부)
-    반환:
-        일치하는 품목 목록 (code, name, cat, item_type)
-    """
     q = (request.args.get('q') or '').strip().lower()
     catalog = load_catalog()
 
@@ -102,30 +93,22 @@ def search_catalog():
             or q in (c.get('name') or '').lower()
         ]
 
-    # 품번 오름차순
     catalog.sort(key=lambda x: (x.get('code') or ''))
-
     return jsonify({'success': True, 'data': catalog})
 
 
-# ─────────────────────────────────────────────
-# 카탈로그 관리 (운영자 전용)
-# ─────────────────────────────────────────────
-def _require_admin():
-    """운영자 권한 확인. 아니면 오류 응답 반환, 맞으면 None"""
+def _require_admin_or_manager():
+    """운영자(admin) 또는 관리자(manager) 권한 확인"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': '로그인이 필요합니다'}), 401
-    if session.get('role') != 'admin':
-        return jsonify({'success': False, 'message': '운영자만 접근할 수 있습니다'}), 403
+    if session.get('role') not in ('admin', 'manager'):
+        return jsonify({'success': False, 'message': '관리자 이상만 접근할 수 있습니다'}), 403
     return None
 
 
 @catalog_bp.route('/api/catalog/all', methods=['GET'])
 def list_catalog_all():
-    """
-    카탈로그 전체 목록 (운영자 전용, 관리 화면용)
-    """
-    err = _require_admin()
+    err = _require_admin_or_manager()
     if err:
         return err
     catalog = load_catalog()
@@ -135,14 +118,7 @@ def list_catalog_all():
 
 @catalog_bp.route('/api/catalog/<path:code>', methods=['PUT'])
 def update_catalog(code):
-    """
-    카탈로그 항목 수정 (운영자 전용)
-    품번(code)으로 찾아서 품번·품목명·카테고리·유형을 수정.
-    ※ 품번 자체도 바꿀 수 있음 (OCR 오인식 교정용)
-
-    받는 데이터(JSON): code, name, cat, item_type (바꿀 값)
-    """
-    err = _require_admin()
+    err = _require_admin_or_manager()
     if err:
         return err
 
@@ -154,15 +130,23 @@ def update_catalog(code):
         return jsonify({'success': False, 'message': '해당 품번을 찾을 수 없습니다'}), 404
 
     new_code = (body.get('code') or '').strip()
-    # 품번을 바꾸는 경우, 다른 항목과 중복되면 거절
     if new_code and new_code != code:
         if any((c.get('code') or '') == new_code for c in catalog):
             return jsonify({'success': False, 'message': '이미 있는 품번입니다'}), 400
         target['code'] = new_code
 
-    if 'name' in body:      target['name'] = (body.get('name') or '').strip()
-    if 'cat' in body:       target['cat']  = (body.get('cat') or '').strip()
-    if 'item_type' in body: target['item_type'] = body.get('item_type') or 'normal'
+    if 'name' in body:        target['name']        = (body.get('name') or '').strip()
+    if 'cat' in body:         target['cat']         = (body.get('cat') or '').strip()
+    if 'item_type' in body:   target['item_type']   = body.get('item_type') or 'normal'
+    if 'fabric_unit' in body: target['fabric_unit'] = body.get('fabric_unit') or 'roll'
+    if 'spec_w' in body:      target['spec_w']      = float(body.get('spec_w') or 0)
+    if 'spec_l' in body:      target['spec_l']      = float(body.get('spec_l') or 0)
+    if 'spec_m' in body:      target['spec_m']      = float(body.get('spec_m') or 0)
+
+    if target.get('spec_w') and target.get('spec_l') and target.get('spec_m'):
+        target['unit_weight'] = round((target['spec_w'] * target['spec_l'] * target['spec_m']) / 1000000.0, 6)
+    elif 'unit_weight' in body:
+        target['unit_weight'] = float(body.get('unit_weight') or 0)
 
     save_catalog(catalog)
     return jsonify({'success': True, 'data': target})
@@ -170,12 +154,7 @@ def update_catalog(code):
 
 @catalog_bp.route('/api/catalog/<path:code>', methods=['DELETE'])
 def delete_catalog(code):
-    """
-    카탈로그 항목 삭제 (운영자 전용)
-    잘못 저장된 품번을 목록에서 제거.
-    ※ 재고(data.json)는 건드리지 않음. 카탈로그(검색 자동입력)에서만 제거됨.
-    """
-    err = _require_admin()
+    err = _require_admin_or_manager()
     if err:
         return err
 

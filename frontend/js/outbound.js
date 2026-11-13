@@ -11,18 +11,16 @@ function todayStr() {
 // ═══════════════════════════════════════════
 // 불출: 카테고리 필터 선택
 // ═══════════════════════════════════════════
-var dpCatFilter = '';  // 선택된 카테고리 ('' = 전체)
+var dpCatFilter = '';
 
 function pickDpCat(btn, cat) {
   dpCatFilter = cat;
   document.querySelectorAll('.dp-cat-btn').forEach(function(b){
     b.classList.toggle('on', b === btn);
   });
-  // 이미 끝자리를 입력해둔 상태면 즉시 다시 검색
   var suffix = (document.getElementById('dp-suffix') || {}).value || '';
   if (suffix.trim().length >= 2 || cat) searchBySuffix();
 }
-
 
 // ═══════════════════════════════════════════
 // 불출: 품번 끝자리로 품목 검색
@@ -30,21 +28,18 @@ function pickDpCat(btn, cat) {
 async function searchBySuffix() {
   var suffix = document.getElementById('dp-suffix').value.trim();
 
-  // 이전 결과 초기화
   document.getElementById('dp-step2').style.display = 'none';
   document.getElementById('dp-step3').style.display = 'none';
-  selectedDpItem   = null;
+  selectedDpItem    = null;
   selectedFifoItems = [];
 
-  // 끝자리도 없고 카테고리도 안 골랐으면 대기
   if (suffix.length < 2 && !dpCatFilter) return;
 
   try {
-    // 품번 끝자리(code) + 카테고리(cat) 함께 전송
     var params = new URLSearchParams();
-    if (suffix) params.set('code', suffix);
+    if (suffix)      params.set('code', suffix);
     if (dpCatFilter) params.set('cat', dpCatFilter);
-    var res     = await fetch(API + '/fifo?' + params.toString());
+    var res     = await fetch(API + '/fifo?' + params.toString(), { credentials: 'include' });
     var json    = await res.json();
     var matches = json.data || [];
 
@@ -54,9 +49,7 @@ async function searchBySuffix() {
       return;
     }
 
-    // 품번 기준 중복 제거 (대표 항목만)
-    var seen = {};
-    var unique = [];
+    var seen = {}, unique = [];
     matches.forEach(function(m) {
       if (m.code && !seen[m.code]) {
         seen[m.code] = true;
@@ -64,22 +57,19 @@ async function searchBySuffix() {
       }
     });
 
-    // 1개면 바로 3단계로
     if (unique.length === 1) {
       selectDpItem(unique[0]);
       return;
     }
 
-    // 여러 개면 선택 목록 표시
     document.getElementById('dp-step2').style.display = 'block';
     document.getElementById('dp-item-list').innerHTML = unique.map(function(item) {
       return '<div class="dp-item-card" data-code="' + item.code + '" style="padding:12px;border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:8px;cursor:pointer;background:var(--card);color:var(--txt)">' +
         '<div style="font-size:14px;font-weight:600;color:var(--txt)">' + (item.name || '-') + '</div>' +
         '<div style="font-size:12px;color:var(--txt2);margin-top:3px">' + item.code + '</div>' +
-        '</div>';
+      '</div>';
     }).join('');
 
-    // 품목 카드 클릭 이벤트
     document.querySelectorAll('.dp-item-card').forEach(function(card) {
       card.addEventListener('click', function() {
         var code = this.dataset.code;
@@ -93,30 +83,38 @@ async function searchBySuffix() {
   }
 }
 
+// ═══════════════════════════════════════════
+// 항목 수량 텍스트 포맷 헬퍼
+// ═══════════════════════════════════════════
+function formatFifoQty(m) {
+  if (m.item_type === 'fabric') {
+    var fu = m.fabric_unit || 'roll';
+    if (fu === 'kg')  return (m.weight || m.qty || 0) + ' kg';
+    if (fu === 'm')   return (m.meters || m.qty || 0) + ' m';
+    if (fu === 'set') return (m.qty || 0) + ' SET';
+    if (fu === 'ea')  return (m.qty || 0) + ' 개';
+    var wTxt = m.weight ? (' (' + m.weight + 'kg)') : '';
+    return (m.rolls || 0) + '롤' + wTxt;
+  }
+  return (m.qty || 0) + '개';
+}
 
 // ═══════════════════════════════════════════
 // 불출: 품목 선택 → FIFO 목록 표시
 // ═══════════════════════════════════════════
 async function selectDpItem(item) {
-  // 잠금 확인
-  try {
-  } catch(e) {}
-  // 잠금 등록
-  selectedDpItem   = item;
+  selectedDpItem    = item;
   selectedFifoItems = [];
 
   document.getElementById('dp-step2').style.display = 'none';
   document.getElementById('dp-step3').style.display = 'block';
 
-  // 선택된 품목 정보 표시
   document.getElementById('dp-selected-info').innerHTML =
     '<div style="font-size:13px;font-weight:600;color:var(--blue)">' + (item.name || '-') + '</div>' +
     '<div style="font-size:12px;color:var(--blue);margin-top:2px;opacity:.8">' + item.code + '</div>';
 
-  // 품목 유형 자동 세팅
   setType('dp', (item.item_type === 'fabric' || item.itemType === 'fabric') ? 'fabric' : 'normal');
 
-  // FIFO 순서 조회
   try {
     var res  = await fetch(API + '/fifo?code=' + encodeURIComponent(item.code), { credentials: 'include' });
     var json = await res.json();
@@ -127,10 +125,9 @@ async function selectDpItem(item) {
 
     selectedFifoItems = [];
 
-    // FIFO 목록 렌더링 (다중 선택)
     var rows = list.map(function(m, idx) {
-      var qty  = m.item_type === 'fabric' ? (m.rolls + '롤/' + m.weight + 'kg' + (m.meters ? '/' + m.meters + 'm' : '')) : (m.qty + '개');
-      var tag  = m.kind === 'hwanjip' ? '<span class="hj-tag">환입</span>' : '';
+      var qty   = formatFifoQty(m);
+      var tag   = m.kind === 'hwanjip' ? '<span class="hj-tag">환입</span>' : '';
       var poTag = m.po ? ' · <span style="background:#fef9c3;color:#854d0e;padding:1px 5px;border-radius:4px;font-size:11px;font-weight:600">PO:' + m.po + '</span>' : '';
       return '<div class="fifo-row" data-id="' + m.id + '" style="display:flex;align-items:center;gap:8px">' +
         '<input type="checkbox" class="fifo-chk" data-id="' + m.id + '" style="width:18px;height:18px;cursor:pointer;flex-shrink:0">' +
@@ -152,13 +149,11 @@ async function selectDpItem(item) {
         rows +
       '</div>';
 
-    // 행 전체 클릭 시 체크 토글
     wrap.querySelectorAll('.fifo-row').forEach(function(row) {
       row.addEventListener('click', function() {
         var chk = this.querySelector('.fifo-chk');
         if (!chk) return;
         chk.checked = !chk.checked;
-        // change 이벤트 수동 발생
         chk.dispatchEvent(new Event('change'));
       });
     });
@@ -178,18 +173,10 @@ async function selectDpItem(item) {
           this.closest('.fifo-row').classList.remove('selected');
         }
 
-        // 선택 개수 표시
         var countEl = document.getElementById('dp-selected-count');
         if (countEl) countEl.textContent = selectedFifoItems.length + '개 선택';
 
-        // 수량은 자동으로 채우지 않음 (직접 입력 또는 MAX 버튼)
-        // 항목 선택만 하고 수량 칸은 비워둔다 → 실수 방지
-        var isFabric = selectedFifoItems.length > 0 && selectedFifoItems[0].item_type === 'fabric';
-
-        // 선택한 항목이 있으면 3단계(수량 입력) 표시
-        if (selectedFifoItems.length > 0) {
-          document.getElementById('dp-step3').style.display = 'block';
-        }
+        updateDispatchInputUI();
       });
     });
 
@@ -197,92 +184,191 @@ async function selectDpItem(item) {
     if (list.length) {
       wrap.querySelectorAll('.fifo-row')[0].click();
     }
-
   } catch(e) {
     showToast('FIFO 조회 오류');
   }
 }
 
+// ═══════════════════════════════════════════
+// 선택된 항목의 단위에 맞춰 불출 입력 UI 자동 전환
+// ═══════════════════════════════════════════
+function updateDispatchInputUI() {
+  var normDiv = document.getElementById('dp-qty-normal');
+  var fabDiv  = document.getElementById('dp-qty-fabric');
+  var lbl     = document.getElementById('dp-qty-label');
+  var uwInfo  = document.getElementById('dp-uw-info');
+
+  if (!selectedFifoItems || selectedFifoItems.length === 0) return;
+
+  var first = selectedFifoItems[0];
+  if (first.item_type === 'fabric') {
+    var fu = first.fabric_unit || 'roll';
+    if (fu === 'roll') {
+      // 롤 + KG 연동형
+      normDiv.style.display = 'none';
+      fabDiv.style.display  = 'block';
+      var uw = first.unit_weight || ((first.rolls > 0 && first.weight > 0) ? (first.weight / first.rolls) : 0);
+      if (uwInfo) {
+        uwInfo.textContent = uw > 0
+          ? ('💡 1롤당 무게: ' + (Math.round(uw * 1000000) / 1000000) + ' kg (롤 수 입력 시 자동 계산)')
+          : '💡 롤 수와 차감 무게(kg)를 입력하세요';
+      }
+    } else {
+      // 환입(KG), SET, 길이(M), 개수
+      normDiv.style.display = 'block';
+      fabDiv.style.display  = 'none';
+      var map = {
+        kg : '불출 무게 (kg)',
+        set: '불출 수량 (SET)',
+        m  : '불출 길이 (m)',
+        ea : '불출 개수 (개)'
+      };
+      if (lbl) lbl.textContent = map[fu] || '불출 수량';
+    }
+  } else {
+    normDiv.style.display = 'block';
+    fabDiv.style.display  = 'none';
+    if (lbl) lbl.textContent = '불출 수량 (개)';
+  }
+}
+
+// 롤 수 입력 시 1롤당 무게로 차감 무게(kg) 자동 계산
+function onDpRollInput() {
+  if (!selectedFifoItems || selectedFifoItems.length === 0) return;
+  var rolls = parseFloat(document.getElementById('dp-rolls').value) || 0;
+  var first = selectedFifoItems[0];
+  var uw = first.unit_weight || ((first.rolls > 0 && first.weight > 0) ? (first.weight / first.rolls) : 0);
+  if (uw > 0) {
+    document.getElementById('dp-weight').value = Math.round(rolls * uw * 1000) / 1000;
+  }
+}
 
 // ═══════════════════════════════════════════
-// 불출: MAX 버튼 (선택된 항목 전량)
+// 불출: MAX 버튼
 // ═══════════════════════════════════════════
 function setMaxQty() {
   if (!selectedFifoItems || selectedFifoItems.length === 0) { showToast('먼저 항목을 선택하세요'); return; }
-  var totalQty = 0, totalRolls = 0, totalWeight = 0, totalMeters = 0;
-  selectedFifoItems.forEach(function(m) {
-    totalQty    += (m.qty     || 0);
-    totalRolls  += (m.rolls   || 0);
-    totalWeight += (m.weight  || 0);
-    totalMeters += (m.meters  || 0);
-  });
-  if (selectedFifoItems[0].item_type === 'fabric') {
-    document.getElementById('dp-rolls').value   = totalRolls;
-    document.getElementById('dp-weight').value  = totalWeight;
-    document.getElementById('dp-meters').value  = totalMeters;
+  var first = selectedFifoItems[0];
+
+  if (first.item_type === 'fabric') {
+    var fu = first.fabric_unit || 'roll';
+    if (fu === 'roll') {
+      var totalRolls = 0, totalWeight = 0;
+      selectedFifoItems.forEach(function(m) {
+        totalRolls  += (m.rolls  || 0);
+        totalWeight += (m.weight || 0);
+      });
+      document.getElementById('dp-rolls').value  = Math.round(totalRolls * 1000) / 1000;
+      document.getElementById('dp-weight').value = Math.round(totalWeight * 1000) / 1000;
+    } else if (fu === 'kg') {
+      var sumW = selectedFifoItems.reduce(function(acc, m){ return acc + (m.weight || m.qty || 0); }, 0);
+      document.getElementById('dp-qty').value = Math.round(sumW * 1000) / 1000;
+    } else if (fu === 'm') {
+      var sumM = selectedFifoItems.reduce(function(acc, m){ return acc + (m.meters || m.qty || 0); }, 0);
+      document.getElementById('dp-qty').value = Math.round(sumM * 1000) / 1000;
+    } else {
+      var sumQ = selectedFifoItems.reduce(function(acc, m){ return acc + (m.qty || 0); }, 0);
+      document.getElementById('dp-qty').value = sumQ;
+    }
   } else {
+    var totalQty = selectedFifoItems.reduce(function(acc, m){ return acc + (m.qty || 0); }, 0);
     document.getElementById('dp-qty').value = totalQty;
   }
 }
 
-
 // ═══════════════════════════════════════════
 // 불출 확정
 // ═══════════════════════════════════════════
-// ★ 이번 업데이트:
-//   여러 출처를 한꺼번에 선택해서 불출하지만,
-//   이력에는 "출처별로 각각 독립된 불출 건"으로 쪼개서 저장합니다.
-//   → 이력 화면에서 취소·전산완료를 건별로 따로 할 수 있게 됩니다.
-//
-//   입력한 총 수량을 FIFO 순서대로 앞 항목부터 채워서(min) 나눠 담고,
-//   각 출처마다 별도의 /api/outbound 요청을 보냅니다.
 async function submitDispatch() {
-  if (!selectedDpItem)   { showToast('품목을 먼저 선택하세요'); return; }
+  if (!selectedDpItem) { showToast('품목을 먼저 선택하세요'); return; }
   if (!selectedFifoItems || selectedFifoItems.length === 0) { showToast('불출할 항목을 선택하세요'); return; }
 
   var person = document.getElementById('dp-person').value.trim();
   if (!person) { showToast('담당자 이름을 입력하세요'); return; }
 
-  var qty = 0, rolls = 0, weight = 0, meters = 0;
-  if (dpType === 'fabric') {
-    rolls  = parseFloat(document.getElementById('dp-rolls').value)   || 0;
-    weight = parseFloat(document.getElementById('dp-weight').value)  || 0;
-    meters = parseFloat(document.getElementById('dp-meters').value)  || 0;
-    qty    = rolls;
-  } else {
-    qty = parseFloat(document.getElementById('dp-qty').value) || 0;
-  }
-  if (!qty) { showToast('수량을 입력하세요'); return; }
+  var first    = selectedFifoItems[0];
+  var isFabric = first.item_type === 'fabric';
+  var fu       = isFabric ? (first.fabric_unit || 'roll') : '';
 
-  var dateVal = todayStr();  // 불출 날짜는 항상 당일로 고정
-  var noteVal = document.getElementById('dp-note').value;
-
-  // ── 선택한 항목들에 총 수량을 FIFO 순서로 나눠 담아 "건별"로 만들기 ──
-  // 각 출처에서 실제로 빼는 수량 + Lot/위치/루트/PO를 담은 요청 목록
+  var dateVal  = todayStr();
+  var noteVal  = document.getElementById('dp-note').value;
   var payloads = [];
-  if (dpType === 'fabric') {
-    var remRolls = rolls, remWeight = weight, remMeters = meters;
+
+  if (isFabric && fu === 'roll') {
+    var rolls  = parseFloat(document.getElementById('dp-rolls').value)  || 0;
+    var weight = parseFloat(document.getElementById('dp-weight').value) || 0;
+    if (!rolls) { showToast('불출 롤 수를 입력하세요'); return; }
+
+    var remRolls = rolls;
     selectedFifoItems.forEach(function(m) {
-      var takeRolls  = Math.min(remRolls,  m.rolls  || 0);
-      var takeWeight = Math.min(remWeight, m.weight || 0);
-      var takeMeters = Math.min(remMeters, m.meters || 0);
-      remRolls  -= takeRolls;
-      remWeight -= takeWeight;
-      remMeters -= takeMeters;
-      // 실제로 빼는 게 없으면 건너뜀
-      if (takeRolls <= 0 && takeWeight <= 0 && takeMeters <= 0) return;
+      var availRolls = m.rolls || 0;
+      var takeRolls  = Math.min(remRolls, availRolls);
+      remRolls = Math.round((remRolls - takeRolls) * 1000) / 1000;
+      if (takeRolls <= 0) return;
+
+      var uw = m.unit_weight || ((availRolls > 0 && (m.weight || 0) > 0) ? (m.weight / availRolls) : 0);
+      var takeWeight = (takeRolls === availRolls && m.weight)
+        ? m.weight
+        : (uw > 0 ? Math.round(takeRolls * uw * 1000) / 1000 : weight);
+
       payloads.push({
-        item_type: 'fabric',
-        code: selectedDpItem.code, name: selectedDpItem.name,
-        person: person,
-        from_id: m.id,                 // 이 건이 차감할 대상 (단일)
-        from_loc: m.loc || '',
-        lot: m.lot || '', route: m.route || '', po: m.po || '',
-        rolls: takeRolls, weight: takeWeight, meters: takeMeters, qty: takeRolls,
-        date: dateVal, note: noteVal
+        item_type  : 'fabric',
+        fabric_unit: 'roll',
+        unit_weight: uw,
+        code       : selectedDpItem.code,
+        name       : selectedDpItem.name,
+        person     : person,
+        from_id    : m.id,
+        from_loc   : m.loc || '',
+        lot        : m.lot || '',
+        route      : m.route || '',
+        po         : m.po || '',
+        rolls      : takeRolls,
+        weight     : takeWeight,
+        meters     : 0,
+        qty        : takeRolls,
+        date       : dateVal,
+        note       : noteVal
+      });
+    });
+  } else if (isFabric) {
+    // kg / m / set / ea
+    var val = parseFloat(document.getElementById('dp-qty').value) || 0;
+    if (!val) { showToast('불출 수량/무게를 입력하세요'); return; }
+
+    var rem = val;
+    selectedFifoItems.forEach(function(m) {
+      var avail = fu === 'kg' ? (m.weight || m.qty || 0)
+                : fu === 'm'  ? (m.meters || m.qty || 0)
+                : (m.qty || 0);
+      var take = Math.min(rem, avail);
+      rem = Math.round((rem - take) * 1000) / 1000;
+      if (take <= 0) return;
+
+      payloads.push({
+        item_type  : 'fabric',
+        fabric_unit: fu,
+        code       : selectedDpItem.code,
+        name       : selectedDpItem.name,
+        person     : person,
+        from_id    : m.id,
+        from_loc   : m.loc || '',
+        lot        : m.lot || '',
+        route      : m.route || '',
+        po         : m.po || '',
+        rolls      : 0,
+        weight     : fu === 'kg' ? take : 0,
+        meters     : fu === 'm'  ? take : 0,
+        qty        : take,
+        date       : dateVal,
+        note       : noteVal
       });
     });
   } else {
+    // 일반 품목
+    var qty = parseFloat(document.getElementById('dp-qty').value) || 0;
+    if (!qty) { showToast('수량을 입력하세요'); return; }
+
     var remQty = qty;
     selectedFifoItems.forEach(function(m) {
       var take = Math.min(remQty, m.qty || 0);
@@ -290,28 +376,31 @@ async function submitDispatch() {
       if (take <= 0) return;
       payloads.push({
         item_type: 'normal',
-        code: selectedDpItem.code, name: selectedDpItem.name,
-        person: person,
-        from_id: m.id,
-        from_loc: m.loc || '',
-        lot: m.lot || '', route: m.route || '', po: m.po || '',
-        qty: take,
-        date: dateVal, note: noteVal
+        code     : selectedDpItem.code,
+        name     : selectedDpItem.name,
+        person   : person,
+        from_id  : m.id,
+        from_loc : m.loc || '',
+        lot      : m.lot || '',
+        route    : m.route || '',
+        po       : m.po || '',
+        qty      : take,
+        date     : dateVal,
+        note     : noteVal
       });
     });
   }
 
   if (!payloads.length) { showToast('불출할 수량이 없습니다'); return; }
 
-  // ── 출처별로 각각 별도 불출 건 저장 ──
   try {
     var okCount = 0;
     for (var i = 0; i < payloads.length; i++) {
       var res  = await fetch(API + '/outbound', {
-        method: 'POST',
+        method     : 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payloads[i])
+        headers    : { 'Content-Type': 'application/json' },
+        body       : JSON.stringify(payloads[i])
       });
       var json = await res.json();
       if (json.success) okCount++;
@@ -326,12 +415,8 @@ async function submitDispatch() {
   }
 }
 
-
-// ═══════════════════════════════════════════
-// 불출 초기화 (다시 선택)
-// ═══════════════════════════════════════════
 function resetDispatch() {
-  selectedDpItem   = null;
+  selectedDpItem    = null;
   selectedFifoItems = [];
   document.getElementById('dp-suffix').value = '';
   document.getElementById('dp-step2').style.display = 'none';
@@ -341,8 +426,6 @@ function resetDispatch() {
     var el = document.getElementById(id);
     if (el) el.value = '';
   });
-  // 담당자는 초기화하지 않고 현재 로그인 사용자로 유지
   var dpPerson = document.getElementById('dp-person');
   if (dpPerson && currentUser) dpPerson.value = currentUser.name;
-  setType('dp', 'normal');
 }

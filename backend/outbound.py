@@ -1,59 +1,36 @@
 # =====================================================
-# outbound.py - 불출 관련 API
-# =====================================================
-# 역할: 창고에서 물품을 꺼낼 때 처리하는 기능
-#
-# API 목록:
-#   GET    /api/fifo?code=품번  -> 선입선출 순서 조회
-#   POST   /api/outbound        -> 불출 처리 (재고 자동 차감)
-#   DELETE /api/outbound/<id>   -> 불출 취소 (재고 자동 복원)
-#   GET    /api/history         -> 불출 이력 조회
-#
-# 선입선출(FIFO) 규칙:
-#   1순위: 환입 항목 (생산 라인에서 돌아온 것)
-#   2순위: 입고 날짜 빠른 순
-#
-# ★ 이번 업데이트 핵심 (sources):
-#   여러 항목을 한 번에 불출할 때, "어느 항목에서 몇 개를 뺐는지"를
-#   sources 배열로 저장합니다. (Lot / 위치 / 루트 / PO / 수량)
-#   → 이력 화면에서 재고 화면처럼 위치·Lot·루트별로 나눠서 보여주기 위함.
-#   기존(sources 없이 오는) 요청도 그대로 동작하도록 하위호환 유지.
+# outbound.py - 불출 관련 API (원단 단위별 차감 및 1롤 무게 연동)
 # =====================================================
 
 from flask import Blueprint, request, jsonify, session
-from database import load_data, save_data, add_record
-from datetime import date
+from database import load_data, save_data
+from datetime import date, timedelta
 import time
 
 outbound_bp = Blueprint('outbound', __name__)
 
 
+def _item_has_remain(d):
+    if d.get('depleted'):
+        return False
+    if d.get('item_type') == 'fabric':
+        fu = d.get('fabric_unit') or 'roll'
+        if fu == 'kg':   return (d.get('weight') or 0) > 0
+        if fu == 'm':    return (d.get('meters') or 0) > 0
+        if fu in ('set', 'ea'): return (d.get('qty') or 0) > 0
+        return (d.get('rolls') or 0) > 0 or (d.get('weight') or 0) > 0
+    return (d.get('qty') or 0) > 0
+
+
 @outbound_bp.route('/api/fifo', methods=['GET'])
 def get_fifo():
-    """
-    선입선출(FIFO) 불출 순서 조회 API
-
-    쿼리 파라미터:
-        code : 품번 (끝 자리 검색 가능, 예: '0017')
-
-    반환:
-        해당 품번의 입고/환입 항목을 불출 우선순위 순으로 반환
-        - 환입 항목이 무조건 1순위
-        - 그 다음 입고 날짜 빠른 순
-        - 소진된 항목(수량 0)은 제외
-    """
     code = request.args.get('code', '').strip()
-    cat  = request.args.get('cat', '').strip()   # 카테고리 필터 (선택)
+    cat  = request.args.get('cat', '').strip()
     if not code and not cat:
         return jsonify({'success': False, 'message': '품번을 입력하세요'}), 400
 
-    today = date.today().isoformat()
     data = load_data()
 
-    # 해당 품번 입고/환입 항목 필터링
-    # - 품번은 "끝자리 일치"(endswith)만. 중간에 포함된 건 제외.
-    # - 소진되지 않은 것만
-    # - 카테고리를 지정하면 그 카테고리만
     def _code_match(d):
         if not code:
             return True
@@ -69,24 +46,22 @@ def get_fifo():
         if d.get('kind') in ('in', 'hwanjip')
         and _code_match(d)
         and _cat_match(d)
-        and not d.get('depleted')
-        and ((d.get('qty') or 0) > 0 or (d.get('rolls') or 0) > 0 or (d.get('meters') or 0) > 0)
+        and _item_has_remain(d)
     ]
 
-    # 정렬(불출 순서) 규칙:
-    #   1순위) 환입 항목 먼저 (생산라인에서 돌아온 것)
-    #   2순위) 루트번호(Lot) 오름차순  (없으면 날짜순)
-    #   3순위) 같은 루트번호끼리는 수량 적은 것 먼저 (자투리부터 소진)
-    #          - 원단이면 롤수 기준, 일반이면 개수 기준
     def _qty_of(x):
         if x.get('item_type') == 'fabric':
+            fu = x.get('fabric_unit') or 'roll'
+            if fu == 'kg': return x.get('weight') or 0
+            if fu == 'm':  return x.get('meters') or 0
+            if fu in ('set', 'ea'): return x.get('qty') or 0
             return x.get('rolls') or 0
         return x.get('qty') or 0
 
     matches.sort(key=lambda x: (
-        0 if x.get('kind') == 'hwanjip' else 1,  # 1순위: 환입=0, 입고=1
-        x.get('lot', '') or x.get('date', ''),    # 2순위: 루트번호 오름차순
-        _qty_of(x),                               # 3순위: 수량 적은 것 먼저
+        0 if x.get('kind') == 'hwanjip' else 1,
+        x.get('lot', '') or x.get('date', ''),
+        _qty_of(x),
     ))
 
     return jsonify({'success': True, 'data': matches})
@@ -94,38 +69,6 @@ def get_fifo():
 
 @outbound_bp.route('/api/outbound', methods=['POST'])
 def add_outbound():
-    """
-    불출 처리 API
-
-    ★ 이번 업데이트:
-      한 요청 = 한 출처(from_id 하나)에서의 불출 = 한 이력 건.
-      프론트에서 여러 출처를 선택하면, 출처 개수만큼 이 API를 각각 호출합니다.
-      → 이력에서 건별로 취소·전산완료를 따로 할 수 있게 됩니다.
-
-    받는 데이터 (JSON):
-        code      : 품번
-        name      : 품목명
-        item_type : 품목 유형 ('normal' 또는 'fabric')
-        person    : 담당자 이름 (필수!)
-        from_id   : 차감할 입고/환입 항목의 ID (이 건의 출처)
-        from_loc  : 불출 위치 (이력 표시용)
-        lot       : 루트번호 (이력 표시용)
-        route     : 루트 (원단, 이력 표시용)
-        po        : PO (일반, 이력 표시용)
-        qty       : 불출 수량 (일반)
-        rolls     : 불출 롤 수 (원단)
-        weight    : 불출 무게 (원단)
-        meters    : 불출 미터 (원단)
-        date      : 불출 날짜
-        note      : 비고
-
-        (하위호환) from_ids : 예전 다중 방식. from_id가 없을 때만 사용.
-
-    처리 내용:
-        1. from_id 항목에서 수량 차감 (수량 0 되면 depleted=True)
-        2. 불출 이력 1건 저장
-    """
-    # 운영자(admin) 아이디는 불출 불가 (입고/환입/관리만 가능)
     if session.get('role') == 'admin':
         return jsonify({'success': False, 'message': '운영자 계정은 불출할 수 없습니다'}), 403
 
@@ -138,34 +81,77 @@ def add_outbound():
         return jsonify({'success': False, 'message': '담당자 이름을 입력하세요'}), 400
 
     data = load_data()
+    today_iso = date.today().isoformat()
 
-    # 차감 대상 결정: from_id(단일) 우선, 없으면 예전 from_ids(다중)
     from_id  = body.get('from_id')
     from_ids = body.get('from_ids', [])
     if from_id and from_id not in from_ids:
         from_ids = [from_id]
 
-    # 선택한 입고/환입 항목에서 수량 차감
     for fid in from_ids:
         for item in data:
             if item.get('id') == fid:
-                if body.get('item_type') == 'fabric':
-                    item['rolls']  = max(0, (item.get('rolls')  or 0) - (body.get('rolls')  or 0))
-                    item['weight'] = max(0, (item.get('weight') or 0) - (body.get('weight') or 0))
-                    item['meters'] = max(0, (item.get('meters') or 0) - (body.get('meters') or 0))
-                    item['qty']    = item['rolls']
+                if item.get('item_type') == 'fabric' or body.get('item_type') == 'fabric':
+                    fu = item.get('fabric_unit') or body.get('fabric_unit') or 'roll'
+                    body['fabric_unit'] = fu
+                    body['unit_weight'] = item.get('unit_weight') or body.get('unit_weight') or 0
+
+                    if fu == 'kg':
+                        # 환입(KG) 원단: 무게(weight)로 차감
+                        out_w = float(body.get('weight') or body.get('qty') or 0)
+                        item['weight'] = round(max(0.0, float(item.get('weight') or 0) - out_w), 3)
+                        item['qty']    = item['weight']
+                        body['weight'] = out_w
+                        body['qty']    = out_w
+                        if item['weight'] <= 0:
+                            item['depleted'] = True
+                            item['depleted_at'] = today_iso
+                    elif fu == 'm':
+                        # 길이(m) 원단
+                        out_m = float(body.get('meters') or body.get('qty') or 0)
+                        item['meters'] = round(max(0.0, float(item.get('meters') or 0) - out_m), 3)
+                        item['qty']    = item['meters']
+                        body['meters'] = out_m
+                        body['qty']    = out_m
+                        if item['meters'] <= 0:
+                            item['depleted'] = True
+                            item['depleted_at'] = today_iso
+                    elif fu in ('set', 'ea'):
+                        # SET 또는 개수 원단
+                        out_q = float(body.get('qty') or 0)
+                        item['qty'] = max(0, (item.get('qty') or 0) - out_q)
+                        if item['qty'] <= 0:
+                            item['depleted'] = True
+                            item['depleted_at'] = today_iso
+                    else:
+                        # 롤+KG 연동형 원단: 롤수 차감 시 1롤당 무게(unit_weight)로 kg 자동 차감
+                        out_r = float(body.get('rolls') or body.get('qty') or 0)
+                        uw    = float(item.get('unit_weight') or body.get('unit_weight') or 0)
+                        if uw <= 0 and (item.get('rolls') or 0) > 0 and (item.get('weight') or 0) > 0:
+                            uw = float(item['weight']) / float(item['rolls'])
+                        out_w = float(body.get('weight') or 0)
+                        if uw > 0 and out_r > 0:
+                            out_w = round(out_r * uw, 3)
+
+                        item['rolls']  = round(max(0.0, float(item.get('rolls') or 0) - out_r), 3)
+                        item['weight'] = round(max(0.0, float(item.get('weight') or 0) - out_w), 3)
+                        item['meters'] = round(max(0.0, float(item.get('meters') or 0) - float(body.get('meters') or 0)), 3)
+                        item['qty']    = item['rolls']
+                        body['rolls']  = out_r
+                        body['weight'] = out_w
+                        body['qty']    = out_r
+                        if item['rolls'] <= 0:
+                            item['depleted'] = True
+                            item['depleted_at'] = today_iso
                 else:
-                    item['qty'] = max(0, (item.get('qty') or 0) - (body.get('qty') or 0))
-                if item.get('qty', 0) <= 0:
-                    item['depleted'] = True
+                    out_q = float(body.get('qty') or 0)
+                    item['qty'] = max(0, (item.get('qty') or 0) - out_q)
+                    if item.get('qty', 0) <= 0:
+                        item['depleted'] = True
+                        item['depleted_at'] = today_iso
                 break
 
-    # 불출 이력 저장 (한 건)
-    # 여러 건이 연속 저장돼도 ID가 겹치지 않도록,
-    # 밀리초 타임스탬프에 기존 데이터에 없는 값이 나올 때까지 +1
-    # (나노초는 숫자가 너무 커서 프론트 JS 정밀도가 깨지므로 사용하지 않음)
     body['kind'] = 'out'
-    # 불출 시각 저장 (HH:MM) — 이력 화면에 날짜와 함께 표시됨
     body['time'] = time.strftime('%H:%M')
     new_id = int(time.time() * 1000)
     existing_ids = {d.get('id') for d in data}
@@ -180,91 +166,75 @@ def add_outbound():
 
 @outbound_bp.route('/api/outbound/<int:record_id>', methods=['DELETE'])
 def cancel_outbound(record_id):
-    """
-    불출 취소 API
-
-    처리 내용:
-        1. 불출 이력 삭제
-        2. 원본 입고/환입 항목 수량 복원
-        3. 소진 해제 (depleted=False)
-
-    사용 시점:
-        생산라인에서 잘못 주문했을 때 취소
-
-    ★ sources가 있으면 출처별로 정확히 복원, 없으면 예전 방식으로 복원.
-    """
-    # 운영자(admin) 아이디는 불출 취소도 불가
     if session.get('role') == 'admin':
         return jsonify({'success': False, 'message': '운영자 계정은 불출 취소를 할 수 없습니다'}), 403
 
     data = load_data()
-
-    # 취소할 불출 이력 찾기
     out = next((d for d in data if d.get('id') == record_id and d.get('kind') == 'out'), None)
     if not out:
         return jsonify({'success': False, 'message': '불출 이력을 찾을 수 없습니다'}), 404
 
-    # 이 불출 건의 출처(from_id) 복원
-    # ★ 원본 재고가 남아있으면 → 수량을 되돌린다
-    #    원본이 이미 삭제됐으면(오래돼서 cleanup됨) → 이력 정보로 새 재고를 만들어 되살린다
-    import time as _time
-
     def restore_one(fid, info):
-        """
-        fid: 되돌릴 원본 재고 ID
-        info: 되돌릴 수량 정보가 담긴 dict (sources 항목 또는 out 본체)
-        원본이 있으면 수량 더하고, 없으면 새 재고 레코드를 만들어 append.
-        """
-        # 1) 원본이 아직 있으면 수량 복원
         for item in data:
             if item.get('id') == fid:
-                if info.get('item_type') == 'fabric':
-                    item['rolls']  = (item.get('rolls')  or 0) + (info.get('rolls')  or 0)
-                    item['weight'] = (item.get('weight') or 0) + (info.get('weight') or 0)
-                    item['meters'] = (item.get('meters') or 0) + (info.get('meters') or 0)
-                    item['qty']    = item['rolls']
+                if info.get('item_type') == 'fabric' or item.get('item_type') == 'fabric':
+                    fu = info.get('fabric_unit') or item.get('fabric_unit') or 'roll'
+                    if fu == 'kg':
+                        item['weight'] = round((item.get('weight') or 0) + (info.get('weight') or info.get('qty') or 0), 3)
+                        item['qty']    = item['weight']
+                    elif fu == 'm':
+                        item['meters'] = round((item.get('meters') or 0) + (info.get('meters') or info.get('qty') or 0), 3)
+                        item['qty']    = item['meters']
+                    elif fu in ('set', 'ea'):
+                        item['qty'] = (item.get('qty') or 0) + (info.get('qty') or 0)
+                    else:
+                        item['rolls']  = round((item.get('rolls')  or 0) + (info.get('rolls')  or 0), 3)
+                        item['weight'] = round((item.get('weight') or 0) + (info.get('weight') or 0), 3)
+                        item['meters'] = round((item.get('meters') or 0) + (info.get('meters') or 0), 3)
+                        item['qty']    = item['rolls']
                 else:
                     item['qty'] = (item.get('qty') or 0) + (info.get('qty') or 0)
                 item['depleted'] = False
+                item.pop('depleted_at', None)
                 return
 
-        # 2) 원본이 없으면 → 이력 정보로 새 재고 생성 (되살리기)
+        # 원본이 삭제됐으면 재생성
+        loc_txt = info.get('from_loc', out.get('from_loc', '')) or info.get('loc', '')
+        wh_val  = info.get('wh', out.get('wh', ''))
+        if not wh_val:
+            if 'D동' in loc_txt: wh_val = 'D'
+            elif '천막동' in loc_txt: wh_val = 'T'
+
         new_item = {
-            'id'        : int(_time.time() * 1000) + len(data),  # 겹치지 않게
-            'kind'      : 'in',   # 재고로 복원
-            'item_type' : info.get('item_type', 'normal'),
-            'code'      : out.get('code', ''),
-            'name'      : out.get('name', ''),
-            'cat'       : out.get('cat', ''),
-            'lot'       : info.get('lot', out.get('lot', '')),
-            'route'     : info.get('route', out.get('route', '')),
-            'po'        : info.get('po', out.get('po', '')),
-            'wh'        : info.get('wh', out.get('wh', '')),
-            'loc'       : info.get('from_loc', out.get('from_loc', '')) or info.get('loc', ''),
-            'date'      : out.get('date', ''),
-            'person'    : out.get('person', ''),
-            'created_by': out.get('created_by', ''),
-            'depleted'  : False,
+            'id'         : int(time.time() * 1000) + len(data) + 1,
+            'kind'       : 'hwanjip' if info.get('fabric_unit') == 'kg' else 'in',
+            'item_type'  : info.get('item_type', 'normal'),
+            'fabric_unit': info.get('fabric_unit', 'roll' if info.get('item_type') == 'fabric' else ''),
+            'unit_weight': info.get('unit_weight', 0),
+            'code'       : out.get('code', ''),
+            'name'       : out.get('name', ''),
+            'cat'        : out.get('cat', ''),
+            'lot'        : info.get('lot', out.get('lot', '')),
+            'route'      : info.get('route', out.get('route', '')),
+            'po'         : info.get('po', out.get('po', '')),
+            'wh'         : wh_val,
+            'loc'        : loc_txt,
+            'date'       : out.get('date', ''),
+            'person'     : out.get('person', ''),
+            'created_by' : out.get('created_by', ''),
+            'depleted'   : False,
         }
-        # 위치 문자열에서 창고(wh) 유추 (이력에 wh가 없을 수 있음)
-        loc_txt = new_item['loc'] or ''
-        if not new_item['wh']:
-            if 'D동' in loc_txt:
-                new_item['wh'] = 'D'
-            elif '천막동' in loc_txt:
-                new_item['wh'] = 'T'
         if info.get('item_type') == 'fabric':
             new_item['rolls']  = info.get('rolls')  or 0
             new_item['weight'] = info.get('weight') or 0
             new_item['meters'] = info.get('meters') or 0
-            new_item['qty']    = new_item['rolls']
+            new_item['qty']    = info.get('qty')    or new_item['rolls'] or new_item['weight']
         else:
             new_item['qty'] = info.get('qty') or 0
         data.append(new_item)
 
     sources = out.get('sources', [])
     if sources:
-        # 예전: sources로 묶여 저장된 기록 복원
         for s in sources:
             restore_one(s.get('id'), s)
     else:
@@ -278,34 +248,16 @@ def cancel_outbound(record_id):
         else:
             restore_one(None, out)
 
-    # 불출 이력 삭제
     new_data = [d for d in data if d.get('id') != record_id]
     save_data(new_data)
-
     return jsonify({'success': True, 'message': '불출 취소 완료. 재고가 복원됐습니다'})
 
 
 @outbound_bp.route('/api/history', methods=['GET'])
 def get_history():
-    """
-    불출 이력 조회 API
-
-    쿼리 파라미터:
-        date : 특정 날짜 (YYYY-MM-DD)
-        kind : 종류 (in/out/hwanjip, 기본 out)
-        transfer_done : 'true' 이면 전산완료 건만
-
-    반환:
-        불출 기록 (최신순)
-        - 60일 이전 불출 이력 자동 삭제
-        - 통계: 전체 건수, 필터 적용 건수
-    """
-    from datetime import timedelta
-
-    today    = date.today()
+    today     = date.today()
     today_str = today.isoformat()
 
-    # 2개월(60일) 이전 이력 자동 삭제
     cutoff = (today - timedelta(days=60)).isoformat()
     data   = load_data()
     before = len(data)
@@ -313,32 +265,24 @@ def get_history():
     if len(data) < before:
         save_data(data)
 
-    # 불출 항목만 필터링
-    outs = [d for d in data if d.get('kind') == 'out']
-    total = len(outs)
-
-    # 날짜 필터 적용
+    all_outs    = [d for d in data if d.get('kind') == 'out']
     date_filter = request.args.get('date', '')
-    kind_filter = request.args.get('kind', 'out')  # 기본값은 'out'
+    kind_filter = request.args.get('kind', 'out')
 
-    # 종류 필터 (입고/불출/환입)
-    outs = [d for d in data if d.get('kind') == kind_filter]
-
+    items = [d for d in data if d.get('kind') == kind_filter]
     if date_filter:
-        outs = [o for o in outs if o.get('date', '') == date_filter]
+        items = [o for o in items if o.get('date', '') == date_filter]
 
-    # 전산완료 필터
     transfer_filter = request.args.get('transfer_done', '')
     if transfer_filter == 'true':
-        outs = [o for o in outs if o.get('transfer_done')]
+        items = [o for o in items if o.get('transfer_done')]
 
-    # 최신순 정렬
-    outs = sorted(outs, key=lambda x: x.get('date', ''), reverse=True)
+    items = sorted(items, key=lambda x: (x.get('date', ''), x.get('id', 0)), reverse=True)
 
     return jsonify({
         'success' : True,
-        'data'    : outs,
-        'total'   : total,           # 전체 불출 건수 (필터 없이)
-        'filtered': len(outs),       # 필터 적용 후 건수
-        'today'   : len([o for o in outs if o.get('date') == today_str])
+        'data'    : items,
+        'total'   : len(all_outs),
+        'filtered': len(items),
+        'today'   : len([o for o in all_outs if o.get('date') == today_str]),
     })

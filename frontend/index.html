@@ -14,23 +14,21 @@
 <!-- ══════════════════════════════════════
   로그인 / 회원가입 화면
 ══════════════════════════════════════ -->
-<div id="auth-screen" style="display:none;min-height:100vh;background:#f0f2f5;display:flex;justify-content:center;align-items:center;padding:20px">
-  <div style="background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
+<div id="auth-screen" style="display:none;min-height:100vh;width:100%;background:#f0f2f5;justify-content:center;align-items:center;padding:20px">
+  <div style="background:var(--card);border-radius:16px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
 
-    <!-- 로고 -->
     <div style="text-align:center;margin-bottom:24px">
       <img id="login-logo-img" src="/a-logo.png" style="height:64px;object-fit:contain">
       <p style="font-size:12px;color:var(--txt2);margin-top:6px">재고 관리 시스템</p>
     </div>
 
-    <!-- 탭: 로그인 / 회원가입 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;background:#f3f4f6;border-radius:10px;padding:3px;margin-bottom:20px">
       <button id="tab-login" onclick="showAuthTab('login')"
-        style="padding:9px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#fff;color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,0.1)">
+        style="padding:9px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:#fff;color:#1a1a1a;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
         로그인
       </button>
       <button id="tab-register" onclick="showAuthTab('register')"
-        style="padding:9px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:transparent;color:var(--txt2)">
+        style="padding:9px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:transparent;color:#6b7280">
         회원가입
       </button>
     </div>
@@ -38,48 +36,38 @@
     <!-- 로그인 폼 -->
     <div id="login-form">
       <div style="margin-bottom:14px">
-        <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">아이디</label>
-        <input type="text" id="login-username" placeholder="아이디 입력"
-          style="width:100%;padding:11px 12px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+        <label>아이디</label>
+        <input type="text" id="login-username" placeholder="아이디 입력">
       </div>
       <div style="margin-bottom:20px">
-        <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">비밀번호</label>
-        <input type="password" id="login-password" placeholder="비밀번호 입력"
-          style="width:100%;padding:11px 12px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+        <label>비밀번호</label>
+        <input type="password" id="login-password" placeholder="비밀번호 입력">
       </div>
-      <!-- 아이디/비밀번호 저장 체크박스 -->
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
         <input type="checkbox" id="save-login" style="width:16px;height:16px;cursor:pointer">
-        <label for="save-login" style="font-size:13px;color:var(--txt2);cursor:pointer">아이디/비밀번호 저장</label>
+        <label for="save-login" style="margin:0;cursor:pointer">아이디/비밀번호 저장</label>
       </div>
-      <button id="btn-login"
-        style="width:100%;padding:13px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">
-        로그인
-      </button>
+      <button id="btn-login" class="btn btn-dark">로그인</button>
       <div id="login-error" style="display:none;margin-top:10px;padding:10px;background:#fef2f2;border-radius:8px;font-size:13px;color:#dc2626;text-align:center"></div>
     </div>
 
     <!-- 회원가입 폼 -->
     <div id="register-form" style="display:none">
       <div style="margin-bottom:12px">
-        <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">이름</label>
-        <input type="text" id="reg-name" placeholder="실명 입력"
-          style="width:100%;padding:11px 12px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+        <label>이름</label>
+        <input type="text" id="reg-name" placeholder="실명 입력">
       </div>
       <div style="margin-bottom:12px">
-        <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">아이디</label>
-        <input type="text" id="reg-username" placeholder="영문/숫자 조합"
-          style="width:100%;padding:11px 12px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+        <label>아이디</label>
+        <input type="text" id="reg-username" placeholder="영문/숫자 조합">
       </div>
       <div style="margin-bottom:12px">
-        <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">비밀번호</label>
-        <input type="password" id="reg-password" placeholder="4자 이상"
-          style="width:100%;padding:11px 12px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+        <label>비밀번호</label>
+        <input type="password" id="reg-password" placeholder="4자 이상">
       </div>
-      <!-- ✅ 팀 선택 추가 -->
       <div style="margin-bottom:20px">
-        <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">소속 팀</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <label>소속 팀</label>
+        <div class="row2">
           <div id="reg-team-material" onclick="selectRegTeam('material')"
             style="padding:11px;font-size:14px;font-weight:600;border:2px solid #1a1a1a;border-radius:8px;cursor:pointer;text-align:center;background:#1a1a1a;color:#fff">
             자재팀
@@ -91,10 +79,7 @@
         </div>
         <input type="hidden" id="reg-team" value="material">
       </div>
-      <button id="btn-register"
-        style="width:100%;padding:13px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">
-        가입 신청
-      </button>
+      <button id="btn-register" class="btn btn-dark">가입 신청</button>
       <p style="font-size:12px;color:var(--txt2);text-align:center;margin-top:10px">운영자 승인 후 로그인 가능합니다</p>
       <div id="reg-msg" style="display:none;margin-top:10px;padding:10px;border-radius:8px;font-size:13px;text-align:center"></div>
     </div>
@@ -102,32 +87,32 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+  메인 앱 영역
+══════════════════════════════════════ -->
 <div class="app" id="main-app" style="display:none">
 
   <div id="header-name" style="display:none"></div>
-  <div style="display:flex;justify-content:center;margin-bottom:16px">
-    <div style="cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.1)" id="logo-btn">
-      <img id="logo-img" src="/a-logo.png" alt="C&Tech" style="height:52px;display:block;object-fit:contain">
+  <div style="display:flex;justify-content:center;margin-bottom:14px">
+    <div style="cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.1)" id="logo-btn" title="홈으로 이동">
+      <img id="logo-img" src="/a-logo.png" alt="C&Tech" style="height:50px;display:block;object-fit:contain">
     </div>
   </div>
 
-  <!-- 탭 네비게이션 (팀에 따라 다르게 표시) -->
+  <!-- 상단 탭 네비게이션 (PC에서 자동 노출) -->
   <div class="nav">
-    <button id="nav-home" class="active">홈</button>
-    <!-- 자재팀 탭 -->
+    <button id="nav-home" class="active">🏠 홈</button>
     <button id="nav-inbound" class="material-tab">입고</button>
     <button id="nav-dispatch" class="material-tab">불출</button>
     <button id="nav-hwanjip" class="material-tab">환입</button>
     <button id="nav-stock" class="material-tab">재고</button>
-    <button id="nav-history" class="material-tab">이력</button>
+    <button id="nav-history" class="material-tab">이력/날짜조회</button>
     <button id="nav-req-manage" class="material-tab" style="display:none">불출요청</button>
-    <!-- 생산팀 탭 -->
     <button id="nav-req-apply" class="production-tab" style="display:none">불출신청</button>
     <button id="nav-req-status" class="production-tab" style="display:none">신청현황</button>
     <button id="nav-prod-stock" class="production-tab" style="display:none">재고현황</button>
-    <!-- 운영자 탭 -->
-    <button id="nav-admin" style="display:none;color:#ff3b30">직원</button>
     <button id="nav-catalog" class="material-tab" style="display:none;color:#5b21b6">품목관리</button>
+    <button id="nav-admin" style="display:none;color:#ff3b30">직원관리</button>
   </div>
 
   <!-- ══════════════════════════════════════
@@ -139,8 +124,7 @@
         <div>
           <div class="home-greeting" id="home-greeting">안녕하세요 👋</div>
           <div class="home-date" id="home-date"></div>
-          <!-- 팀 배지 -->
-          <div id="home-team-badge" style="margin-top:4px;font-size:11px;padding:2px 8px;border-radius:6px;display:inline-block"></div>
+          <div id="home-team-badge" style="margin-top:4px;font-size:11px;padding:2px 8px;border-radius:6px;display:inline-block;font-weight:600"></div>
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0;margin-left:12px">
           <button id="btn-change-pw" style="font-size:12px;color:var(--txt2);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer">비밀번호 변경</button>
@@ -148,50 +132,56 @@
         </div>
       </div>
     </div>
+
+    <!-- 4대 핵심 요약 카드 (클릭 시 날짜별 상세 조회 화면으로 이동) -->
     <div class="home-stats">
-      <div class="home-stat">
-        <div class="home-stat-label">오늘 입고</div>
+      <div class="home-stat" onclick="openDashboardDetail('in')">
+        <div class="home-stat-label"><span>오늘 입고</span><span>›</span></div>
         <div><span class="home-stat-value" id="home-today-in">0</span><span class="home-stat-unit">건</span></div>
+        <div class="home-stat-sub">날짜별 입고 내역 보기</div>
       </div>
-      <div class="home-stat">
-        <div class="home-stat-label">오늘 불출</div>
+      <div class="home-stat" onclick="openDashboardDetail('out')">
+        <div class="home-stat-label"><span>오늘 불출</span><span>›</span></div>
         <div><span class="home-stat-value" id="home-today-out">0</span><span class="home-stat-unit">건</span></div>
+        <div class="home-stat-sub">날짜별 불출 내역 보기</div>
       </div>
-      <div class="home-stat">
-        <div class="home-stat-label">전체 재고</div>
+      <div class="home-stat" onclick="openDashboardDetail('hwanjip')">
+        <div class="home-stat-label"><span>오늘 환입</span><span>›</span></div>
+        <div><span class="home-stat-value" id="home-today-hj">0</span><span class="home-stat-unit">건</span></div>
+        <div class="home-stat-sub">전체 환입 재고: <b id="home-total-hj">0</b>건</div>
+      </div>
+      <div class="home-stat" onclick="openDashboardDetail('stock')">
+        <div class="home-stat-label"><span>전체 재고</span><span>›</span></div>
         <div><span class="home-stat-value" id="home-total-stock">0</span><span class="home-stat-unit">건</span></div>
-      </div>
-      <div class="home-stat">
-        <div class="home-stat-label">전체 입고</div>
-        <div><span class="home-stat-value" id="home-total-in">0</span><span class="home-stat-unit">건</span></div>
+        <div class="home-stat-sub">날짜별·품목별 재고 보기</div>
       </div>
     </div>
 
-    <!-- 자재팀 홈 버튼 -->
+    <!-- 자재팀 홈 버튼 (재고 버튼 제거 -> 상단 카드로 통합하여 깔끔하게 구성) -->
     <div id="home-grid-material" class="home-grid">
       <div class="home-icon-btn" onclick="switchTab('inbound', document.getElementById('nav-inbound'))">
         <div class="home-icon-wrap" style="background:linear-gradient(135deg,#1c1c1e,#3a3a3c)"><i class="ti ti-package-import" style="color:#fff"></i></div>
-        <span class="home-icon-label">입고</span>
+        <span class="home-icon-label">입고 등록</span>
       </div>
       <div class="home-icon-btn" id="home-dispatch-btn" onclick="switchTab('dispatch', document.getElementById('nav-dispatch'))">
         <div class="home-icon-wrap" style="background:linear-gradient(135deg,#0a84ff,#0066cc)"><i class="ti ti-package-export" style="color:#fff"></i></div>
-        <span class="home-icon-label">불출</span>
+        <span class="home-icon-label">불출 처리</span>
       </div>
       <div class="home-icon-btn" onclick="switchTab('hwanjip', document.getElementById('nav-hwanjip'))">
         <div class="home-icon-wrap" style="background:linear-gradient(135deg,#30d158,#25a244)"><i class="ti ti-arrow-back-up" style="color:#fff"></i></div>
-        <span class="home-icon-label">환입</span>
-      </div>
-      <div class="home-icon-btn" onclick="switchTab('stock', document.getElementById('nav-stock'))">
-        <div class="home-icon-wrap" style="background:linear-gradient(135deg,#ff9f0a,#cc7a00)"><i class="ti ti-box" style="color:#fff"></i></div>
-        <span class="home-icon-label">재고</span>
+        <span class="home-icon-label">환입 등록</span>
       </div>
       <div class="home-icon-btn" onclick="switchTab('history', document.getElementById('nav-history'))">
         <div class="home-icon-wrap" style="background:linear-gradient(135deg,#bf5af2,#9b3dd6)"><i class="ti ti-history" style="color:#fff"></i></div>
-        <span class="home-icon-label">이력</span>
+        <span class="home-icon-label">이력/전산</span>
       </div>
       <div class="home-icon-btn" onclick="switchTab('req-manage', document.getElementById('nav-req-manage'))">
         <div class="home-icon-wrap" style="background:linear-gradient(135deg,#ff6b35,#cc4400)"><i class="ti ti-clipboard-list" style="color:#fff"></i></div>
         <span class="home-icon-label">불출요청</span>
+      </div>
+      <div class="home-icon-btn" id="home-catalog-btn" style="display:none" onclick="switchTab('catalog', document.getElementById('nav-catalog'))">
+        <div class="home-icon-wrap" style="background:linear-gradient(135deg,#5b21b6,#3b1580)"><i class="ti ti-database-edit" style="color:#fff"></i></div>
+        <span class="home-icon-label">품목관리</span>
       </div>
     </div>
 
@@ -211,17 +201,11 @@
       </div>
     </div>
 
-    <!-- 운영자 버튼 -->
+    <!-- 운영자 전용 직원관리 버튼 -->
     <div id="home-admin-btn" style="display:none;margin-top:8px">
       <div class="home-icon-btn" onclick="switchTab('admin', document.getElementById('nav-admin'))">
         <div class="home-icon-wrap" style="background:linear-gradient(135deg,#ff3b30,#cc2020)"><i class="ti ti-users" style="color:#fff"></i></div>
-        <span class="home-icon-label">직원관리</span>
-      </div>
-    </div>
-    <div id="home-catalog-btn" style="display:none;margin-top:8px">
-      <div class="home-icon-btn" onclick="switchTab('catalog', document.getElementById('nav-catalog'))">
-        <div class="home-icon-wrap" style="background:linear-gradient(135deg,#5b21b6,#3b1580)"><i class="ti ti-clipboard-list" style="color:#fff"></i></div>
-        <span class="home-icon-label">품목관리</span>
+        <span class="home-icon-label">직원관리 (운영자 전용)</span>
       </div>
     </div>
   </div>
@@ -230,126 +214,213 @@
     [1] 입고 탭 (자재팀)
   ══════════════════════════════════════ -->
   <div id="sec-inbound" class="section">
-  <div class="card">
-    <label>품목 유형</label>
-    <div class="toggle">
-      <div id="in-type-normal" class="tbtn on">일반</div>
-      <div id="in-type-fabric" class="tbtn">원단</div>
-    </div>
-    <input type="file" id="ocr-file-in" accept="image/*" style="display:none">
-    <button id="btn-ocr-camera-in" class="btn btn-light" style="margin-bottom:4px">📷 식별표 촬영으로 자동 입력</button>
-    <div class="row2">
-      <div>
-        <label>창고</label>
-        <select id="in-wh">
-          <option value="">선택하세요</option>
-          <option value="D">D동</option>
-          <option value="T">천막동</option>
-        </select>
+    <div class="card">
+      <label>품목 유형</label>
+      <div class="toggle">
+        <div id="in-type-normal" class="tbtn on">일반</div>
+        <div id="in-type-fabric" class="tbtn">원단</div>
       </div>
-      <div>
-        <label>보관 방식</label>
-        <select id="in-st">
-          <option value="rack">렉 보관</option>
-          <option value="floor">바닥 보관</option>
-        </select>
-      </div>
-    </div>
-    <div id="in-rack-fields">
-      <div class="row3">
-        <div>
-          <label>구역</label>
-          <select id="in-zone">
-            <option value="">-</option>
-            <option>A</option><option>B</option><option>C</option>
-            <option>D</option><option>E</option><option>F</option>
-          </select>
-        </div>
-        <div>
-          <label id="in-rack-label">렉 번호</label>
-          <input type="number" id="in-rn" min="1" max="14" placeholder="번호">
-        </div>
-        <div>
-          <label>층 (1~3)</label>
-          <input type="number" id="in-fl" min="1" max="3" placeholder="1~3">
-        </div>
-      </div>
-    </div>
-    <div id="in-floor-fields" style="display:none">
-      <label>바닥 위치</label>
-      <input type="text" id="in-floc" placeholder="예: A구역 3번">
-    </div>
-    <!-- 천막동 전용: 구역+열 -->
-    <div id="in-t-fields" style="display:none">
+
+      <input type="file" id="ocr-file-in" accept="image/*" style="display:none">
+      <button id="btn-ocr-camera-in" class="btn btn-light" style="margin-bottom:4px">📷 식별표 촬영으로 자동 입력</button>
+
+      <!-- 창고 및 보관 방식 -->
       <div class="row2">
         <div>
-          <label>구역</label>
-          <select id="in-t-zone" onchange="document.getElementById('in-zone').value=this.value;updateLocPreview('in')">
-            <option value="">-</option>
-            <option>A</option><option>B</option><option>C</option><option>D</option>
+          <label>창고</label>
+          <select id="in-wh">
+            <option value="">선택하세요</option>
+            <option value="D">D동</option>
+            <option value="T">천막동</option>
           </select>
         </div>
         <div>
-          <label>열 번호</label>
-          <input type="number" id="in-col" min="1" max="10" placeholder="1~10">
+          <label>보관 방식</label>
+          <select id="in-st">
+            <option value="rack">렉 보관</option>
+            <option value="floor">바닥 보관</option>
+          </select>
         </div>
       </div>
-    </div>
-    <div id="in-loc-preview" class="loc-tip" style="display:none"></div>
-    <label>품목명</label>
-    <div style="display:flex;gap:8px">
-      <input type="text" id="in-name" placeholder="품목명" style="flex:1">
-    </div>
-    <!-- 이전 입고 검색 결과 -->
-    <div id="in-search-list" style="display:none;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);margin-top:4px;max-height:200px;overflow-y:auto"></div>
-    <div class="row2">
-      <div>
-        <label>카테고리</label>
-        <!-- 유형(일반/원단)에 따라 다른 버튼 세트가 보임. 선택값은 hidden input(in-cat)에 저장 -->
-        <input type="hidden" id="in-cat">
-        <div id="in-cat-normal" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-          <div class="cat-choice" data-p="in" data-cat="카톤" onclick="pickCat('in','카톤')">카톤</div>
-          <div class="cat-choice" data-p="in" data-cat="인박스" onclick="pickCat('in','인박스')">인박스</div>
-          <div class="cat-choice" data-p="in" data-cat="단상자" onclick="pickCat('in','단상자')">단상자</div>
-        </div>
-        <div id="in-cat-fabric" style="display:none;grid-template-columns:1fr 1fr;gap:6px">
-          <div class="cat-choice" data-p="in" data-cat="원단" onclick="pickCat('in','원단')">원단</div>
-          <div class="cat-choice" data-p="in" data-cat="손발원단" onclick="pickCat('in','손발원단')">손발원단</div>
+
+      <!-- D동 렉 보관: A~F동, 1~16호, 1~3층 -->
+      <div id="in-rack-fields">
+        <div class="row3">
+          <div>
+            <label>구역 (A~F동)</label>
+            <select id="in-zone">
+              <option value="">-</option>
+              <option value="A">A동</option><option value="B">B동</option><option value="C">C동</option>
+              <option value="D">D동</option><option value="E">E동</option><option value="F">F동</option>
+            </select>
+          </div>
+          <div>
+            <label id="in-rack-label">호수 (1~16호)</label>
+            <select id="in-rn">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+              <option>9</option><option>10</option><option>11</option><option>12</option>
+              <option>13</option><option>14</option><option>15</option><option>16</option>
+            </select>
+          </div>
+          <div>
+            <label>층 (1~3층)</label>
+            <select id="in-fl">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option>
+            </select>
+          </div>
         </div>
       </div>
-      <div>
-        <label>품번</label>
-        <div style="position:relative">
-          <input type="text" id="in-code" placeholder="예: G21E000270" style="width:100%;padding-right:38px">
-          <button onclick="searchPrevInbound()" title="품번으로 이전 입고 검색" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);padding:2px 6px;font-size:16px;background:transparent;border:none;cursor:pointer;line-height:1">🔍</button>
+
+      <!-- D동 바닥 보관: 1~3구역, 1~13열 -->
+      <div id="in-floor-fields" style="display:none">
+        <div class="row2">
+          <div>
+            <label>바닥 구역 (1~3구역)</label>
+            <select id="in-d-fzone" onchange="updateLocPreview('in')">
+              <option value="">-</option>
+              <option value="1">1구역</option><option value="2">2구역</option><option value="3">3구역</option>
+            </select>
+          </div>
+          <div>
+            <label>열 번호 (1~13열)</label>
+            <select id="in-d-fcol" onchange="updateLocPreview('in')">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+              <option>11</option><option>12</option><option>13</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
-    <div id="in-qty-normal">
+
+      <!-- 천막동 바닥 보관: A~D구역, 1~10열 -->
+      <div id="in-t-fields" style="display:none">
+        <div class="row2">
+          <div>
+            <label>천막 구역 (A~D구역)</label>
+            <select id="in-t-zone" onchange="updateLocPreview('in')">
+              <option value="">-</option>
+              <option value="A">A구역</option><option value="B">B구역</option><option value="C">C구역</option><option value="D">D구역</option>
+            </select>
+          </div>
+          <div>
+            <label>열 번호 (1~10열)</label>
+            <select id="in-col" onchange="updateLocPreview('in')">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="in-loc-preview" class="loc-tip" style="display:none"></div>
+
+      <!-- 품번 및 품목명 -->
+      <div class="row2">
+        <div>
+          <label>품번 (입력 시 루트/규격 자동 조회)</label>
+          <div style="position:relative">
+            <input type="text" id="in-code" placeholder="예: A11W000020" style="padding-right:38px" oninput="onInboundCodeInput('in')">
+            <button type="button" onclick="searchPrevInbound()" title="품번으로 검색" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);padding:2px 6px;font-size:16px;background:transparent;border:none;cursor:pointer">🔍</button>
+          </div>
+        </div>
+        <div>
+          <label>품목명</label>
+          <input type="text" id="in-name" placeholder="품목명">
+        </div>
+      </div>
+      <div id="in-search-list" style="display:none;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);margin-top:4px;max-height:200px;overflow-y:auto"></div>
+
+      <!-- 보유 중인 루트번호(Lot) 추천 목록 -->
+      <div id="in-lot-suggest-wrap" style="display:none;margin-top:8px">
+        <div style="font-size:12px;color:var(--txt2)">💡 현재 보유 중인 루트번호 (탭하면 자동 입력):</div>
+        <div id="in-lot-chips" class="lot-chips"></div>
+      </div>
+
+      <!-- 카테고리 (사각캡, 필름 추가) -->
+      <label>카테고리</label>
+      <input type="hidden" id="in-cat">
+      <div id="in-cat-normal" style="display:grid;grid-template-columns:repeat(5, 1fr);gap:6px">
+        <div class="cat-choice" data-p="in" data-cat="카톤" onclick="pickCat('in','카톤')">카톤</div>
+        <div class="cat-choice" data-p="in" data-cat="인박스" onclick="pickCat('in','인박스')">인박스</div>
+        <div class="cat-choice" data-p="in" data-cat="단상자" onclick="pickCat('in','단상자')">단상자</div>
+        <div class="cat-choice" data-p="in" data-cat="사각캡" onclick="pickCat('in','사각캡')">사각캡</div>
+        <div class="cat-choice" data-p="in" data-cat="필름" onclick="pickCat('in','필름')">필름</div>
+      </div>
+      <div id="in-cat-fabric" style="display:none;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="cat-choice" data-p="in" data-cat="원단" onclick="pickCat('in','원단')">원단</div>
+        <div class="cat-choice" data-p="in" data-cat="손발원단" onclick="pickCat('in','손발원단')">손발원단</div>
+      </div>
+
+      <!-- [일반 품목 수량 영역] -->
+      <div id="in-qty-normal">
+        <div class="row3">
+          <div><label>루트번호 (Lot)</label><input type="text" id="in-lot" placeholder="예: GE141D"></div>
+          <div><label>수량 (개)</label><input type="number" id="in-qty" min="0" placeholder="0"></div>
+          <div><label>PO 번호</label><input type="text" id="in-po" placeholder="PO-2024"></div>
+        </div>
+      </div>
+
+      <!-- [원단 품목 수량 & 규격 영역] -->
+      <div id="in-qty-fabric" style="display:none">
+        <label>원단 관리 단위 선택</label>
+        <input type="hidden" id="in-fabric-unit" value="roll">
+        <div class="row4" style="margin-bottom:6px">
+          <div class="funit-btn on" data-p="in" data-u="roll" onclick="setFabricUnit('in','roll')">롤 + KG</div>
+          <div class="funit-btn" data-p="in" data-u="set" onclick="setFabricUnit('in','set')">SET</div>
+          <div class="funit-btn" data-p="in" data-u="m" onclick="setFabricUnit('in','m')">길이(M)</div>
+          <div class="funit-btn" data-p="in" data-u="ea" onclick="setFabricUnit('in','ea')">개수</div>
+        </div>
+
+        <label>루트번호 (Lot)</label>
+        <input type="text" id="in-lot-fabric" placeholder="예: GE141D">
+
+        <!-- 1) 롤 + KG 연동형 (규격 계산기 포함) -->
+        <div id="in-fbox-roll">
+          <label>원단 규격 (가로 × 세로 × 길이 ÷ 1,000,000 = 1롤 무게)</label>
+          <div class="row3">
+            <div><input type="number" id="in-spec-w" step="any" placeholder="예: 46" oninput="calcFabricWeight('in')"></div>
+            <div><input type="number" id="in-spec-l" step="any" placeholder="예: 195" oninput="calcFabricWeight('in')"></div>
+            <div><input type="number" id="in-spec-m" step="any" placeholder="예: 2500" oninput="calcFabricWeight('in')"></div>
+          </div>
+          <div id="in-unit-weight-tip" style="font-size:12px;color:var(--blue);margin-top:4px;font-weight:600">1롤당 무게: 규격을 입력하면 자동 계산됩니다</div>
+          <input type="hidden" id="in-unit-weight" value="0">
+
+          <div class="row2" style="margin-top:4px">
+            <div>
+              <label>입고 롤 수</label>
+              <input type="number" id="in-rolls" min="0" step="any" placeholder="예: 468" oninput="calcFabricWeight('in')">
+            </div>
+            <div>
+              <label>총 무게 (kg, 자동계산/수정가능)</label>
+              <input type="number" id="in-weight" min="0" step="any" placeholder="0.0">
+            </div>
+          </div>
+        </div>
+
+        <!-- 2) SET / 길이(M) / 개수 전용 입력칸 -->
+        <div id="in-fbox-other" style="display:none">
+          <label id="in-fbox-other-label">수량</label>
+          <input type="number" id="in-fabric-other-qty" min="0" step="any" placeholder="0">
+        </div>
+
+        <input type="hidden" id="in-meters" value="0">
+        <input type="hidden" id="in-route" value="">
+      </div>
+
       <div class="row3">
-        <div><label>Lot No.</label><input type="text" id="in-lot" placeholder="예: GE141D"></div>
-        <div><label>수량</label><input type="number" id="in-qty" min="0" placeholder="0"></div>
-        <div><label>PO 번호</label><input type="text" id="in-po" placeholder="PO-2024"></div>
+        <div><label>담당자</label><input type="text" id="in-person" readonly style="background:var(--border);color:var(--txt2)"></div>
+        <div><label>입고일</label><input type="date" id="in-date"></div>
+        <div><label>비고</label><input type="text" id="in-note" placeholder="선택"></div>
       </div>
+
+      <button id="btn-submit-in" class="btn btn-dark">입고 등록</button>
+      <button type="button" class="btn btn-light" onclick="clearInboundForm()" style="margin-top:6px">＋ 새 품목 (전체 초기화)</button>
     </div>
-    <div id="in-qty-fabric" style="display:none">
-      <label>Lot No.</label>
-      <input type="text" id="in-lot-fabric" placeholder="예: GE141D">
-      <div class="row3" style="margin-top:8px">
-        <div><label>롤 수</label><input type="number" id="in-rolls" min="0" step="0.1" placeholder="0.0"></div>
-        <div><label>무게 (kg)</label><input type="number" id="in-weight" min="0" step="0.1" placeholder="0.0"></div>
-        <div><label>길이 (m)</label><input type="number" id="in-meters" min="0" step="0.1" placeholder="0.0"></div>
-      </div>
-      <input type="hidden" id="in-route" value="">
-    </div>
-    <div class="row3">
-      <div><label>담당자</label><input type="text" id="in-person" readonly style="background:var(--border);color:var(--txt2);cursor:not-allowed"></div>
-      <div><label>입고일</label><input type="date" id="in-date"></div>
-      <div><label>비고</label><input type="text" id="in-note" placeholder="선택"></div>
-    </div>
-    <button id="btn-submit-in" class="btn btn-dark">입고 등록</button>
-    <button type="button" class="btn btn-light" onclick="clearInboundForm()" style="margin-top:6px">＋ 새 품목 (전체 초기화)</button>
-  </div>
   </div>
 
   <!-- ══════════════════════════════════════
@@ -358,58 +429,70 @@
   <div id="sec-dispatch" class="section">
     <div class="card" id="dp-step1">
       <label style="margin-top:0;font-size:14px;font-weight:600;color:var(--txt)">카테고리 (선택)</label>
-      <div id="dp-cat-filter" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0 14px">
+      <div id="dp-cat-filter" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:6px;margin:8px 0 14px">
         <div class="dp-cat-btn on" data-cat="" onclick="pickDpCat(this,'')">전체</div>
         <div class="dp-cat-btn" data-cat="카톤" onclick="pickDpCat(this,'카톤')">카톤</div>
         <div class="dp-cat-btn" data-cat="단상자" onclick="pickDpCat(this,'단상자')">단상자</div>
         <div class="dp-cat-btn" data-cat="인박스" onclick="pickDpCat(this,'인박스')">인박스</div>
+        <div class="dp-cat-btn" data-cat="사각캡" onclick="pickDpCat(this,'사각캡')">사각캡</div>
+        <div class="dp-cat-btn" data-cat="필름" onclick="pickDpCat(this,'필름')">필름</div>
         <div class="dp-cat-btn" data-cat="원단" onclick="pickDpCat(this,'원단')">원단</div>
         <div class="dp-cat-btn" data-cat="손발원단" onclick="pickDpCat(this,'손발원단')">손발원단</div>
       </div>
       <label style="font-size:14px;font-weight:600;color:var(--txt)">품번 끝자리 입력</label>
-      <p style="font-size:12px;color:var(--txt2);margin-bottom:10px">예: 0017 입력하면 <b>17로 끝나는</b> 품목만 나와요</p>
-      <input type="text" id="dp-suffix" placeholder="끝자리 입력 (예: 0017)" maxlength="8">
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:10px">예: 0020 입력하면 <b>0020으로 끝나는</b> 품목만 나와요</p>
+      <input type="text" id="dp-suffix" placeholder="끝자리 입력 (예: 0020)" maxlength="12">
       <button type="button" class="btn btn-dark" onclick="searchBySuffix()" style="margin-top:8px">검색</button>
     </div>
+
     <div id="dp-step2" style="display:none">
       <div class="card">
         <p style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--txt)">해당 품목을 선택하세요</p>
         <div id="dp-item-list"></div>
       </div>
     </div>
+
     <div id="dp-step3" style="display:none">
       <div id="dp-selected-card" class="card" style="background:var(--blue-bg);border-color:var(--blue)">
         <div id="dp-selected-info"></div>
       </div>
       <div id="dp-fifo-wrap"></div>
       <div class="card">
-        <label style="margin-top:0">품목 유형</label>
-        <div class="toggle">
-          <div id="dp-type-normal" class="tbtn on">일반</div>
-          <div id="dp-type-fabric" class="tbtn">원단</div>
-        </div>
+        <input type="hidden" id="dp-type-normal">
+        <input type="hidden" id="dp-type-fabric">
+
+        <!-- 일반 및 단일수량(SET/M/개수/환입KG) 입력 영역 -->
         <div id="dp-qty-normal">
-          <label>불출 수량</label>
+          <label id="dp-qty-label" style="margin-top:0">불출 수량</label>
           <div style="display:flex;gap:8px">
-            <input type="number" id="dp-qty" min="0" placeholder="0" style="flex:1">
-            <button id="btn-max" style="padding:9px 14px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:var(--r-md);cursor:pointer;white-space:nowrap">MAX</button>
+            <input type="number" id="dp-qty" min="0" step="any" placeholder="0" style="flex:1">
+            <button id="btn-max" type="button" style="padding:9px 14px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:var(--r-md);cursor:pointer;white-space:nowrap">MAX</button>
           </div>
         </div>
+
+        <!-- 원단(롤+KG 연동형) 전용 입력 영역 -->
         <div id="dp-qty-fabric" style="display:none">
-          <div class="row3">
-            <div><label>롤 수</label><input type="number" id="dp-rolls" min="0" step="0.1" placeholder="0.0"></div>
-            <div><label>무게 (kg)</label><input type="number" id="dp-weight" min="0" step="0.1" placeholder="0.0"></div>
-            <div><label>길이 (m)</label><input type="number" id="dp-meters" min="0" step="0.1" placeholder="0.0"></div>
+          <div id="dp-uw-info" style="font-size:12px;color:var(--blue);font-weight:600;margin-bottom:6px"></div>
+          <div class="row2">
+            <div>
+              <label style="margin-top:0">불출 롤 수</label>
+              <input type="number" id="dp-rolls" min="0" step="any" placeholder="0" oninput="onDpRollInput()">
+            </div>
+            <div>
+              <label style="margin-top:0">차감 무게 (kg, 자동계산)</label>
+              <input type="number" id="dp-weight" min="0" step="any" placeholder="0.0">
+            </div>
           </div>
-          <button id="btn-max-fabric" style="width:100%;margin-top:8px;padding:9px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:var(--r-md);cursor:pointer">MAX (전량)</button>
+          <input type="hidden" id="dp-meters" value="0">
+          <button id="btn-max-fabric" type="button" style="width:100%;margin-top:8px;padding:9px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:var(--r-md);cursor:pointer">MAX (선택 항목 전량)</button>
         </div>
+
         <label>담당자</label>
-        <input type="text" id="dp-person" readonly style="background:#f3f4f6;color:var(--txt2);cursor:not-allowed">
-        <!-- 불출 날짜는 항상 당일로 자동 고정 (화면에서 숨김) -->
+        <input type="text" id="dp-person" readonly style="background:#f3f4f6;color:var(--txt2)">
         <input type="hidden" id="dp-date">
         <label>비고</label>
         <input type="text" id="dp-note" placeholder="선택 입력">
-        <div style="display:flex;gap:10px;margin-top:8px">
+        <div style="display:flex;gap:10px;margin-top:12px">
           <button id="btn-reset-dp" class="btn btn-light" style="flex:1;margin-top:0">다시 선택</button>
           <button id="btn-submit-dp" class="btn btn-dark" style="flex:2;margin-top:0">불출 확정</button>
         </div>
@@ -421,175 +504,253 @@
     [3] 환입 탭 (자재팀)
   ══════════════════════════════════════ -->
   <div id="sec-hwanjip" class="section">
-  <div class="card">
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:12px">생산 라인에서 사용 후 남은 원자재를 창고로 돌려보낼 때</p>
-    <label>품목 유형</label>
-    <div class="toggle">
-      <div id="hj-type-normal" class="tbtn on">일반</div>
-      <div id="hj-type-fabric" class="tbtn">원단</div>
-    </div>
-    <input type="file" id="ocr-file-hj" accept="image/*" style="display:none">
-    <button id="btn-ocr-camera-hj" class="btn btn-light" style="margin-bottom:4px">📷 식별표 촬영으로 자동 입력</button>
-    <div class="row2">
-      <div>
-        <label>창고</label>
-        <select id="hj-wh">
-          <option value="">선택하세요</option>
-          <option value="D">D동</option>
-          <option value="T">천막동</option>
-        </select>
+    <div class="card">
+      <p style="font-size:13px;color:var(--txt2);margin-bottom:12px">생산 라인에서 사용 후 남은 원자재를 창고로 돌려보낼 때</p>
+      <label>품목 유형</label>
+      <div class="toggle">
+        <div id="hj-type-normal" class="tbtn on">일반</div>
+        <div id="hj-type-fabric" class="tbtn">원단</div>
       </div>
-      <div>
-        <label>보관 방식</label>
-        <select id="hj-st">
-          <option value="rack">렉 보관</option>
-          <option value="floor">바닥 보관</option>
-        </select>
-      </div>
-    </div>
-    <div id="hj-rack-fields">
-      <div class="row3">
-        <div>
-          <label>구역</label>
-          <select id="hj-zone">
-            <option value="">-</option>
-            <option>A</option><option>B</option><option>C</option>
-            <option>D</option><option>E</option><option>F</option>
-          </select>
-        </div>
-        <div><label id="hj-rack-label">렉 번호</label><input type="number" id="hj-rn" min="1" max="14" placeholder="번호"></div>
-        <div><label>층 (1~3)</label><input type="number" id="hj-fl" min="1" max="3" placeholder="1~3"></div>
-      </div>
-    </div>
-    <div id="hj-floor-fields" style="display:none">
-      <label>바닥 위치</label>
-      <input type="text" id="hj-floc" placeholder="예: A구역 3번">
-    </div>
-    <!-- 천막동 전용: 구역+열 -->
-    <div id="hj-t-fields" style="display:none">
+      <input type="file" id="ocr-file-hj" accept="image/*" style="display:none">
+      <button id="btn-ocr-camera-hj" class="btn btn-light" style="margin-bottom:4px">📷 식별표 촬영으로 자동 입력</button>
+
       <div class="row2">
         <div>
-          <label>구역</label>
-          <select id="hj-t-zone" onchange="document.getElementById('hj-zone').value=this.value;updateLocPreview('hj')">
-            <option value="">-</option>
-            <option>A</option><option>B</option><option>C</option><option>D</option>
+          <label>창고</label>
+          <select id="hj-wh">
+            <option value="">선택하세요</option>
+            <option value="D">D동</option>
+            <option value="T">천막동</option>
           </select>
         </div>
         <div>
-          <label>열 번호</label>
-          <input type="number" id="hj-col" min="1" max="10" placeholder="1~10">
+          <label>보관 방식</label>
+          <select id="hj-st">
+            <option value="rack">렉 보관</option>
+            <option value="floor">바닥 보관</option>
+          </select>
         </div>
       </div>
-    </div>
-    <div id="hj-loc-preview" class="loc-tip" style="display:none"></div>
-    <label>품목명</label>
-    <div style="display:flex;gap:8px">
-      <input type="text" id="hj-name" placeholder="품목명" style="flex:1">
-    </div>
-    <div id="hj-search-list" style="display:none;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);margin-top:4px;max-height:200px;overflow-y:auto"></div>
-    <div class="row2">
-      <div>
-        <label>카테고리</label>
-        <input type="hidden" id="hj-cat">
-        <div id="hj-cat-normal" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-          <div class="cat-choice" data-p="hj" data-cat="카톤" onclick="pickCat('hj','카톤')">카톤</div>
-          <div class="cat-choice" data-p="hj" data-cat="인박스" onclick="pickCat('hj','인박스')">인박스</div>
-          <div class="cat-choice" data-p="hj" data-cat="단상자" onclick="pickCat('hj','단상자')">단상자</div>
-        </div>
-        <div id="hj-cat-fabric" style="display:none;grid-template-columns:1fr 1fr;gap:6px">
-          <div class="cat-choice" data-p="hj" data-cat="원단" onclick="pickCat('hj','원단')">원단</div>
-          <div class="cat-choice" data-p="hj" data-cat="손발원단" onclick="pickCat('hj','손발원단')">손발원단</div>
+
+      <!-- D동 렉 보관 -->
+      <div id="hj-rack-fields">
+        <div class="row3">
+          <div>
+            <label>구역 (A~F동)</label>
+            <select id="hj-zone">
+              <option value="">-</option>
+              <option value="A">A동</option><option value="B">B동</option><option value="C">C동</option>
+              <option value="D">D동</option><option value="E">E동</option><option value="F">F동</option>
+            </select>
+          </div>
+          <div>
+            <label id="hj-rack-label">호수 (1~16호)</label>
+            <select id="hj-rn">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+              <option>9</option><option>10</option><option>11</option><option>12</option>
+              <option>13</option><option>14</option><option>15</option><option>16</option>
+            </select>
+          </div>
+          <div>
+            <label>층 (1~3층)</label>
+            <select id="hj-fl">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option>
+            </select>
+          </div>
         </div>
       </div>
-      <div>
-        <label>품번</label>
-        <div style="position:relative">
-          <input type="text" id="hj-code" placeholder="예: A11W000064" style="width:100%;padding-right:38px">
-          <button onclick="searchPrevReturn()" title="품번으로 이전 데이터 검색" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);padding:2px 6px;font-size:16px;background:transparent;border:none;cursor:pointer;line-height:1">🔍</button>
+
+      <!-- D동 바닥 보관: 1~3구역, 1~13열 -->
+      <div id="hj-floor-fields" style="display:none">
+        <div class="row2">
+          <div>
+            <label>바닥 구역 (1~3구역)</label>
+            <select id="hj-d-fzone" onchange="updateLocPreview('hj')">
+              <option value="">-</option>
+              <option value="1">1구역</option><option value="2">2구역</option><option value="3">3구역</option>
+            </select>
+          </div>
+          <div>
+            <label>열 번호 (1~13열)</label>
+            <select id="hj-d-fcol" onchange="updateLocPreview('hj')">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+              <option>11</option><option>12</option><option>13</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
-    <div id="hj-qty-normal">
+
+      <!-- 천막동 바닥 보관: A~D구역, 1~10열 -->
+      <div id="hj-t-fields" style="display:none">
+        <div class="row2">
+          <div>
+            <label>천막 구역 (A~D구역)</label>
+            <select id="hj-t-zone" onchange="updateLocPreview('hj')">
+              <option value="">-</option>
+              <option value="A">A구역</option><option value="B">B구역</option><option value="C">C구역</option><option value="D">D구역</option>
+            </select>
+          </div>
+          <div>
+            <label>열 번호 (1~10열)</label>
+            <select id="hj-col" onchange="updateLocPreview('hj')">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="hj-loc-preview" class="loc-tip" style="display:none"></div>
+
+      <div class="row2">
+        <div>
+          <label>품번 (입력 시 루트 자동 조회)</label>
+          <div style="position:relative">
+            <input type="text" id="hj-code" placeholder="예: A11W000020" style="padding-right:38px" oninput="onInboundCodeInput('hj')">
+            <button type="button" onclick="searchPrevReturn()" title="품번으로 검색" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);padding:2px 6px;font-size:16px;background:transparent;border:none;cursor:pointer">🔍</button>
+          </div>
+        </div>
+        <div>
+          <label>품목명</label>
+          <input type="text" id="hj-name" placeholder="품목명">
+        </div>
+      </div>
+      <div id="hj-search-list" style="display:none;background:var(--card);border:1px solid var(--border2);border-radius:var(--r-md);margin-top:4px;max-height:200px;overflow-y:auto"></div>
+
+      <!-- 보유 중인 루트번호(Lot) 추천 목록 -->
+      <div id="hj-lot-suggest-wrap" style="display:none;margin-top:8px">
+        <div style="font-size:12px;color:var(--txt2)">💡 현재 보유 중인 루트번호 (탭하면 자동 입력):</div>
+        <div id="hj-lot-chips" class="lot-chips"></div>
+      </div>
+
+      <label>카테고리</label>
+      <input type="hidden" id="hj-cat">
+      <div id="hj-cat-normal" style="display:grid;grid-template-columns:repeat(5, 1fr);gap:6px">
+        <div class="cat-choice" data-p="hj" data-cat="카톤" onclick="pickCat('hj','카톤')">카톤</div>
+        <div class="cat-choice" data-p="hj" data-cat="인박스" onclick="pickCat('hj','인박스')">인박스</div>
+        <div class="cat-choice" data-p="hj" data-cat="단상자" onclick="pickCat('hj','단상자')">단상자</div>
+        <div class="cat-choice" data-p="hj" data-cat="사각캡" onclick="pickCat('hj','사각캡')">사각캡</div>
+        <div class="cat-choice" data-p="hj" data-cat="필름" onclick="pickCat('hj','필름')">필름</div>
+      </div>
+      <div id="hj-cat-fabric" style="display:none;grid-template-columns:1fr 1fr;gap:6px">
+        <div class="cat-choice" data-p="hj" data-cat="원단" onclick="pickCat('hj','원단')">원단</div>
+        <div class="cat-choice" data-p="hj" data-cat="손발원단" onclick="pickCat('hj','손발원단')">손발원단</div>
+      </div>
+
+      <!-- 일반 환입 -->
+      <div id="hj-qty-normal">
+        <div class="row3">
+          <div><label>루트번호 (Lot)</label><input type="text" id="hj-lot" placeholder="예: GE141D"></div>
+          <div><label>수량 (개)</label><input type="number" id="hj-qty" min="0" placeholder="0"></div>
+          <div><label>PO 번호</label><input type="text" id="hj-po" placeholder="PO-2024"></div>
+        </div>
+      </div>
+
+      <!-- 원단 환입 (기본 KG 환입 + SET/길이/개수 선택 가능) -->
+      <div id="hj-qty-fabric" style="display:none">
+        <label>원단 환입 단위 (일반 원단 환입은 KG, 손발원단 등은 해당 단위)</label>
+        <input type="hidden" id="hj-fabric-unit" value="kg">
+        <div class="row4" style="margin-bottom:6px">
+          <div class="funit-btn on" data-p="hj" data-u="kg" onclick="setFabricUnit('hj','kg')">무게(KG)</div>
+          <div class="funit-btn" data-p="hj" data-u="set" onclick="setFabricUnit('hj','set')">SET</div>
+          <div class="funit-btn" data-p="hj" data-u="m" onclick="setFabricUnit('hj','m')">길이(M)</div>
+          <div class="funit-btn" data-p="hj" data-u="ea" onclick="setFabricUnit('hj','ea')">개수</div>
+        </div>
+        <div class="row2">
+          <div>
+            <label>루트번호 (Lot)</label>
+            <input type="text" id="hj-lot-fabric" placeholder="예: GE141D">
+          </div>
+          <div>
+            <label id="hj-fabric-qty-label">환입 무게 (kg)</label>
+            <input type="number" id="hj-weight" min="0" step="any" placeholder="0.0">
+          </div>
+        </div>
+        <input type="hidden" id="hj-rolls" value="0">
+        <input type="hidden" id="hj-meters" value="0">
+        <input type="hidden" id="hj-route" value="">
+      </div>
+
       <div class="row3">
-        <div><label>Lot No.</label><input type="text" id="hj-lot" placeholder="예: GE141D"></div>
-        <div><label>수량</label><input type="number" id="hj-qty" min="0" placeholder="0"></div>
-        <div><label>PO 번호</label><input type="text" id="hj-po" placeholder="PO-2024"></div>
+        <div><label>담당자</label><input type="text" id="hj-person" readonly style="background:var(--border);color:var(--txt2)"></div>
+        <div><label>환입 날짜</label><input type="date" id="hj-date"></div>
+        <div><label>비고</label><input type="text" id="hj-note" placeholder="선택 입력"></div>
       </div>
+      <button id="btn-submit-hj" class="btn btn-dark">환입 등록</button>
+      <button type="button" class="btn btn-light" onclick="clearReturnForm()" style="margin-top:6px">＋ 새 품목 (전체 초기화)</button>
     </div>
-    <div id="hj-qty-fabric" style="display:none">
-      <label>Lot No.</label>
-      <input type="text" id="hj-lot-fabric" placeholder="예: GE141D">
-      <div class="row3" style="margin-top:8px">
-        <div><label>롤 수</label><input type="number" id="hj-rolls" min="0" step="0.1" placeholder="0.0"></div>
-        <div><label>무게 (kg)</label><input type="number" id="hj-weight" min="0" step="0.1" placeholder="0.0"></div>
-        <div><label>길이 (m)</label><input type="number" id="hj-meters" min="0" step="0.1" placeholder="0.0"></div>
-      </div>
-      <input type="hidden" id="hj-route" value="">
-    </div>
-    <div class="row3">
-      <div><label>담당자</label><input type="text" id="hj-person" readonly style="background:var(--border);color:var(--txt2);cursor:not-allowed"></div>
-      <div><label>환입 날짜</label><input type="date" id="hj-date"></div>
-      <div><label>비고</label><input type="text" id="hj-note" placeholder="선택 입력"></div>
-    </div>
-    <button id="btn-submit-hj" class="btn btn-dark">환입 등록</button>
-    <button type="button" class="btn btn-light" onclick="clearReturnForm()" style="margin-top:6px">＋ 새 품목 (전체 초기화)</button>
-  </div>
   </div>
 
   <!-- ══════════════════════════════════════
     [4] 재고 탭 (자재팀)
   ══════════════════════════════════════ -->
   <div id="sec-stock" class="section">
-    <div class="stats">
-      <div class="stat"><div class="stat-l">전체 입고</div><div class="stat-v" id="st-total">0</div></div>
-      <div class="stat"><div class="stat-l">오늘 입고</div><div class="stat-v" id="st-today">0</div></div>
-    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:12px">
       <button id="st-wh-all" class="tbtn on" onclick="setStockWh('all')">전체</button>
       <button id="st-wh-D" class="tbtn" onclick="setStockWh('D')">D동</button>
       <button id="st-wh-T" class="tbtn" onclick="setStockWh('T')">천막동</button>
-      <button id="st-wh-hj" class="tbtn" onclick="setStockWh('hj')">환입</button>
+      <button id="st-wh-hj" class="tbtn" onclick="setStockWh('hj')">환입재고</button>
     </div>
     <div class="cat-filter">
       <button class="cat-btn on" data-cat="">전체</button>
       <button class="cat-btn" data-cat="카톤">카톤</button>
-      <button class="cat-btn" data-cat="원단">원단</button>
       <button class="cat-btn" data-cat="단상자">단상자</button>
       <button class="cat-btn" data-cat="인박스">인박스</button>
+      <button class="cat-btn" data-cat="사각캡">사각캡</button>
+      <button class="cat-btn" data-cat="필름">필름</button>
+      <button class="cat-btn" data-cat="원단">원단</button>
       <button class="cat-btn" data-cat="손발원단">손발원단</button>
       <button class="cat-btn" data-cat="기타">기타</button>
     </div>
-    <div class="search-wrap">
-      <i class="ti ti-search s-ico"></i>
-      <input type="text" id="st-q" placeholder="품목명, 품번, 위치 검색">
+    <!-- 검색어 + 날짜별 입고/환입 재고 필터 -->
+    <div class="card" style="padding:12px;margin-bottom:12px">
+      <div class="row2">
+        <div class="search-wrap" style="margin-bottom:0">
+          <i class="ti ti-search s-ico"></i>
+          <input type="text" id="st-q" placeholder="품목명, 품번, 위치, Lot 검색">
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="date" id="st-date" onchange="loadStock()" title="특정 날짜 입고/환입 재고만 보기">
+          <button type="button" onclick="document.getElementById('st-date').value='';loadStock()" style="padding:10px;border-radius:10px;border:1px solid var(--border2);background:var(--card);color:var(--txt2);cursor:pointer;white-space:nowrap;font-size:12px;font-weight:600">전체날짜</button>
+        </div>
+      </div>
     </div>
     <div id="stock-list"></div>
-    <button id="btn-export" class="btn btn-light" style="margin-top:0">엑셀(CSV) 내보내기</button>
+    <button id="btn-export" class="btn btn-light" style="margin-top:8px">📊 엑셀(CSV) 내보내기</button>
   </div>
 
   <!-- ══════════════════════════════════════
-    [5] 이력 탭 (자재팀)
+    [5] 이력 / 날짜별 조회 탭 (자재팀)
   ══════════════════════════════════════ -->
   <div id="sec-history" class="section">
-    <div style="display:flex;gap:6px;margin-bottom:12px">
-      <button class="hist-tab on" data-kind="out" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#1a1a1a;color:#fff;cursor:pointer">불출</button>
-      <button class="hist-tab" data-kind="in" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">입고</button>
-      <button class="hist-tab" data-kind="hwanjip" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">환입</button>
-      <button class="hist-tab" data-kind="transfer" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">전산완료</button>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="hist-tab on" data-kind="out" style="padding:8px 16px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#1a1a1a;color:#fff;cursor:pointer">불출 내역</button>
+      <button class="hist-tab" data-kind="in" style="padding:8px 16px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">입고 내역</button>
+      <button class="hist-tab" data-kind="hwanjip" style="padding:8px 16px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">환입 내역</button>
+      <button class="hist-tab" data-kind="transfer" style="padding:8px 16px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer">전산완료</button>
     </div>
     <div class="stats">
-      <div class="stat"><div class="stat-l">전체 불출</div><div class="stat-v" id="hs-total">0</div></div>
-      <div class="stat"><div class="stat-l">기간 내 불출</div><div class="stat-v" id="hs-filtered">0</div></div>
+      <div class="stat"><div class="stat-l">전체 불출 누적</div><div class="stat-v" id="hs-total">0</div></div>
+      <div class="stat"><div class="stat-l">선택 날짜/조건 건수</div><div class="stat-v" id="hs-filtered">0</div></div>
     </div>
-    <div class="card" style="padding:12px 16px;margin-bottom:10px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div class="card" style="padding:12px 16px;margin-bottom:12px">
+      <div class="row2">
         <div>
-          <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">날짜 선택</label>
-          <input type="date" id="hs-date" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:var(--card);color:var(--txt)">
+          <label style="margin-top:0">📅 날짜 선택 (비우면 전체 날짜)</label>
+          <div style="display:flex;gap:6px">
+            <input type="date" id="hs-date" style="flex:1">
+            <button type="button" onclick="document.getElementById('hs-date').value='';loadHistory()" style="padding:0 10px;border-radius:10px;border:1px solid var(--border2);background:var(--card);color:var(--txt2);font-size:12px;font-weight:600;cursor:pointer">전체</button>
+          </div>
         </div>
         <div>
-          <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">품번 끝자리</label>
-          <input type="text" id="hs-code" placeholder="예: 0017" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:var(--card);color:var(--txt)">
+          <label style="margin-top:0">🔍 품번 끝자리 검색</label>
+          <input type="text" id="hs-code" placeholder="예: 0020">
         </div>
       </div>
     </div>
@@ -604,12 +765,10 @@
       <div class="stat"><div class="stat-l">대기 중</div><div class="stat-v" id="rm-pending" style="color:#dc2626">0</div></div>
       <div class="stat"><div class="stat-l">오늘 확정</div><div class="stat-v" id="rm-confirmed">0</div></div>
     </div>
-    <!-- 날짜 필터 -->
     <div class="card" style="padding:12px 16px;margin-bottom:10px">
-      <label style="font-size:12px;color:var(--txt2);display:block;margin-bottom:4px">날짜 선택 (기본: 오늘)</label>
-      <input type="date" id="rm-date" style="width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r-md);background:var(--card);color:var(--txt)">
+      <label style="margin-top:0">날짜 선택 (기본: 오늘)</label>
+      <input type="date" id="rm-date">
     </div>
-    <!-- 상태 필터 -->
     <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto">
       <button class="req-tab on" data-status="pending" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:#1a1a1a;color:#fff;cursor:pointer;white-space:nowrap">대기중</button>
       <button class="req-tab" data-status="confirmed" style="padding:7px 14px;font-size:13px;font-weight:600;border:1px solid #d1d5db;border-radius:20px;background:var(--card);color:var(--txt2);cursor:pointer;white-space:nowrap">확정</button>
@@ -623,54 +782,34 @@
     [7] 불출 신청 탭 (생산팀)
   ══════════════════════════════════════ -->
   <div id="sec-req-apply" class="section">
-
-    <!-- 1단계: 품번 끝자리 입력 -->
     <div class="card" id="ra-step1">
       <label style="margin-top:0;font-size:14px;font-weight:600;color:var(--txt)">품번 끝자리 입력</label>
       <p style="font-size:12px;color:var(--txt2);margin-bottom:10px">예: 0017 입력하면 해당 품목 목록이 나와요</p>
       <input type="text" id="ra-suffix" placeholder="끝자리 입력 (예: 0017)" maxlength="8">
     </div>
-
-    <!-- 2단계: 품목 선택 -->
     <div id="ra-step2" style="display:none">
       <div class="card">
         <p style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--txt)">해당 품목을 선택하세요</p>
         <div id="ra-item-list"></div>
       </div>
     </div>
-
-    <!-- 3단계: FIFO 확인 + 수량 입력 + 신청 -->
     <div id="ra-step3" style="display:none">
       <div class="card" style="background:var(--blue-bg);border-color:var(--blue)">
         <div id="ra-selected-info"></div>
       </div>
       <div id="ra-fifo-wrap"></div>
       <div class="card">
-        <!-- 배달 위치 선택 -->
         <label style="margin-top:0">배달 위치</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
-          <div id="ra-dest-1" onclick="selectRaDest('본사 2층')"
-            style="padding:11px;font-size:14px;font-weight:600;border:2px solid #1a1a1a;border-radius:8px;cursor:pointer;text-align:center;background:#1a1a1a;color:#fff">
-            본사 2층
-          </div>
-          <div id="ra-dest-2" onclick="selectRaDest('본사 3층')"
-            style="padding:11px;font-size:14px;font-weight:600;border:2px solid var(--border2);border-radius:8px;cursor:pointer;text-align:center;background:var(--card);color:var(--txt2)">
-            본사 3층
-          </div>
-          <div id="ra-dest-3" onclick="selectRaDest('주향')"
-            style="padding:11px;font-size:14px;font-weight:600;border:2px solid var(--border2);border-radius:8px;cursor:pointer;text-align:center;background:var(--card);color:var(--txt2)">
-            주향
-          </div>
+        <div class="row3" style="margin-bottom:12px">
+          <div id="ra-dest-1" onclick="selectRaDest('본사 2층')" style="padding:11px;font-size:14px;font-weight:600;border:2px solid #1a1a1a;border-radius:8px;cursor:pointer;text-align:center;background:#1a1a1a;color:#fff">본사 2층</div>
+          <div id="ra-dest-2" onclick="selectRaDest('본사 3층')" style="padding:11px;font-size:14px;font-weight:600;border:2px solid var(--border2);border-radius:8px;cursor:pointer;text-align:center;background:var(--card);color:var(--txt2)">본사 3층</div>
+          <div id="ra-dest-3" onclick="selectRaDest('주향')" style="padding:11px;font-size:14px;font-weight:600;border:2px solid var(--border2);border-radius:8px;cursor:pointer;text-align:center;background:var(--card);color:var(--txt2)">주향</div>
         </div>
         <input type="hidden" id="ra-floor" value="본사 2층">
-
-        <!-- PO 번호: 재고에 있는 PO는 위 FIFO 목록에서 노란 배지로 표시됩니다 -->
-
-        <!-- 신청 수량 -->
         <label>신청 수량</label>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
           <input type="number" id="ra-qty" min="1" placeholder="0" style="flex:1">
-          <button id="ra-max-btn" onclick="setRaMax()" style="display:none;padding:9px 14px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:var(--r-md);cursor:pointer;white-space:nowrap">MAX</button>
+          <button id="ra-max-btn" type="button" onclick="setRaMax()" style="display:none;padding:9px 14px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:var(--r-md);cursor:pointer;white-space:nowrap">MAX</button>
         </div>
         <div id="ra-max-hint" style="font-size:12px;color:var(--txt2);margin-bottom:8px"></div>
         <label>필요 날짜</label>
@@ -681,7 +820,6 @@
         <button id="btn-reset-ra" class="btn btn-light">다시 선택</button>
       </div>
     </div>
-
   </div>
 
   <!-- ══════════════════════════════════════
@@ -697,15 +835,18 @@
   ══════════════════════════════════════ -->
   <div id="sec-prod-stock" class="section">
     <div class="stats">
-      <div class="stat"><div class="stat-l">전체 재고</div><div class="stat-v" id="ps-total">0</div></div>
+      <div class="stat"><div class="stat-l">전체 입고</div><div class="stat-v" id="ps-total">0</div></div>
       <div class="stat"><div class="stat-l">오늘 입고</div><div class="stat-v" id="ps-today">0</div></div>
     </div>
     <div class="cat-filter">
       <button class="ps-cat-btn on" data-cat="">전체</button>
       <button class="ps-cat-btn" data-cat="카톤">카톤</button>
-      <button class="ps-cat-btn" data-cat="원단">원단</button>
       <button class="ps-cat-btn" data-cat="단상자">단상자</button>
       <button class="ps-cat-btn" data-cat="인박스">인박스</button>
+      <button class="ps-cat-btn" data-cat="사각캡">사각캡</button>
+      <button class="ps-cat-btn" data-cat="필름">필름</button>
+      <button class="ps-cat-btn" data-cat="원단">원단</button>
+      <button class="ps-cat-btn" data-cat="손발원단">손발원단</button>
       <button class="ps-cat-btn" data-cat="기타">기타</button>
     </div>
     <div class="search-wrap">
@@ -726,19 +867,22 @@
     <div class="card" style="padding:6px 14px">
       <div id="admin-list"><div class="loading">불러오는 중...</div></div>
     </div>
-    <div class="card" style="border:1px solid #fca5a5;margin-top:8px">
+    <div class="card" style="border:1px solid #fca5a5 !important;margin-top:8px">
       <p style="font-size:13px;font-weight:600;color:#dc2626;margin-bottom:4px">⚠️ 위험 구역</p>
       <p style="font-size:12px;color:var(--txt2);margin-bottom:12px">전체 재고 데이터를 삭제합니다. 복구 불가능합니다.</p>
-      <button id="btn-reset-data" class="btn" style="background:#dc2626;color:#fff;width:100%">전체 데이터 초기화</button>
+      <button id="btn-reset-data" class="btn" style="background:#dc2626;color:#fff">전체 데이터 초기화</button>
     </div>
   </div>
 
-  <!-- 품목 카탈로그 관리 (운영자 전용) -->
+  <!-- ══════════════════════════════════════
+    [11] 품목 카탈로그 관리 (운영자 + 관리자)
+  ══════════════════════════════════════ -->
   <div id="sec-catalog" class="section">
     <div class="search-wrap" style="margin-bottom:10px">
-      <input type="text" id="cat-search" placeholder="품번 또는 품목명 검색" oninput="loadCatalog()" style="width:100%">
+      <i class="ti ti-search s-ico"></i>
+      <input type="text" id="cat-search" placeholder="품번 또는 품목명 검색" oninput="loadCatalog()">
     </div>
-    <p style="font-size:12px;color:var(--txt2);margin:0 2px 10px">OCR 오인식 등으로 잘못 저장된 품번을 수정하거나 삭제할 수 있어요. (재고 데이터는 안 건드려요)</p>
+    <p style="font-size:12px;color:var(--txt2);margin:0 2px 10px">품번별 기본 정보와 원단 규격(가로×세로×길이)을 수정하거나 삭제할 수 있습니다.</p>
     <div class="card" style="padding:6px 14px">
       <div id="catalog-list"><div class="loading">불러오는 중...</div></div>
     </div>
@@ -748,53 +892,45 @@
 
 <!-- 홈 이동 확인 모달 -->
 <div id="home-confirm-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:2000;justify-content:center;align-items:center">
-  <div style="background:var(--card);border-radius:16px;padding:24px;width:calc(100% - 48px);max-width:320px;position:relative;z-index:2001;text-align:center">
+  <div style="background:var(--card);border-radius:16px;padding:24px;width:calc(100% - 48px);max-width:320px;text-align:center">
     <div style="font-size:32px;margin-bottom:12px">🏠</div>
     <h3 style="font-size:16px;font-weight:700;color:var(--txt);margin-bottom:8px">홈으로 이동</h3>
     <p style="font-size:13px;color:var(--txt2);margin-bottom:20px">홈 화면으로 돌아가시겠습니까?</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div class="row2">
       <button id="btn-home-cancel" style="padding:12px;background:var(--border);color:var(--txt);border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">취소</button>
-      <button id="btn-home-confirm" style="padding:12px;background:var(--txt);color:var(--card);border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">홈으로</button>
+      <button id="btn-home-confirm" style="padding:12px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">홈으로</button>
     </div>
   </div>
 </div>
 
 <!-- 데이터 초기화 확인 모달 -->
 <div id="reset-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:center">
-  <div style="background:#fff;border-radius:16px;padding:24px;width:calc(100% - 48px);max-width:380px;position:relative;z-index:1001">
+  <div style="background:#fff;border-radius:16px;padding:24px;width:calc(100% - 48px);max-width:380px">
     <h3 style="font-size:16px;font-weight:700;color:#dc2626;margin-bottom:8px">⚠️ 전체 데이터 초기화</h3>
     <p style="font-size:13px;color:var(--txt2);margin-bottom:16px">모든 재고 데이터가 삭제됩니다. 비밀번호를 입력해 확인하세요.</p>
-    <input type="password" id="reset-pw" placeholder="운영자 비밀번호" style="width:100%;padding:10px 12px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;margin-bottom:12px">
-    <button id="btn-reset-confirm" style="width:100%;padding:12px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px">삭제 확인</button>
-    <button id="btn-reset-cancel" style="width:100%;padding:12px;background:#f3f4f6;color:var(--txt);border:none;border-radius:8px;font-size:15px;cursor:pointer">취소</button>
+    <input type="password" id="reset-pw" placeholder="운영자 비밀번호" style="margin-bottom:12px">
+    <button id="btn-reset-confirm" class="btn" style="background:#dc2626;color:#fff;margin-top:0;margin-bottom:8px">삭제 확인</button>
+    <button id="btn-reset-cancel" class="btn btn-light" style="margin-top:0">취소</button>
   </div>
 </div>
 
 <!-- 불출 확정 모달 (자재팀) -->
-<div id="confirm-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom)">
-  <div style="background:#fff;border-radius:16px 16px 0 0;padding:20px 20px 32px 20px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto">
+<div id="confirm-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:flex-end">
+  <div style="background:#fff;border-radius:16px 16px 0 0;padding:20px 20px 32px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
       <h3 style="font-size:16px;font-weight:600">불출 확정</h3>
       <button id="btn-confirm-cancel" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280">✕</button>
     </div>
     <p style="font-size:12px;color:var(--txt2);margin-bottom:8px" id="confirm-modal-info"></p>
-    <!-- 배달 층수 표시 -->
     <div id="confirm-floor-info" style="display:none;background:#dbeafe;color:#1d4ed8;padding:8px 12px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:14px"></div>
-
-    <!-- FIFO 목록 (위치 선택) -->
-    <p style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:8px">위치 선택 (탭해서 선택)</p>
+    <p style="font-size:13px;font-weight:600;margin-bottom:8px">위치 선택 (탭해서 선택)</p>
     <div id="confirm-fifo-list" style="margin-bottom:14px"></div>
-
-    <!-- 확정 수량 -->
-    <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">확정 수량 (수정 가능)</label>
+    <label>확정 수량 (수정 가능)</label>
     <div style="display:flex;gap:8px;margin-bottom:16px">
-      <input type="number" id="confirm-qty" min="1" placeholder="수량"
-        style="flex:1;padding:11px 12px;font-size:14px;border:1px solid var(--border2);border-radius:8px">
-      <button id="btn-confirm-max" onclick="setConfirmMax()"
-        style="padding:11px 16px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:8px;cursor:pointer;white-space:nowrap">MAX</button>
+      <input type="number" id="confirm-qty" min="1" placeholder="수량" style="flex:1">
+      <button id="btn-confirm-max" type="button" onclick="setConfirmMax()" style="padding:11px 16px;font-size:13px;font-weight:600;background:#f3f4f6;border:1px solid var(--border2);border-radius:8px;cursor:pointer">MAX</button>
     </div>
-
-    <button id="btn-confirm-ok" style="width:100%;padding:13px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">불출 확정</button>
+    <button id="btn-confirm-ok" class="btn btn-dark">불출 확정</button>
   </div>
 </div>
 
@@ -802,138 +938,276 @@
 <div id="reject-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;justify-content:center;align-items:center;padding:20px">
   <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:380px">
     <h3 style="font-size:16px;font-weight:600;margin-bottom:16px">반려 사유 입력</h3>
-    <input type="text" id="reject-reason" placeholder="반려 사유를 입력하세요"
-      style="width:100%;padding:11px 12px;font-size:14px;border:1px solid var(--border2);border-radius:8px;margin-bottom:16px">
-    <button id="btn-reject-ok" style="width:100%;padding:13px;font-size:15px;font-weight:600;background:#dc2626;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-bottom:8px">반려</button>
-    <button id="btn-reject-cancel" style="width:100%;padding:12px;background:#f3f4f6;color:var(--txt);border:none;border-radius:8px;font-size:14px;cursor:pointer">취소</button>
+    <input type="text" id="reject-reason" placeholder="반려 사유를 입력하세요" style="margin-bottom:16px">
+    <button id="btn-reject-ok" class="btn" style="background:#dc2626;color:#fff;margin-top:0;margin-bottom:8px">반려</button>
+    <button id="btn-reject-cancel" class="btn btn-light" style="margin-top:0">취소</button>
   </div>
 </div>
 
-</div><!-- /#main-app -->
-
 <button class="theme-toggle" id="btn-theme" title="테마 변경">🌙</button>
 
-<!-- 수정 모달 -->
-<div id="edit-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:flex-end;padding-bottom:env(safe-area-inset-bottom)">
-  <div style="background:#fff;border-radius:16px 16px 0 0;padding:20px 20px 40px 20px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;position:relative;z-index:1001">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<!-- 빠른 위치 이동 전용 모달 -->
+<div id="move-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:flex-end">
+  <div style="background:var(--card);border-radius:16px 16px 0 0;padding:20px 20px 36px;width:100%;max-width:480px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h3 style="font-size:16px;font-weight:700">📍 자재 위치 이동</h3>
+      <button onclick="document.getElementById('move-modal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--txt2)">✕</button>
+    </div>
+    <div id="move-item-title" style="font-size:14px;font-weight:600;color:var(--txt)"></div>
+    <div id="move-current-loc" style="font-size:12px;color:var(--blue);margin-top:4px;margin-bottom:12px;font-weight:600"></div>
+
+    <div class="row2">
+      <div>
+        <label>이동할 창고</label>
+        <select id="move-wh" onchange="onMoveWhChange()">
+          <option value="D">D동</option>
+          <option value="T">천막동</option>
+        </select>
+      </div>
+      <div>
+        <label>보관 방식</label>
+        <select id="move-st" onchange="onMoveStChange()">
+          <option value="rack">렉 보관</option>
+          <option value="floor">바닥 보관</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="move-rack-fields" style="margin-top:8px">
+      <div class="row3">
+        <div>
+          <label>구역 (A~F동)</label>
+          <select id="move-zone">
+            <option value="">-</option>
+            <option value="A">A동</option><option value="B">B동</option><option value="C">C동</option>
+            <option value="D">D동</option><option value="E">E동</option><option value="F">F동</option>
+          </select>
+        </div>
+        <div>
+          <label>호수 (1~16호)</label>
+          <select id="move-rn">
+            <option value="">-</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+            <option>5</option><option>6</option><option>7</option><option>8</option>
+            <option>9</option><option>10</option><option>11</option><option>12</option>
+            <option>13</option><option>14</option><option>15</option><option>16</option>
+          </select>
+        </div>
+        <div>
+          <label>층 (1~3층)</label>
+          <select id="move-fl">
+            <option value="">-</option>
+            <option>1</option><option>2</option><option>3</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="move-floor-fields" style="display:none;margin-top:8px">
+      <div class="row2">
+        <div>
+          <label>바닥 구역 (1~3구역)</label>
+          <select id="move-d-fzone">
+            <option value="">-</option>
+            <option value="1">1구역</option><option value="2">2구역</option><option value="3">3구역</option>
+          </select>
+        </div>
+        <div>
+          <label>열 번호 (1~13열)</label>
+          <select id="move-d-fcol">
+            <option value="">-</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+            <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+            <option>11</option><option>12</option><option>13</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="move-t-fields" style="display:none;margin-top:8px">
+      <div class="row2">
+        <div>
+          <label>천막 구역 (A~D구역)</label>
+          <select id="move-t-zone">
+            <option value="">-</option>
+            <option value="A">A구역</option><option value="B">B구역</option><option value="C">C구역</option><option value="D">D구역</option>
+          </select>
+        </div>
+        <div>
+          <label>열 번호 (1~10열)</label>
+          <select id="move-col">
+            <option value="">-</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+            <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" onclick="saveMoveLocation()" class="btn btn-dark" style="margin-top:16px">위치 이동 완료</button>
+  </div>
+</div>
+
+<!-- 재고 수정 모달 -->
+<div id="edit-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:flex-end">
+  <div style="background:#fff;border-radius:16px 16px 0 0;padding:20px 20px 40px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <h3 style="font-size:16px;font-weight:600" id="edit-title">항목 수정</h3>
       <button id="edit-close" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--txt2)">✕</button>
     </div>
-    <div id="edit-name-row">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">품목명</label>
-      <input type="text" id="edit-name" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+
+    <label style="margin-top:0">등록 구분 (신규 입고 ↔ 환입 전환)</label>
+    <div class="row2" style="margin-bottom:10px">
+      <div id="edit-kind-in" class="tbtn on" onclick="setEditKind('in')">신규 입고</div>
+      <div id="edit-kind-hwanjip" class="tbtn" onclick="setEditKind('hwanjip')">환입</div>
     </div>
-    <div style="margin-top:12px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">품번</label>
-      <input type="text" id="edit-code" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+
+    <div class="row2">
+      <div><label>품목명</label><input type="text" id="edit-name"></div>
+      <div><label>품번</label><input type="text" id="edit-code"></div>
     </div>
-    <div style="margin-top:12px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">루트번호</label>
-      <input type="text" id="edit-lot" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
-    </div>
-    <div style="margin-top:12px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">품목 유형</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div id="edit-type-normal" class="tbtn on" onclick="setEditType('normal')" style="cursor:pointer">일반</div>
-        <div id="edit-type-fabric" class="tbtn" onclick="setEditType('fabric')" style="cursor:pointer">원단</div>
+    <div class="row2">
+      <div><label>루트번호 (Lot)</label><input type="text" id="edit-lot"></div>
+      <div>
+        <label>카테고리</label>
+        <select id="edit-cat">
+          <option value="카톤">카톤</option>
+          <option value="단상자">단상자</option>
+          <option value="인박스">인박스</option>
+          <option value="사각캡">사각캡</option>
+          <option value="필름">필름</option>
+          <option value="원단">원단</option>
+          <option value="손발원단">손발원단</option>
+          <option value="기타">기타</option>
+        </select>
       </div>
     </div>
-    <div style="margin-top:12px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">카테고리</label>
-      <select id="edit-cat" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
-        <option value="카톤">카톤</option>
-        <option value="원단">원단</option>
-        <option value="단상자">단상자</option>
-        <option value="인박스">인박스</option>
-        <option value="손발원단">손발원단</option>
-        <option value="기타">기타</option>
+
+    <label>품목 유형</label>
+    <div class="row2">
+      <div id="edit-type-normal" class="tbtn on" onclick="setEditType('normal')">일반</div>
+      <div id="edit-type-fabric" class="tbtn" onclick="setEditType('fabric')">원단</div>
+    </div>
+
+    <div id="edit-qty-normal">
+      <label>수량</label>
+      <input type="number" id="edit-qty" min="0" step="any">
+    </div>
+
+    <div id="edit-qty-fabric" style="display:none">
+      <label>원단 단위</label>
+      <select id="edit-fabric-unit" onchange="onEditFabricUnitChange()">
+        <option value="roll">롤 + KG</option>
+        <option value="kg">무게(KG - 환입)</option>
+        <option value="set">SET</option>
+        <option value="m">길이(M)</option>
+        <option value="ea">개수</option>
       </select>
-    </div>
-    <div id="edit-qty-normal" style="margin-top:12px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">수량</label>
-      <input type="number" id="edit-qty" min="0" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
-    </div>
-    <div id="edit-qty-fabric" style="display:none;margin-top:12px">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <div>
-          <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">롤 수</label>
-          <input type="number" id="edit-rolls" min="0" step="0.1" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
-        </div>
-        <div>
-          <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">무게 (kg)</label>
-          <input type="number" id="edit-weight" min="0" step="0.1" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
-        </div>
-        <div>
-          <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">길이 (m)</label>
-          <input type="number" id="edit-meters" min="0" step="0.1" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
-        </div>
+      <div class="row3" style="margin-top:8px">
+        <div><label>롤 수 / 수량</label><input type="number" id="edit-rolls" min="0" step="any"></div>
+        <div><label>무게 (kg)</label><input type="number" id="edit-weight" min="0" step="any"></div>
+        <div><label>길이 (m)</label><input type="number" id="edit-meters" min="0" step="any"></div>
       </div>
     </div>
-    <div style="margin-top:12px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">창고</label>
-      <select id="edit-wh" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
-        <option value="D">D동</option>
-        <option value="T">천막동</option>
-      </select>
+
+    <div class="row2">
+      <div>
+        <label>창고</label>
+        <select id="edit-wh">
+          <option value="D">D동</option>
+          <option value="T">천막동</option>
+        </select>
+      </div>
+      <div>
+        <label>보관 방식</label>
+        <select id="edit-st">
+          <option value="rack">렉 보관</option>
+          <option value="floor">바닥 보관</option>
+        </select>
+      </div>
     </div>
-    <div style="margin-top:12px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">보관 방식</label>
-      <select id="edit-st" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
-        <option value="rack">렉 보관</option>
-        <option value="floor">바닥 보관</option>
-      </select>
-    </div>
-    <div id="edit-rack-fields" style="margin-top:8px">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+
+    <!-- 수정 모달: D동 렉 (A~F동, 1~16호, 1~3층) -->
+    <div id="edit-rack-fields">
+      <div class="row3">
         <div>
-          <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">구역</label>
-          <select id="edit-zone" style="width:100%;padding:9px 6px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+          <label>구역 (A~F동)</label>
+          <select id="edit-zone">
             <option value="">-</option>
-            <option>A</option><option>B</option><option>C</option>
-            <option>D</option><option>E</option><option>F</option>
+            <option value="A">A동</option><option value="B">B동</option><option value="C">C동</option>
+            <option value="D">D동</option><option value="E">E동</option><option value="F">F동</option>
           </select>
         </div>
         <div>
-          <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px" id="edit-rack-label">렉 번호</label>
-          <input type="number" id="edit-rn" min="1" max="14" placeholder="번호" style="width:100%;padding:9px 6px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
-        </div>
-        <div>
-          <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">층</label>
-          <input type="number" id="edit-fl" min="1" max="3" placeholder="1~3" style="width:100%;padding:9px 6px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
-        </div>
-      </div>
-    </div>
-    <div id="edit-floor-fields" style="display:none;margin-top:8px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">바닥 위치</label>
-      <input type="text" id="edit-floc" placeholder="예: A구역 3번" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
-    </div>
-    <!-- 천막동 전용: 구역+열 -->
-    <div id="edit-t-fields" style="display:none;margin-top:8px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div>
-          <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">구역</label>
-          <select id="edit-t-zone" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+          <label id="edit-rack-label">호수 (1~16호)</label>
+          <select id="edit-rn">
             <option value="">-</option>
-            <option>A</option><option>B</option><option>C</option><option>D</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+            <option>5</option><option>6</option><option>7</option><option>8</option>
+            <option>9</option><option>10</option><option>11</option><option>12</option>
+            <option>13</option><option>14</option><option>15</option><option>16</option>
           </select>
         </div>
         <div>
-          <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">열 번호</label>
-          <input type="number" id="edit-col" min="1" max="10" placeholder="1~10" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+          <label>층 (1~3층)</label>
+          <select id="edit-fl">
+            <option value="">-</option>
+            <option>1</option><option>2</option><option>3</option>
+          </select>
         </div>
       </div>
     </div>
-    <div style="margin-top:12px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">입고일</label>
-      <input type="date" id="edit-date" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+
+    <!-- 수정 모달: D동 바닥 (1~3구역, 1~13열) -->
+    <div id="edit-floor-fields" style="display:none">
+      <div class="row2">
+        <div>
+          <label>바닥 구역 (1~3구역)</label>
+          <select id="edit-d-fzone">
+            <option value="">-</option>
+            <option value="1">1구역</option><option value="2">2구역</option><option value="3">3구역</option>
+          </select>
+        </div>
+        <div>
+          <label>열 번호 (1~13열)</label>
+          <select id="edit-d-fcol">
+            <option value="">-</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+            <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+            <option>11</option><option>12</option><option>13</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div style="margin-top:12px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">비고</label>
-      <input type="text" id="edit-note" placeholder="선택 입력" style="width:100%;padding:9px 10px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+
+    <!-- 수정 모달: 천막동 바닥 (A~D구역, 1~10열) -->
+    <div id="edit-t-fields" style="display:none">
+      <div class="row2">
+        <div>
+          <label>천막 구역 (A~D구역)</label>
+          <select id="edit-t-zone">
+            <option value="">-</option>
+            <option value="A">A구역</option><option value="B">B구역</option><option value="C">C구역</option><option value="D">D구역</option>
+          </select>
+        </div>
+        <div>
+          <label>열 번호 (1~10열)</label>
+          <select id="edit-col">
+            <option value="">-</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+            <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <button id="btn-edit-save" style="width:100%;margin-top:16px;padding:12px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">수정 완료</button>
-    <button id="btn-edit-delete" style="width:100%;margin-top:8px;padding:10px;font-size:14px;font-weight:600;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;cursor:pointer">이 항목 삭제</button>
+
+    <div class="row2">
+      <div><label>입고/환입일</label><input type="date" id="edit-date"></div>
+      <div><label>비고</label><input type="text" id="edit-note"></div>
+    </div>
+
+    <button id="btn-edit-save" class="btn btn-dark" style="margin-top:16px">수정 완료</button>
+    <button id="btn-edit-delete" class="btn" style="margin-top:8px;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5">이 항목 삭제</button>
   </div>
 </div>
 
@@ -947,17 +1221,15 @@
       <button id="pw-modal-close" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--txt2)">✕</button>
     </div>
     <div style="margin-bottom:12px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">현재 비밀번호</label>
-      <input type="password" id="pw-current" placeholder="현재 비밀번호 입력"
-        style="width:100%;padding:11px 12px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+      <label>현재 비밀번호</label>
+      <input type="password" id="pw-current" placeholder="현재 비밀번호 입력">
     </div>
     <div style="margin-bottom:20px">
-      <label style="font-size:13px;color:var(--txt2);display:block;margin-bottom:5px">새 비밀번호 (4자 이상)</label>
-      <input type="password" id="pw-new" placeholder="새 비밀번호 입력"
-        style="width:100%;padding:11px 12px;font-size:14px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--txt)">
+      <label>새 비밀번호 (4자 이상)</label>
+      <input type="password" id="pw-new" placeholder="새 비밀번호 입력">
     </div>
     <div id="pw-msg" style="display:none;margin-bottom:12px;padding:10px;border-radius:8px;font-size:13px;text-align:center"></div>
-    <button id="pw-submit" style="width:100%;padding:13px;font-size:15px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer">변경 완료</button>
+    <button id="pw-submit" class="btn btn-dark">변경 완료</button>
   </div>
 </div>
 
