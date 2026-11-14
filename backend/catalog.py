@@ -32,7 +32,11 @@ def save_catalog(items):
 
 
 def upsert_catalog(record):
-    """입고/환입 등록 시 품번 기준으로 기본 정보 및 원단 규격/단위를 갱신합니다."""
+    """
+    입고/환입 등록 시 품번 기준으로 카탈로그를 갱신합니다.
+    - 이미 카탈로그에 규격이 등록된 품목은 기존 평균 규격을 유지하고,
+      'update_default_spec'이 True이거나 처음 등록되는 품번일 때만 기본 규격을 저장합니다.
+    """
     code = (record.get('code') or '').strip()
     if not code:
         return
@@ -41,10 +45,11 @@ def upsert_catalog(record):
     cat         = (record.get('cat') or '').strip()
     item_type   = record.get('item_type') or 'normal'
     fabric_unit = record.get('fabric_unit') or ('roll' if item_type == 'fabric' else '')
-    spec_w      = record.get('spec_w') or 0
-    spec_l      = record.get('spec_l') or 0
-    spec_m      = record.get('spec_m') or 0
-    unit_weight = record.get('unit_weight') or 0
+    spec_w      = float(record.get('spec_w') or 0)
+    spec_l      = float(record.get('spec_l') or 0)
+    spec_m      = float(record.get('spec_m') or 0)
+    unit_weight = float(record.get('unit_weight') or 0)
+    update_spec = bool(record.get('update_default_spec', False))
 
     catalog = load_catalog()
 
@@ -53,20 +58,22 @@ def upsert_catalog(record):
             if name: item['name'] = name
             if cat:  item['cat']  = cat
             item['item_type'] = item_type
-            # 환입 시 임시로 'kg'만 입력한 경우 기존 'roll' 단위 설정은 덮어쓰지 않음
             if fabric_unit and not (record.get('kind') == 'hwanjip' and fabric_unit == 'kg' and item.get('fabric_unit') == 'roll'):
                 item['fabric_unit'] = fabric_unit
-            if spec_w and spec_l and spec_m:
+
+            has_existing_spec = bool(item.get('spec_w') and item.get('spec_l') and item.get('spec_m'))
+            if spec_w and spec_l and spec_m and (not has_existing_spec or update_spec):
                 item['spec_w']      = spec_w
                 item['spec_l']      = spec_l
                 item['spec_m']      = spec_m
-                item['unit_weight'] = round((float(spec_w) * float(spec_l) * float(spec_m)) / 1000000.0, 6)
-            elif unit_weight:
+                item['unit_weight'] = round((spec_w * spec_l * spec_m) / 1000000.0, 6)
+            elif unit_weight and not item.get('unit_weight'):
                 item['unit_weight'] = unit_weight
+
             save_catalog(catalog)
             return
 
-    calc_uw = round((float(spec_w) * float(spec_l) * float(spec_m)) / 1000000.0, 6) if (spec_w and spec_l and spec_m) else unit_weight
+    calc_uw = round((spec_w * spec_l * spec_m) / 1000000.0, 6) if (spec_w and spec_l and spec_m) else unit_weight
     catalog.append({
         'code'       : code,
         'name'       : name,
@@ -85,20 +92,17 @@ def upsert_catalog(record):
 def search_catalog():
     q = (request.args.get('q') or '').strip().lower()
     catalog = load_catalog()
-
     if q:
         catalog = [
             c for c in catalog
             if q in (c.get('code') or '').lower()
             or q in (c.get('name') or '').lower()
         ]
-
     catalog.sort(key=lambda x: (x.get('code') or ''))
     return jsonify({'success': True, 'data': catalog})
 
 
 def _require_admin_or_manager():
-    """운영자(admin) 또는 관리자(manager) 권한 확인"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': '로그인이 필요합니다'}), 401
     if session.get('role') not in ('admin', 'manager'):

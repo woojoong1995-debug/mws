@@ -530,3 +530,32 @@ async function doChangePassword() {
     msgDiv.style.display='block'; msgDiv.style.background='#fef2f2'; msgDiv.style.color='#dc2626'; msgDiv.textContent='서버 연결 오류';
   }
 }
+
+// ═══════════════════════════════════════════
+// 품번 · Lot · 검색창 영문 소문자 → 대문자 자동 변환
+// ═══════════════════════════════════════════
+(function() {
+  var upperIds = [
+    'in-code', 'in-lot',
+    'hj-code', 'hj-lot',
+    'edit-code', 'edit-lot',
+    'cat-code',
+    'stock-search', 'out-search', 'hist-search'
+  ];
+
+  document.addEventListener('input', function(e) {
+    var el = e.target;
+    if (!el || !el.id) return;
+    if (upperIds.indexOf(el.id) !== -1) {
+      var start = el.selectionStart;
+      var end   = el.selectionEnd;
+      var upper = el.value.toUpperCase();
+      if (el.value !== upper) {
+        el.value = upper;
+        if (typeof start === 'number') {
+          el.setSelectionRange(start, end);
+        }
+      }
+    }
+  });
+})();
