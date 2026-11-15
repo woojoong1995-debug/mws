@@ -107,6 +107,7 @@
     <button id="nav-hwanjip" class="material-tab">환입</button>
     <button id="nav-stock" class="material-tab">재고</button>
     <button id="nav-history" class="material-tab">이력/날짜조회</button>
+    <button id="nav-reconcile" class="material-tab">📊 재고대조</button>
     <button id="nav-req-manage" class="material-tab" style="display:none">불출요청</button>
     <button id="nav-req-apply" class="production-tab" style="display:none">불출신청</button>
     <button id="nav-req-status" class="production-tab" style="display:none">신청현황</button>
@@ -182,6 +183,10 @@
       <div class="home-icon-btn" id="home-catalog-btn" style="display:none" onclick="switchTab('catalog', document.getElementById('nav-catalog'))">
         <div class="home-icon-wrap" style="background:linear-gradient(135deg,#5b21b6,#3b1580)"><i class="ti ti-database-edit" style="color:#fff"></i></div>
         <span class="home-icon-label">품목관리</span>
+      </div>
+      <div class="home-icon-btn" onclick="switchTab('reconcile', document.getElementById('nav-reconcile'))">
+        <div class="home-icon-wrap" style="background:linear-gradient(135deg,#0284c7,#0369a1)"><i class="ti ti-scale" style="color:#fff"></i></div>
+        <span class="home-icon-label">재고 대조</span>
       </div>
     </div>
 
@@ -888,6 +893,89 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════
+    [12] 본사 전산 vs MWS 재고 대조 탭
+  ══════════════════════════════════════ -->
+  <div id="sec-reconcile" class="section">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h3 style="font-size:17px;font-weight:800;color:var(--txt)">📊 본사 전산 vs MWS 재고 대조</h3>
+      </div>
+      <p style="font-size:13.5px;color:var(--txt2);margin-bottom:14px">
+        본사 전산 CSV 원본을 그대로 올리면 <b>같은 품번의 수량을 자동 합산</b>하여 MWS 재고와 비교합니다.
+      </p>
+
+      <div class="row2">
+        <div>
+          <label style="margin-top:0">1. 본사 전산 CSV (필수)</label>
+          <input type="file" id="rec-hq-file" accept=".csv" style="background:var(--bg)">
+        </div>
+        <div>
+          <label style="margin-top:0">2. MWS CSV 직접 비교 (선택·인수인계용)</label>
+          <input type="file" id="rec-mws-file" accept=".csv" style="background:var(--bg)">
+          <div style="font-size:12px;color:var(--txt2);margin-top:4px">※ 비워두면 현재 MWS 실시간 재고와 자동 비교됩니다.</div>
+        </div>
+      </div>
+
+      <button type="button" id="btn-run-reconcile" class="btn btn-dark" onclick="runReconcile()" style="margin-top:14px">
+        🔍 재고 자동 대조 실행
+      </button>
+    </div>
+
+    <!-- 대조 결과 영역 -->
+    <div id="rec-result-area" style="display:none">
+      <div id="rec-source-badge" style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px;padding:0 4px"></div>
+
+      <!-- 요약 카드 4개 (클릭 시 해당 상태만 필터링) -->
+      <div class="rec-summary-grid">
+        <div class="rec-stat-card on" data-filter="all" onclick="filterReconcile('all', this)">
+          <div class="rec-stat-title">전체 품번</div>
+          <div class="rec-stat-num" id="rec-cnt-all">0</div>
+        </div>
+        <div class="rec-stat-card" data-filter="diff" onclick="filterReconcile('diff', this)">
+          <div class="rec-stat-title" style="color:#d97706">차이 발생 (전체)</div>
+          <div class="rec-stat-num" id="rec-cnt-diff" style="color:#d97706">0</div>
+        </div>
+        <div class="rec-stat-card" data-filter="short" onclick="filterReconcile('short', this)">
+          <div class="rec-stat-title" style="color:#dc2626">MWS 부족 (-)</div>
+          <div class="rec-stat-num" id="rec-cnt-short" style="color:#dc2626">0</div>
+        </div>
+        <div class="rec-stat-card" data-filter="over" onclick="filterReconcile('over', this)">
+          <div class="rec-stat-title" style="color:#2563eb">MWS 과다 (+)</div>
+          <div class="rec-stat-num" id="rec-cnt-over" style="color:#2563eb">0</div>
+        </div>
+      </div>
+
+      <!-- 검색 & CSV 다운로드 -->
+      <div class="card" style="padding:12px;margin-bottom:12px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="rec-search" placeholder="품번 또는 품목명 검색..." oninput="renderReconcileTable()" style="flex:1;min-width:180px">
+          <button type="button" class="btn btn-light" onclick="downloadReconcileCsv()" style="width:auto;margin-top:0;padding:10px 16px !important">
+            📥 대조 결과 CSV 저장
+          </button>
+        </div>
+      </div>
+
+      <!-- 비교 결과 테이블 -->
+      <div class="rec-table-wrap">
+        <table class="rec-table">
+          <thead>
+            <tr>
+              <th>품번</th>
+              <th>품목명</th>
+              <th style="text-align:right">본사 전산</th>
+              <th style="text-align:right">MWS 재고</th>
+              <th style="text-align:right">차이 (MWS-본사)</th>
+              <th>단위</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody id="rec-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /.app -->
 
 <!-- 홈 이동 확인 모달 -->
@@ -1244,6 +1332,7 @@
 <script src="/js/ocr.js"></script>
 <script src="/js/requests.js"></script>
 <script src="/js/catalog_admin.js"></script>
+<script src="/js/reconcile.js"></script>
 
 </body>
 </html>

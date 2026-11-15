@@ -34,6 +34,7 @@ jobs:
               frontend/js/ocr.js \
               frontend/js/requests.js \
               frontend/js/catalog_admin.js \
+              frontend/js/reconcile.js \
               backend/main.py \
               backend/auth.py \
               backend/users.py \

@@ -389,3 +389,139 @@ input:focus, select:focus, textarea:focus {
     margin-right: auto;
   }
 }
+
+
+/* =====================================================
+   가독성 강화 (큰 글씨 & 높은 명도 대비) + 재고 대조 UI
+   ===================================================== */
+body {
+  font-size: 15px !important;
+  line-height: 1.5;
+}
+
+.app {
+  max-width: 1120px !important;
+}
+
+label {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: var(--txt) !important;
+}
+
+input, select {
+  font-size: 15px !important;
+  padding: 11px 12px !important;
+}
+
+.btn {
+  font-size: 15px !important;
+  padding: 13px 16px !important;
+  font-weight: 700 !important;
+}
+
+.nav button {
+  font-size: 14px !important;
+  padding: 10px 14px !important;
+  font-weight: 700 !important;
+}
+
+.home-stat-value {
+  font-size: 30px !important;
+}
+
+.home-icon-label {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* 재고 대조 전용 스타일 */
+.rec-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 600px) {
+  .rec-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.rec-stat-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.rec-stat-card.on {
+  border-color: var(--blue);
+  background: var(--blue-bg);
+}
+
+.rec-stat-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--txt2);
+}
+
+.rec-stat-num {
+  font-size: 24px;
+  font-weight: 800;
+  margin-top: 4px;
+  color: var(--txt);
+}
+
+.rec-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.rec-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px;
+}
+
+.rec-table th {
+  background: var(--bg);
+  color: var(--txt);
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 2px solid var(--border2);
+  white-space: nowrap;
+}
+
+.rec-table td {
+  padding: 12px 10px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.rec-table tr:hover {
+  background: rgba(10, 132, 255, 0.04);
+}
+
+.rec-badge {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rec-badge-short { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.rec-badge-over  { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+.rec-badge-match { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }

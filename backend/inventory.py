@@ -227,3 +227,255 @@ def transfer_record(record_id):
     item['transfer_at']   = time.strftime('%Y-%m-%d')
     save_data(data)
     return jsonify({'success': True, 'message': '전산 완료 처리됐습니다'})
+
+# =====================================================
+# 재고 대조 API (본사 전산 CSV vs MWS 재고)
+# =====================================================
+import csv
+import io
+import re
+
+def _decode_csv_bytes(raw_bytes):
+    """엑셀 CSV(cp949/euc-kr/utf-8-sig) 인코딩을 자동으로 판별해 디코딩합니다."""
+    for enc in ('utf-8-sig', 'cp949', 'euc-kr', 'utf-8'):
+        try:
+            return raw_bytes.decode(enc)
+        except UnicodeDecodeError:
+            continue
+    return raw_bytes.decode('utf-8', errors='replace')
+
+
+def _parse_qty_and_unit(val_str):
+    """'460.01 kg', '5,930.00 ea', '57,600.00 set' 등에서 숫자와 정규화된 단위를 분리합니다."""
+    s = (val_str or '').strip()
+    if not s:
+        return 0.0, ''
+    m = re.match(r'^([+-]?[\d,]+(?:\.\d+)?)\s*(.*)$', s)
+    if not m:
+        return 0.0, ''
+    num_str = m.group(1).replace(',', '')
+    unit_raw = m.group(2).strip().lower()
+    try:
+        num = float(num_str)
+    except ValueError:
+        num = 0.0
+
+    # 단위 통일
+    if unit_raw in ('kg', 'kgs'):
+        unit = 'kg'
+    elif unit_raw in ('set', 'sets'):
+        unit = 'set'
+    elif unit_raw in ('m', 'meter', 'meters'):
+        unit = 'm'
+    elif unit_raw in ('roll', 'rolls', '롤'):
+        unit = 'roll'
+    elif unit_raw in ('ea', '개', 'pcs', ''):
+        unit = 'ea'
+    else:
+        unit = unit_raw
+    return num, unit
+
+
+def _parse_hq_csv(text):
+    """본사 전산 CSV(제품, 기초 수량 / A열 빈칸 이어받기)를 파싱해 품번별 총합을 반환합니다."""
+    reader = csv.reader(io.StringIO(text))
+    rows = list(reader)
+    if not rows:
+        return {}
+
+    # 헤더 위치 자동 탐색 (기본: 0열=제품/품번, 1열=기초 수량)
+    code_idx, qty_idx = 0, 1
+    start_row = 0
+    for r_i, row in enumerate(rows[:5]):
+        joined = ' '.join(row)
+        if '제품' in joined or '품번' in joined or '수량' in joined:
+            for c_i, cell in enumerate(row):
+                c_clean = cell.strip()
+                if c_clean in ('제품', '품번', '품목코드'):
+                    code_idx = c_i
+                elif '수량' in c_clean or '재고' in c_clean:
+                    qty_idx = c_i
+            start_row = r_i + 1
+            break
+
+    hq_map = {}
+    last_code = ''
+
+    for row in rows[start_row:]:
+        if not row or len(row) <= qty_idx:
+            continue
+        raw_code = (row[code_idx] if len(row) > code_idx else '').strip().upper()
+        raw_qty  = (row[qty_idx]  if len(row) > qty_idx  else '').strip()
+
+        if raw_code in ('합계', '총계', 'TOTAL', '소계'):
+            continue
+
+        if raw_code:
+            last_code = raw_code
+        code = last_code
+        if not code or not raw_qty:
+            continue
+
+        val, unit = _parse_qty_and_unit(raw_qty)
+        if code not in hq_map:
+            hq_map[code] = {'qty': 0.0, 'unit': unit or 'ea'}
+        hq_map[code]['qty'] += val
+        if unit and hq_map[code]['unit'] == 'ea':
+            hq_map[code]['unit'] = unit
+
+    return hq_map
+
+
+def _parse_mws_csv(text):
+    """직접 업로드한 MWS 내보내기 CSV(품번|LotNo|품목명|창고|위치|수량|단위)를 파싱합니다."""
+    reader = csv.reader(io.StringIO(text))
+    rows = list(reader)
+    if not rows:
+        return {}
+
+    mws_map = {}
+    start_row = 1 if rows and ('품번' in rows[0][0] or 'Lot' in ''.join(rows[0])) else 0
+
+    for row in rows[start_row:]:
+        if len(row) < 6:
+            continue
+        code = (row[0] or '').strip().upper()
+        name = (row[2] or '').strip()
+        val, parsed_unit = _parse_qty_and_unit(row[5])
+        unit_col = (row[6] if len(row) > 6 else '').strip().lower()
+        unit = 'roll' if unit_col == '롤' else ('ea' if unit_col == '개' else (unit_col or parsed_unit or 'ea'))
+
+        if not code:
+            continue
+        if code not in mws_map:
+            mws_map[code] = {'name': name, 'qty': 0.0, 'unit': unit, 'kg': 0.0, 'rolls': 0.0}
+        mws_map[code]['qty'] += val
+        if not mws_map[code]['name'] and name:
+            mws_map[code]['name'] = name
+    return mws_map
+
+
+@inventory_bp.route('/api/reconcile', methods=['POST'])
+def reconcile_inventory():
+    """본사 전산 CSV와 MWS 재고(실시간 DB 또는 업로드 CSV)를 품번 기준으로 자동 대조합니다."""
+    if 'hq_file' not in request.files:
+        return jsonify({'success': False, 'message': '본사 전산 CSV 파일을 첨부해 주세요'}), 400
+
+    hq_file = request.files['hq_file']
+    hq_text = _decode_csv_bytes(hq_file.read())
+    hq_map  = _parse_hq_csv(hq_text)
+
+    if not hq_map:
+        return jsonify({'success': False, 'message': '본사 CSV에서 유효한 품번/수량 데이터를 찾지 못했습니다'}), 400
+
+    # 카탈로그 품목명 매핑용
+    catalog = load_catalog()
+    cat_names = {(c.get('code') or '').strip().upper(): (c.get('name') or '') for c in catalog}
+
+    # MWS 데이터 소스 결정: 직접 첨부한 MWS CSV가 있으면 사용, 없으면 실시간 DB(data.json) 사용
+    mws_file = request.files.get('mws_file')
+    use_uploaded_mws = bool(mws_file and mws_file.filename)
+
+    mws_db_map = {}
+    if use_uploaded_mws:
+        mws_text = _decode_csv_bytes(mws_file.read())
+        mws_csv_map = _parse_mws_csv(mws_text)
+        for code, info in mws_csv_map.items():
+            mws_db_map[code] = {
+                'name' : info['name'] or cat_names.get(code, ''),
+                'ea'   : info['qty'] if info['unit'] == 'ea' else 0.0,
+                'set'  : info['qty'] if info['unit'] == 'set' else 0.0,
+                'kg'   : info['qty'] if info['unit'] == 'kg' else 0.0,
+                'm'    : info['qty'] if info['unit'] == 'm' else 0.0,
+                'roll' : info['qty'] if info['unit'] == 'roll' else 0.0,
+                'default_unit': info['unit'],
+            }
+    else:
+        data = load_data()
+        for d in data:
+            if d.get('kind') not in ('in', 'hwanjip') or d.get('depleted'):
+                continue
+            code = (d.get('code') or '').strip().upper()
+            if not code:
+                continue
+            if code not in mws_db_map:
+                mws_db_map[code] = {
+                    'name': d.get('name') or cat_names.get(code, ''),
+                    'ea': 0.0, 'set': 0.0, 'kg': 0.0, 'm': 0.0, 'roll': 0.0,
+                    'default_unit': 'ea'
+                }
+            if not mws_db_map[code]['name'] and d.get('name'):
+                mws_db_map[code]['name'] = d.get('name')
+
+            if d.get('item_type') == 'fabric':
+                fu = d.get('fabric_unit') or 'roll'
+                if fu == 'roll':
+                    mws_db_map[code]['roll'] += float(d.get('rolls') or 0)
+                    mws_db_map[code]['kg']   += float(d.get('weight') or 0)
+                    mws_db_map[code]['default_unit'] = 'kg'
+                elif fu == 'kg':
+                    mws_db_map[code]['kg']   += float(d.get('weight') or d.get('qty') or 0)
+                    mws_db_map[code]['default_unit'] = 'kg'
+                elif fu == 'm':
+                    mws_db_map[code]['m']    += float(d.get('meters') or d.get('qty') or 0)
+                    mws_db_map[code]['default_unit'] = 'm'
+                elif fu == 'set':
+                    mws_db_map[code]['set']  += float(d.get('qty') or 0)
+                    mws_db_map[code]['default_unit'] = 'set'
+                else:
+                    mws_db_map[code]['ea']   += float(d.get('qty') or 0)
+                    mws_db_map[code]['default_unit'] = 'ea'
+            else:
+                mws_db_map[code]['ea'] += float(d.get('qty') or 0)
+
+    all_codes = sorted(set(hq_map.keys()) | set(mws_db_map.keys()))
+    results = []
+    summary = {'total': 0, 'match': 0, 'short': 0, 'over': 0}
+
+    for code in all_codes:
+        hq_info  = hq_map.get(code)
+        mws_info = mws_db_map.get(code)
+
+        unit = hq_info['unit'] if hq_info else (mws_info['default_unit'] if mws_info else 'ea')
+        hq_qty = round(hq_info['qty'], 3) if hq_info else 0.0
+
+        if mws_info:
+            # 본사 CSV 단위에 맞춰 MWS 재고 합산값을 자동 매칭 (원단 kg vs 롤 자동 대응)
+            mws_qty = round(mws_info.get(unit, 0.0), 3)
+            if mws_qty == 0 and unit == 'ea' and mws_info.get('set', 0) > 0:
+                mws_qty = round(mws_info['set'], 3)
+        else:
+            mws_qty = 0.0
+
+        diff = round(mws_qty - hq_qty, 3)
+        # 소수점 미세 오차(0.05 이하)는 일치로 간주
+        if abs(diff) <= 0.05:
+            diff = 0.0
+            status = 'match'
+            summary['match'] += 1
+        elif diff < 0:
+            status = 'short'
+            summary['short'] += 1
+        else:
+            status = 'over'
+            summary['over'] += 1
+
+        summary['total'] += 1
+        name = (mws_info['name'] if mws_info and mws_info['name'] else cat_names.get(code, '-'))
+
+        results.append({
+            'code'   : code,
+            'name'   : name,
+            'hq_qty' : hq_qty,
+            'mws_qty': mws_qty,
+            'diff'   : diff,
+            'unit'   : unit,
+            'status' : status,
+        })
+
+    return jsonify({
+        'success': True,
+        'summary': summary,
+        'results': results,
+        'source' : '업로드된 MWS CSV' if use_uploaded_mws else 'MWS 실시간 재고'
+    })
