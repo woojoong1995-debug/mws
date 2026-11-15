@@ -69,7 +69,7 @@ def detect_category(name):
 
 
 def export_to_csv():
-    """현재 재고 데이터를 엑셀 호환 CSV 문자열로 변환합니다."""
+    """전산 대조용 현재 재고 데이터를 엑셀 호환 CSV 문자열로 변환합니다."""
     data = load_data()
     data = [d for d in data if d.get('kind') in ('in', 'hwanjip') and not d.get('depleted')]
     if not data:
@@ -77,39 +77,38 @@ def export_to_csv():
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow([
-        '종류', '카테고리', '유형', '원단단위', '품목명', '품번', '규격',
-        'LotNo', '창고', '위치', '수량/SET/개수', '롤수', '무게(kg)', '길이(m)',
-        '루트', 'PO', '담당자', '날짜', '비고'
-    ])
+    writer.writerow(['품번', 'LotNo', '품목명', '창고', '위치', '수량', '단위'])
 
-    kind_map = {'in': '입고', 'out': '불출', 'hwanjip': '환입'}
-    unit_map = {'roll': '롤+KG', 'kg': 'KG(환입)', 'm': '길이(m)', 'set': 'SET', 'ea': '개수'}
+    unit_map = {
+        'roll': '롤',
+        'kg': 'kg',
+        'm': 'm',
+        'set': 'SET',
+        'ea': '개'
+    }
 
     for d in data:
-        spec_txt = ''
-        if d.get('spec_w') and d.get('spec_l') and d.get('spec_m'):
-            spec_txt = f"{d.get('spec_w')}x{d.get('spec_l')}x{d.get('spec_m')}"
+        if d.get('item_type') == 'fabric':
+            fu = d.get('fabric_unit', 'roll')
+            if fu == 'kg':
+                qty = d.get('weight') or d.get('qty', 0)
+            elif fu == 'm':
+                qty = d.get('meters') or d.get('qty', 0)
+            else:
+                qty = d.get('rolls') if d.get('rolls') is not None else d.get('qty', 0)
+            unit = unit_map.get(fu, '롤')
+        else:
+            qty = d.get('qty', 0)
+            unit = unit_map.get(d.get('unit', ''), '개')
+
         writer.writerow([
-            kind_map.get(d.get('kind', ''), ''),
-            d.get('cat', ''),
-            '원단' if d.get('item_type') == 'fabric' else '일반',
-            unit_map.get(d.get('fabric_unit', ''), '') if d.get('item_type') == 'fabric' else '개',
-            d.get('name', ''),
             d.get('code', ''),
-            spec_txt,
             d.get('lot', ''),
+            d.get('name', ''),
             d.get('wh', ''),
             d.get('loc', ''),
-            d.get('qty', 0),
-            d.get('rolls', ''),
-            d.get('weight', ''),
-            d.get('meters', ''),
-            d.get('route', ''),
-            d.get('po', ''),
-            d.get('person', ''),
-            d.get('date', ''),
-            d.get('note', ''),
+            qty,
+            unit,
         ])
 
     return '\ufeff' + output.getvalue()
