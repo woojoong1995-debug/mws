@@ -101,7 +101,7 @@ function updateWh(p) {
   var wh = document.getElementById(p + '-wh').value;
   var st = document.getElementById(p + '-st');
 
-  if (wh === 'T') {
+  if (wh === 'T' || wh === 'O') {
     if (st) { st.value = 'floor'; st.disabled = true; }
   } else {
     if (st) { st.disabled = false; if (!st.value) st.value = 'rack'; }
@@ -116,7 +116,7 @@ function updateStorage(p) {
   var ff = document.getElementById(p + '-floor-fields');
   var tf = document.getElementById(p + '-t-fields');
 
-  if (wh === 'T') {
+  if (wh === 'T' || wh === 'O') {
     if (rf) rf.style.display = 'none';
     if (ff) ff.style.display = 'none';
     if (tf) tf.style.display = 'block';
@@ -133,10 +133,11 @@ function buildLoc(p) {
   if (!wh) return '';
   var st = (document.getElementById(p + '-st') || {}).value || 'rack';
 
-  if (wh === 'T') {
-    var tZone = (document.getElementById(p + '-t-zone') || {}).value || '';
-    var tCol  = (document.getElementById(p + '-col')    || {}).value || '';
-    if (tZone && tCol) return '천막동 ' + tZone + '구역 ' + tCol + '열';
+  if (wh === 'T' || wh === 'O') {
+    var whName = wh === 'T' ? '천막동' : '사무동';
+    var tZone  = (document.getElementById(p + '-t-zone') || {}).value || '';
+    var tCol   = (document.getElementById(p + '-col')    || {}).value || '';
+    if (tZone && tCol) return whName + ' ' + tZone + '구역 ' + tCol + '열';
     return '';
   }
 

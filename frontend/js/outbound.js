@@ -277,9 +277,12 @@ function setMaxQty() {
 }
 
 // ═══════════════════════════════════════════
-// 불출 확정
+// 불출 확정 (중복 클릭 방지 적용)
 // ═══════════════════════════════════════════
+var _isDispatching = false;
+
 async function submitDispatch() {
+  if (_isDispatching) return;
   if (!selectedDpItem) { showToast('품목을 먼저 선택하세요'); return; }
   if (!selectedFifoItems || selectedFifoItems.length === 0) { showToast('불출할 항목을 선택하세요'); return; }
 
@@ -393,6 +396,10 @@ async function submitDispatch() {
 
   if (!payloads.length) { showToast('불출할 수량이 없습니다'); return; }
 
+  _isDispatching = true;
+  var btn = document.getElementById('btn-submit-dp');
+  if (btn) { btn.disabled = true; btn.textContent = '처리 중...'; }
+
   try {
     var okCount = 0;
     for (var i = 0; i < payloads.length; i++) {
@@ -412,6 +419,9 @@ async function submitDispatch() {
     }
   } catch(e) {
     showToast('서버 연결 오류');
+  } finally {
+    _isDispatching = false;
+    if (btn) { btn.disabled = false; btn.textContent = '불출 확정'; }
   }
 }
 

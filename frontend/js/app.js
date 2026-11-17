@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.getElementById('edit-st').addEventListener('change', function(){
     var wh = document.getElementById('edit-wh').value;
-    if (wh === 'T') {
+    if (wh === 'T' || wh === 'O') {
       document.getElementById('edit-rack-fields') .style.display = 'none';
       document.getElementById('edit-floor-fields').style.display = 'none';
       document.getElementById('edit-t-fields')    .style.display = 'block';
@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   document.getElementById('edit-wh').addEventListener('change', function(){
     var wh = this.value;
-    if (wh === 'T') {
+    if (wh === 'T' || wh === 'O') {
       document.getElementById('edit-st').value = 'floor';
       document.getElementById('edit-rack-fields') .style.display = 'none';
       document.getElementById('edit-floor-fields').style.display = 'none';

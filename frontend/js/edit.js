@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════
-// 빠른 위치 이동 모달 (위치만 단독 변경)
+// 빠른 위치 이동 모달 (위치만 단독 변경 - D동 / 천막동 / 사무동 지원)
 // ═══════════════════════════════════════════
 var movingId   = null;
 var movingData = null;
@@ -23,7 +23,7 @@ function openMoveModal(id) {
       document.getElementById('move-wh').value = wh;
       onMoveWhChange();
 
-      if (wh === 'T') {
+      if (wh === 'T' || wh === 'O') {
         var tZoneM = loc.match(/([A-D])구역/);
         var tColM  = loc.match(/(\d+)열/);
         document.getElementById('move-t-zone').value = tZoneM ? tZoneM[1] : '';
@@ -53,7 +53,7 @@ function openMoveModal(id) {
 function onMoveWhChange() {
   var wh = document.getElementById('move-wh').value;
   var st = document.getElementById('move-st');
-  if (wh === 'T') {
+  if (wh === 'T' || wh === 'O') {
     st.value = 'floor';
     st.disabled = true;
     document.getElementById('move-rack-fields') .style.display = 'none';
@@ -67,7 +67,7 @@ function onMoveWhChange() {
 
 function onMoveStChange() {
   var wh = document.getElementById('move-wh').value;
-  if (wh === 'T') return;
+  if (wh === 'T' || wh === 'O') return;
   var st = document.getElementById('move-st').value;
   document.getElementById('move-rack-fields') .style.display = st === 'rack'  ? 'block' : 'none';
   document.getElementById('move-floor-fields').style.display = st === 'floor' ? 'block' : 'none';
@@ -77,10 +77,11 @@ function onMoveStChange() {
 function buildMoveLoc() {
   var wh = document.getElementById('move-wh').value;
   var st = document.getElementById('move-st').value;
-  if (wh === 'T') {
-    var zone = document.getElementById('move-t-zone').value;
-    var col  = document.getElementById('move-col').value;
-    return (zone && col) ? ('천막동 ' + zone + '구역 ' + col + '열') : '';
+  if (wh === 'T' || wh === 'O') {
+    var whName = wh === 'T' ? '천막동' : '사무동';
+    var zone   = document.getElementById('move-t-zone').value;
+    var col    = document.getElementById('move-col').value;
+    return (zone && col) ? (whName + ' ' + zone + '구역 ' + col + '열') : '';
   }
   if (st === 'rack') {
     var zone = document.getElementById('move-zone').value;
@@ -174,7 +175,7 @@ function openEditModal(id) {
       var loc = item.loc || '';
       document.getElementById('edit-wh').value = wh;
 
-      if (wh === 'T') {
+      if (wh === 'T' || wh === 'O') {
         document.getElementById('edit-st').value = 'floor';
         document.getElementById('edit-rack-fields') .style.display = 'none';
         document.getElementById('edit-floor-fields').style.display = 'none';
@@ -213,11 +214,12 @@ function buildEditLoc() {
   var wh = document.getElementById('edit-wh').value;
   var st = document.getElementById('edit-st').value;
 
-  if (wh === 'T') {
-    var zone = document.getElementById('edit-t-zone').value;
-    var col  = document.getElementById('edit-col').value;
-    if (zone && col) return '천막동 ' + zone + '구역 ' + col + '열';
-    return '천막동';
+  if (wh === 'T' || wh === 'O') {
+    var whName = wh === 'T' ? '천막동' : '사무동';
+    var zone   = document.getElementById('edit-t-zone').value;
+    var col    = document.getElementById('edit-col').value;
+    if (zone && col) return whName + ' ' + zone + '구역 ' + col + '열';
+    return whName;
   }
 
   if (st === 'rack') {
