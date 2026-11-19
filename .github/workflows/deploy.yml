@@ -35,6 +35,7 @@ jobs:
               frontend/js/requests.js \
               frontend/js/catalog_admin.js \
               frontend/js/reconcile.js \
+              frontend/js/pending.js \
               backend/main.py \
               backend/auth.py \
               backend/users.py \
@@ -47,5 +48,6 @@ jobs:
               backend/ocr.py \
               backend/req.py \
               backend/catalog.py \
-              backend/build_catalog.py
+              backend/build_catalog.py \
+              backend/pending.py
             systemctl restart warehouse
