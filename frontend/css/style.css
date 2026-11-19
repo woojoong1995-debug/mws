@@ -522,6 +522,47 @@ input, select {
   white-space: nowrap;
 }
 
+/* ── 모바일 & PC 레이아웃 겹침/찌그러짐 완벽 방지 ── */
+@media (max-width: 768px) {
+  .app {
+    display: block !important;
+    max-width: 480px !important;
+    width: 100% !important;
+    padding: 12px !important;
+  }
+  .nav {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    margin-bottom: 14px !important;
+  }
+  .section.active {
+    display: block !important;
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .app {
+    display: block !important;
+    max-width: 960px !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+  }
+  .nav {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    margin-bottom: 18px !important;
+  }
+  .section.active {
+    display: block !important;
+    width: 100% !important;
+  }
+}
+
 .rec-badge-short { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 .rec-badge-over  { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
 .rec-badge-match { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
