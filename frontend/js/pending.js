@@ -253,12 +253,13 @@ function renderOcrPreviewModal(supplier, dueDate) {
   document.getElementById('pd-ocr-date').value     = dueDate;
 
   if (!ocrParsedRows.length) {
-    body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px">인식된 품목이 없습니다</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px">인식된 품목이 없습니다</td></tr>';
   } else {
     body.innerHTML = ocrParsedRows.map(function(r, idx) {
       return '<tr>' +
-        '<td><input type="text" value="' + (r.code || '') + '" onchange="ocrParsedRows[' + idx + '].code=this.value.toUpperCase()" style="padding:6px;font-size:12px"></td>' +
-        '<td><input type="text" value="' + (r.name || '') + '" onchange="ocrParsedRows[' + idx + '].name=this.value" style="padding:6px;font-size:12px"></td>' +
+        '<td><input type="text" value="' + (r.code || '') + '" onchange="ocrParsedRows[' + idx + '].code=this.value.toUpperCase()" style="padding:6px;font-size:12px;min-width:95px"></td>' +
+        '<td><input type="text" value="' + (r.name || '') + '" onchange="ocrParsedRows[' + idx + '].name=this.value" style="padding:6px;font-size:12px;min-width:130px"></td>' +
+        '<td><input type="text" value="' + (r.lot || '') + '" placeholder="Lot No" onchange="ocrParsedRows[' + idx + '].lot=this.value.toUpperCase()" style="padding:6px;font-size:12px;width:85px"></td>' +
         '<td><input type="number" value="' + (r.qty || 0) + '" onchange="ocrParsedRows[' + idx + '].qty=parseFloat(this.value)||0" style="padding:6px;font-size:12px;width:75px"></td>' +
         '<td><input type="text" value="' + (r.unit || '개') + '" onchange="ocrParsedRows[' + idx + '].unit=this.value" style="padding:6px;font-size:12px;width:55px"></td>' +
         '<td><button type="button" onclick="ocrParsedRows.splice(' + idx + ',1);renderOcrPreviewModal(document.getElementById(\'pd-ocr-supplier\').value, document.getElementById(\'pd-ocr-date\').value)" style="background:none;border:none;color:#dc2626;cursor:pointer">✕</button></td>' +
