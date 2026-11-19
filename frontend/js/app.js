@@ -263,12 +263,14 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('login-password').addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
   document.getElementById('login-username').addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
 
-  ['in-date','dp-date','hj-date','ra-date'].forEach(function(id){ var el = document.getElementById(id); if (el) el.value = TODAY; });
+  ['in-date','dp-date','hj-date','ra-date','pd-date'].forEach(function(id){ var el = document.getElementById(id); if (el) el.value = TODAY; });
   fetch(API + '/cleanup', { method:'POST', credentials:'include' }).catch(function(){});
 
   // 탭 네비게이션
   document.getElementById('nav-home')      .addEventListener('click', function(){ switchTab('home',       this); });
   document.getElementById('nav-inbound')   .addEventListener('click', function(){ switchTab('inbound',    this); });
+  var navPending = document.getElementById('nav-pending');
+  if (navPending) navPending.addEventListener('click', function(){ switchTab('pending', this); });
   document.getElementById('nav-dispatch')  .addEventListener('click', function(){ switchTab('dispatch',   this); });
   document.getElementById('nav-hwanjip')   .addEventListener('click', function(){ switchTab('hwanjip',    this); });
   document.getElementById('nav-stock')     .addEventListener('click', function(){ switchTab('stock',      this); });
@@ -477,6 +479,7 @@ function switchTab(name, btn) {
     var dpPerson = document.getElementById('dp-person');
     if (dpPerson && !dpPerson.value) dpPerson.value = currentUser.name;
   }
+  if (name === 'pending'    && typeof loadPending   === 'function') loadPending();
   if (name === 'stock')      if (typeof loadStock     === 'function') loadStock();
   if (name === 'prod-stock') if (typeof loadProdStock === 'function') loadProdStock();
   if (name === 'history') {
@@ -539,7 +542,7 @@ async function doChangePassword() {
     'in-code', 'in-lot',
     'hj-code', 'hj-lot',
     'edit-code', 'edit-lot',
-    'cat-code',
+    'cat-code', 'pd-code', 'pd-lot', 'rcv-lot',
     'stock-search', 'out-search', 'hist-search'
   ];
 

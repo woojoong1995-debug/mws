@@ -23,7 +23,7 @@ def add_inbound():
         return jsonify({'success': False, 'message': '위치를 입력하세요'}), 400
 
     if not body.get('cat'):
-        body['cat'] = detect_category(body.get('name', ''))
+        body['cat'] = detect_category(body.get('name', ''), body.get('code', ''))
 
     if not body.get('person'):
         body['person'] = ''

@@ -103,6 +103,7 @@
   <div class="nav">
     <button id="nav-home" class="active">🏠 홈</button>
     <button id="nav-inbound" class="material-tab">입고</button>
+    <button id="nav-pending" class="material-tab">📥 입고대기 <span id="pending-nav-badge" style="display:none;background:#dc2626;color:#fff;font-size:11px;padding:1px 6px;border-radius:99px;margin-left:3px">0</span></button>
     <button id="nav-dispatch" class="material-tab">불출</button>
     <button id="nav-hwanjip" class="material-tab">환입</button>
     <button id="nav-stock" class="material-tab">재고</button>
@@ -163,6 +164,10 @@
       <div class="home-icon-btn" onclick="switchTab('inbound', document.getElementById('nav-inbound'))">
         <div class="home-icon-wrap" style="background:linear-gradient(135deg,#1c1c1e,#3a3a3c)"><i class="ti ti-package-import" style="color:#fff"></i></div>
         <span class="home-icon-label">입고 등록</span>
+      </div>
+      <div class="home-icon-btn" onclick="switchTab('pending', document.getElementById('nav-pending'))">
+        <div class="home-icon-wrap" style="background:linear-gradient(135deg,#059669,#047857)"><i class="ti ti-truck-loading" style="color:#fff"></i></div>
+        <span class="home-icon-label">입고 대기</span>
       </div>
       <div class="home-icon-btn" id="home-dispatch-btn" onclick="switchTab('dispatch', document.getElementById('nav-dispatch'))">
         <div class="home-icon-wrap" style="background:linear-gradient(135deg,#0a84ff,#0066cc)"><i class="ti ti-package-export" style="color:#fff"></i></div>
@@ -351,12 +356,15 @@
       <!-- 카테고리 (사각캡, 필름 추가) -->
       <label>카테고리</label>
       <input type="hidden" id="in-cat">
-      <div id="in-cat-normal" style="display:grid;grid-template-columns:repeat(5, 1fr);gap:6px">
+      <div id="in-cat-normal" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:6px">
         <div class="cat-choice" data-p="in" data-cat="카톤" onclick="pickCat('in','카톤')">카톤</div>
         <div class="cat-choice" data-p="in" data-cat="인박스" onclick="pickCat('in','인박스')">인박스</div>
         <div class="cat-choice" data-p="in" data-cat="단상자" onclick="pickCat('in','단상자')">단상자</div>
         <div class="cat-choice" data-p="in" data-cat="사각캡" onclick="pickCat('in','사각캡')">사각캡</div>
         <div class="cat-choice" data-p="in" data-cat="필름" onclick="pickCat('in','필름')">필름</div>
+        <div class="cat-choice" data-p="in" data-cat="스티커" onclick="pickCat('in','스티커')">스티커</div>
+        <div class="cat-choice" data-p="in" data-cat="튜브" onclick="pickCat('in','튜브')">튜브</div>
+        <div class="cat-choice" data-p="in" data-cat="사급제품" onclick="pickCat('in','사급제품')">사급제품</div>
       </div>
       <div id="in-cat-fabric" style="display:none;grid-template-columns:1fr 1fr;gap:6px">
         <div class="cat-choice" data-p="in" data-cat="원단" onclick="pickCat('in','원단')">원단</div>
@@ -443,6 +451,9 @@
         <div class="dp-cat-btn" data-cat="인박스" onclick="pickDpCat(this,'인박스')">인박스</div>
         <div class="dp-cat-btn" data-cat="사각캡" onclick="pickDpCat(this,'사각캡')">사각캡</div>
         <div class="dp-cat-btn" data-cat="필름" onclick="pickDpCat(this,'필름')">필름</div>
+        <div class="dp-cat-btn" data-cat="스티커" onclick="pickDpCat(this,'스티커')">스티커</div>
+        <div class="dp-cat-btn" data-cat="튜브" onclick="pickDpCat(this,'튜브')">튜브</div>
+        <div class="dp-cat-btn" data-cat="사급제품" onclick="pickDpCat(this,'사급제품')">사급제품</div>
         <div class="dp-cat-btn" data-cat="원단" onclick="pickDpCat(this,'원단')">원단</div>
         <div class="dp-cat-btn" data-cat="손발원단" onclick="pickDpCat(this,'손발원단')">손발원단</div>
       </div>
@@ -640,12 +651,15 @@
 
       <label>카테고리</label>
       <input type="hidden" id="hj-cat">
-      <div id="hj-cat-normal" style="display:grid;grid-template-columns:repeat(5, 1fr);gap:6px">
+      <div id="hj-cat-normal" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:6px">
         <div class="cat-choice" data-p="hj" data-cat="카톤" onclick="pickCat('hj','카톤')">카톤</div>
         <div class="cat-choice" data-p="hj" data-cat="인박스" onclick="pickCat('hj','인박스')">인박스</div>
         <div class="cat-choice" data-p="hj" data-cat="단상자" onclick="pickCat('hj','단상자')">단상자</div>
         <div class="cat-choice" data-p="hj" data-cat="사각캡" onclick="pickCat('hj','사각캡')">사각캡</div>
         <div class="cat-choice" data-p="hj" data-cat="필름" onclick="pickCat('hj','필름')">필름</div>
+        <div class="cat-choice" data-p="hj" data-cat="스티커" onclick="pickCat('hj','스티커')">스티커</div>
+        <div class="cat-choice" data-p="hj" data-cat="튜브" onclick="pickCat('hj','튜브')">튜브</div>
+        <div class="cat-choice" data-p="hj" data-cat="사급제품" onclick="pickCat('hj','사급제품')">사급제품</div>
       </div>
       <div id="hj-cat-fabric" style="display:none;grid-template-columns:1fr 1fr;gap:6px">
         <div class="cat-choice" data-p="hj" data-cat="원단" onclick="pickCat('hj','원단')">원단</div>
@@ -714,6 +728,9 @@
       <button class="cat-btn" data-cat="인박스">인박스</button>
       <button class="cat-btn" data-cat="사각캡">사각캡</button>
       <button class="cat-btn" data-cat="필름">필름</button>
+      <button class="cat-btn" data-cat="스티커">스티커</button>
+      <button class="cat-btn" data-cat="튜브">튜브</button>
+      <button class="cat-btn" data-cat="사급제품">사급제품</button>
       <button class="cat-btn" data-cat="원단">원단</button>
       <button class="cat-btn" data-cat="손발원단">손발원단</button>
       <button class="cat-btn" data-cat="기타">기타</button>
@@ -855,6 +872,9 @@
       <button class="ps-cat-btn" data-cat="인박스">인박스</button>
       <button class="ps-cat-btn" data-cat="사각캡">사각캡</button>
       <button class="ps-cat-btn" data-cat="필름">필름</button>
+      <button class="ps-cat-btn" data-cat="스티커">스티커</button>
+      <button class="ps-cat-btn" data-cat="튜브">튜브</button>
+      <button class="ps-cat-btn" data-cat="사급제품">사급제품</button>
       <button class="ps-cat-btn" data-cat="원단">원단</button>
       <button class="ps-cat-btn" data-cat="손발원단">손발원단</button>
       <button class="ps-cat-btn" data-cat="기타">기타</button>
@@ -1171,6 +1191,9 @@
           <option value="인박스">인박스</option>
           <option value="사각캡">사각캡</option>
           <option value="필름">필름</option>
+          <option value="스티커">스티커</option>
+          <option value="튜브">튜브</option>
+          <option value="사급제품">사급제품</option>
           <option value="원단">원단</option>
           <option value="손발원단">손발원단</option>
           <option value="기타">기타</option>
@@ -1330,6 +1353,197 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+    [13] 입고 대기 목록 & 파레트별 분할 적치 탭
+  ══════════════════════════════════════ -->
+  <div id="sec-pending" class="section">
+    <div class="card">
+      <h3 style="font-size:16px;font-weight:800;margin-bottom:6px">📥 입고 대기 목록 (명세서 등록 & 파레트 분할 적치)</h3>
+      <p style="font-size:12.5px;color:var(--txt2);margin-bottom:12px">
+        거래명세서를 촬영하거나 수기로 예정을 등록한 뒤, 도착하는 <b>파레트 단위로 나눠서</b> 창고·위치에 적치할 수 있습니다.
+      </p>
+
+      <input type="file" id="ocr-file-statement" accept="image/*" style="display:none" onchange="handleStatementOcr(event)">
+      <button type="button" id="btn-ocr-statement" class="btn btn-dark" onclick="document.getElementById('ocr-file-statement').click()" style="margin-bottom:12px">
+        📷 거래명세서 촬영으로 일괄 대기 등록
+      </button>
+
+      <details style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--border)">
+        <summary style="font-size:13px;font-weight:700;cursor:pointer;color:var(--txt)">＋ 수기로 입고 대기 직접 추가</summary>
+        <div style="margin-top:10px">
+          <div class="row2">
+            <div><label style="margin-top:0">품번</label><input type="text" id="pd-code" placeholder="예: G11P000013"></div>
+            <div><label style="margin-top:0">품목명</label><input type="text" id="pd-name" placeholder="품번 입력 시 자동완성"></div>
+          </div>
+          <div class="row3">
+            <div><label>총 예정 수량</label><input type="number" id="pd-qty" placeholder="예: 3840"></div>
+            <div>
+              <label>단위</label>
+              <select id="pd-unit">
+                <option value="개">개</option>
+                <option value="롤">롤</option>
+                <option value="SET">SET</option>
+                <option value="m">m</option>
+                <option value="kg">kg</option>
+                <option value="톤">톤</option>
+              </select>
+            </div>
+            <div><label>Lot No</label><input type="text" id="pd-lot" placeholder="선택"></div>
+          </div>
+          <div class="row2">
+            <div><label>공급업체</label><input type="text" id="pd-supplier" placeholder="선택"></div>
+            <div><label>입고 예정일</label><input type="date" id="pd-date"></div>
+          </div>
+          <button type="button" class="btn btn-light" onclick="submitManualPending()" style="margin-top:10px">대기 목록에 추가</button>
+        </div>
+      </details>
+    </div>
+
+    <div id="pending-list"></div>
+  </div>
+
+  <!-- 거래명세서 OCR 판독 결과 확인 모달 -->
+  <div id="pending-ocr-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1100;justify-content:center;align-items:center;padding:16px">
+    <div style="background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3 style="font-size:16px;font-weight:700">📄 명세서 인식 결과 확인 (수정 가능)</h3>
+        <button onclick="document.getElementById('pending-ocr-modal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer">✕</button>
+      </div>
+      <div class="row2" style="margin-bottom:10px">
+        <div><label style="margin-top:0">공급업체</label><input type="text" id="pd-ocr-supplier"></div>
+        <div><label style="margin-top:0">입고 예정일</label><input type="date" id="pd-ocr-date"></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="rec-table" style="min-width:100%">
+          <thead><tr><th>품번</th><th>품목명</th><th>수량</th><th>단위</th><th></th></tr></thead>
+          <tbody id="pending-ocr-tbody"></tbody>
+        </table>
+      </div>
+      <button type="button" class="btn btn-dark" onclick="confirmOcrPendingBatch()" style="margin-top:14px">선택 항목 모두 입고 대기 등록</button>
+    </div>
+  </div>
+
+  <!-- 파레트별 분할 적치 모달 -->
+  <div id="receive-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1100;justify-content:center;align-items:flex-end">
+    <div style="background:var(--card);border-radius:16px 16px 0 0;padding:20px 20px 36px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h3 style="font-size:16px;font-weight:700">📦 파레트 적치 (부분 입고 확정)</h3>
+        <button onclick="document.getElementById('receive-modal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer">✕</button>
+      </div>
+      <div id="rcv-title" style="font-size:14px;font-weight:700;color:var(--txt)"></div>
+      <div id="rcv-sub" style="font-size:13px;font-weight:700;color:var(--blue);margin-top:2px;margin-bottom:12px"></div>
+
+      <label style="margin-top:0">이번 파레트 적치 수량</label>
+      <div style="display:flex;gap:8px">
+        <input type="number" id="rcv-qty" min="0" step="any" style="flex:1">
+        <button type="button" onclick="setRcvAllQty()" style="padding:0 14px;border-radius:10px;border:1px solid var(--border2);background:var(--bg);font-weight:700;cursor:pointer">잔량전체</button>
+      </div>
+
+      <div class="row2">
+        <div>
+          <label>창고</label>
+          <select id="rcv-wh" onchange="updateWh('rcv')">
+            <option value="">선택하세요</option>
+            <option value="D">D동</option>
+            <option value="T">천막동</option>
+            <option value="O">사무동</option>
+          </select>
+        </div>
+        <div>
+          <label>보관 방식</label>
+          <select id="rcv-st" onchange="updateStorage('rcv')">
+            <option value="rack">렉 보관</option>
+            <option value="floor">바닥 보관</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="rcv-rack-fields">
+        <div class="row3">
+          <div>
+            <label>구역 (A~F동)</label>
+            <select id="rcv-zone" onchange="updateLocPreview('rcv')">
+              <option value="">-</option>
+              <option value="A">A동</option><option value="B">B동</option><option value="C">C동</option>
+              <option value="D">D동</option><option value="E">E동</option><option value="F">F동</option>
+            </select>
+          </div>
+          <div>
+            <label>호수 (1~16호)</label>
+            <select id="rcv-rn" onchange="updateLocPreview('rcv')">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+              <option>9</option><option>10</option><option>11</option><option>12</option>
+              <option>13</option><option>14</option><option>15</option><option>16</option>
+            </select>
+          </div>
+          <div>
+            <label>층 (1~3층)</label>
+            <select id="rcv-fl" onchange="updateLocPreview('rcv')">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="rcv-floor-fields" style="display:none">
+        <div class="row2">
+          <div>
+            <label>바닥 구역 (1~3구역)</label>
+            <select id="rcv-d-fzone" onchange="updateLocPreview('rcv')">
+              <option value="">-</option>
+              <option value="1">1구역</option><option value="2">2구역</option><option value="3">3구역</option>
+            </select>
+          </div>
+          <div>
+            <label>열 번호 (1~15열)</label>
+            <select id="rcv-d-fcol" onchange="updateLocPreview('rcv')">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+              <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="rcv-t-fields" style="display:none">
+        <div class="row2">
+          <div>
+            <label>천막/사무 구역 (A~D구역)</label>
+            <select id="rcv-t-zone" onchange="updateLocPreview('rcv')">
+              <option value="">-</option>
+              <option value="A">A구역</option><option value="B">B구역</option><option value="C">C구역</option><option value="D">D구역</option>
+            </select>
+          </div>
+          <div>
+            <label>열 번호 (1~15열)</label>
+            <select id="rcv-col" onchange="updateLocPreview('rcv')">
+              <option value="">-</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+              <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="rcv-loc-preview" class="loc-tip" style="display:none"></div>
+
+      <div class="row2">
+        <div><label>Lot No</label><input type="text" id="rcv-lot"></div>
+        <div><label>입고일</label><input type="date" id="rcv-date"></div>
+      </div>
+      <label>비고</label>
+      <input type="text" id="rcv-note" placeholder="예: 1파레트">
+
+      <button type="button" class="btn btn-dark" onclick="submitReceivePart()" style="margin-top:14px">✓ 이 위치에 적치 확정</button>
+    </div>
+  </div>
+
+
 <script src="/js/app.js"></script>
 <script src="/js/admin.js"></script>
 <script src="/js/inbound.js"></script>
@@ -1342,6 +1556,8 @@
 <script src="/js/requests.js"></script>
 <script src="/js/catalog_admin.js"></script>
 <script src="/js/reconcile.js"></script>
+<script src="/js/pending.js"></script>
+
 
 </body>
 </html>
