@@ -523,43 +523,38 @@ input, select {
 }
 
 /* ── 모바일 & PC 레이아웃 겹침/찌그러짐 완벽 방지 ── */
-@media (max-width: 768px) {
-  .app {
-    display: block !important;
-    max-width: 480px !important;
-    width: 100% !important;
-    padding: 12px !important;
-  }
-  .nav {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    margin-bottom: 14px !important;
-  }
-  .section.active {
-    display: block !important;
-    width: 100% !important;
-  }
+body {
+  display: block !important;
+  overflow-x: hidden !important;
+}
+
+.app {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  margin: 0 auto !important;
+  padding: 14px 14px 48px !important;
+}
+
+.nav {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  width: 100% !important;
+  gap: 6px !important;
+  margin-bottom: 14px !important;
+}
+
+.section.active {
+  display: block !important;
+  width: 100% !important;
 }
 
 @media (min-width: 769px) {
   .app {
-    display: block !important;
     max-width: 960px !important;
-    margin: 0 auto !important;
-    padding: 20px !important;
-  }
-  .nav {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    margin-bottom: 18px !important;
-  }
-  .section.active {
-    display: block !important;
-    width: 100% !important;
+    padding: 20px 24px 60px !important;
   }
 }
 
