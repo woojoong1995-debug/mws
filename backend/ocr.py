@@ -85,7 +85,8 @@ def do_ocr_statement():
         return jsonify({'success': False, 'message': '이미지가 없습니다'}), 400
 
     prompt = (
-        "거래명세서 또는 입하통지서 이미지에서 공급처, 날짜, 그리고 표에 적힌 모든 품목 행을 추출해줘.\n"
+        "거래명세서 또는 납품서 또는 입하통지서 이미지에서 공급처, 날짜, 그리고 표에 적힌 모든 품목 행을 추출해줘.\n"
+        "표에 'Lot No' 또는 '동종 재고 ID'가 있으면 반드시 'LotNo' 필드에 넣어줘 (없으면 빈 문자열).\n"
         "반드시 아래 JSON 형식으로만 응답하고 다른 설명은 절대 쓰지 마:\n"
         '{"공급처":"","입고예정일":"YYYY-MM-DD","items":[{"품번":"","품목명":"","수량":0,"단위":"개","LotNo":"","PO":"","비고":""}]}'
     )
@@ -151,7 +152,7 @@ def do_ocr_statement():
             'unit_weight': cat_item.get('unit_weight', 0) if cat_item else 0,
             'qty'        : qty,
             'unit'       : unit,
-            'lot'        : (row.get('LotNo') or '').strip().upper(),
+            'lot'        : (row.get('LotNo') or row.get('동종재고ID') or '').strip().upper(),
             'po'         : (row.get('PO') or '').strip(),
             'supplier'   : supplier,
             'due_date'   : due_date,

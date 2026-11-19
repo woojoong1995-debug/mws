@@ -88,7 +88,7 @@ def add_pending():
             'received_qty' : 0,
             'remain_qty'   : qty,
             'unit'         : r.get('unit') or ('롤' if is_fabric else '개'),
-            'lot'          : (r.get('lot') or '').strip().upper(),
+            'lot'          : (r.get('lot') or r.get('similar_id') or '').strip().upper(),
             'po'           : (r.get('po') or '').strip(),
             'supplier'     : (r.get('supplier') or '').strip(),
             'due_date'     : (r.get('due_date') or date.today().isoformat()).strip(),
@@ -149,6 +149,7 @@ def receive_pending_part(pending_id):
             weight = take_qty
 
     lot_val  = (body.get('lot') or target.get('lot') or '').strip().upper()
+    po_val   = (body.get('po') if body.get('po') is not None else (target.get('po') or '')).strip()
     date_val = (body.get('date') or date.today().isoformat()).strip()
     note_val = (body.get('note') or target.get('note') or '').strip()
 
@@ -170,7 +171,7 @@ def receive_pending_part(pending_id):
         'meters'     : meters,
         'lot'        : lot_val,
         'cat'        : target.get('cat') or detect_category(target.get('name', ''), target.get('code', '')),
-        'po'         : target.get('po', ''),
+        'po'         : po_val,
         'route'      : '',
         'date'       : date_val,
         'note'       : note_val,

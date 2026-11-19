@@ -301,11 +301,14 @@ function openReceiveModal(id) {
   if (!item) return;
   receivingItem = item;
 
+  var autoLot = (item.lot || item.similar_id || '').trim().toUpperCase();
+
   document.getElementById('rcv-title').textContent = (item.name || item.code);
   document.getElementById('rcv-sub').textContent   = (item.code || '') + ' · 남은 대기 수량: ' + item.remain_qty + item.unit;
   document.getElementById('rcv-qty').value         = '';
   document.getElementById('rcv-qty').placeholder   = '예: 480 (최대 ' + item.remain_qty + ')';
-  document.getElementById('rcv-lot').value         = item.lot || '';
+  document.getElementById('rcv-lot').value         = autoLot;
+  document.getElementById('rcv-po').value          = item.po || '';
   document.getElementById('rcv-date').value        = todayStr();
   document.getElementById('rcv-note').value        = item.note || '';
   document.getElementById('rcv-wh').value          = '';
@@ -338,6 +341,7 @@ async function submitReceivePart() {
         loc : loc,
         qty : qty,
         lot : document.getElementById('rcv-lot').value.trim().toUpperCase(),
+        po  : document.getElementById('rcv-po').value.trim(),
         date: document.getElementById('rcv-date').value,
         note: document.getElementById('rcv-note').value
       })
