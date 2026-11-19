@@ -169,3 +169,6 @@ def delete_catalog(code):
 
     save_catalog(new_catalog)
     return jsonify({'success': True, 'message': '삭제됐습니다'})
+
+    # cnrk
+    
