@@ -308,7 +308,8 @@ function openReceiveModal(id) {
   document.getElementById('rcv-qty').value         = '';
   document.getElementById('rcv-qty').placeholder   = '예: 480 (최대 ' + item.remain_qty + ')';
   document.getElementById('rcv-lot').value         = autoLot;
-  document.getElementById('rcv-po').value          = item.po || '';
+  var rcvPo = document.getElementById('rcv-po');
+  if (rcvPo) rcvPo.value = '';
   document.getElementById('rcv-date').value        = todayStr();
   document.getElementById('rcv-note').value        = item.note || '';
   document.getElementById('rcv-wh').value          = '';
@@ -341,7 +342,7 @@ async function submitReceivePart() {
         loc : loc,
         qty : qty,
         lot : document.getElementById('rcv-lot').value.trim().toUpperCase(),
-        po  : document.getElementById('rcv-po').value.trim(),
+        po  : document.getElementById('rcv-po') ? document.getElementById('rcv-po').value.trim() : '',
         date: document.getElementById('rcv-date').value,
         note: document.getElementById('rcv-note').value
       })
