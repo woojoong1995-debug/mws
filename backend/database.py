@@ -54,15 +54,30 @@ def delete_record(record_id):
     return True
 
 
-def detect_category(name):
-    """품목명에서 카테고리를 자동으로 감지합니다."""
+def detect_category(name, code=''):
+    """품번 첫 글자 코드(1순위) 및 품목명(2순위)에서 카테고리를 자동 감지합니다."""
+    c = (code or '').strip().upper()
     n = (name or '').lower().replace(' ', '').replace('.', '').replace('-', '')
+
+    if c:
+        first = c[0]
+        if first == 'A':
+            return '손발원단' if ('발' in n or '손' in n or '마스크' in n) else '원단'
+        if first == 'B': return '스티커'
+        if first == 'C': return '필름'
+        if first == 'E': return '단상자'
+        if first == 'F': return '인박스'
+        if first == 'G': return '카톤'
+        if first == 'H': return '튜브'
+        if first == 'Q': return '사급제품'
+
     if '사각캡' in n or '캡' in n: return '사각캡'
     if '필름'   in n: return '필름'
     if '카톤'   in n: return '카톤'
     if '단상자' in n: return '단상자'
     if '인박스' in n: return '인박스'
-
+    if '스티커' in n: return '스티커'
+    if '튜브'   in n: return '튜브'
     if '원단' in n and ('발' in n or '손' in n or '마스크' in n): return '손발원단'
     if '원단' in n: return '원단'
     return '기타'
