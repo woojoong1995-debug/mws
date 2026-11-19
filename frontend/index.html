@@ -1001,6 +1001,55 @@
     </div>
   </div>
 
+<!-- ══════════════════════════════════════
+    [13] 입고 대기 목록 & 파레트별 분할 적치 탭
+  ══════════════════════════════════════ -->
+  <div id="sec-pending" class="section">
+    <div class="card">
+      <h3 style="font-size:16px;font-weight:800;margin-bottom:6px">📥 입고 대기 목록 (명세서 등록 & 파레트 분할 적치)</h3>
+      <p style="font-size:12.5px;color:var(--txt2);margin-bottom:12px">
+        거래명세서를 촬영하거나 수기로 예정을 등록한 뒤, 도착하는 <b>파레트 단위로 나눠서</b> 창고·위치에 적치할 수 있습니다.
+      </p>
+
+      <input type="file" id="ocr-file-statement" accept="image/*" style="display:none" onchange="handleStatementOcr(event)">
+      <button type="button" id="btn-ocr-statement" class="btn btn-dark" onclick="document.getElementById('ocr-file-statement').click()" style="margin-bottom:12px">
+        📷 거래명세서 촬영으로 일괄 대기 등록
+      </button>
+
+      <details style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--border)">
+        <summary style="font-size:13px;font-weight:700;cursor:pointer;color:var(--txt)">＋ 수기로 입고 대기 직접 추가</summary>
+        <div style="margin-top:10px">
+          <div class="row2">
+            <div><label style="margin-top:0">품번</label><input type="text" id="pd-code" placeholder="예: G11P000013"></div>
+            <div><label style="margin-top:0">품목명</label><input type="text" id="pd-name" placeholder="품번 입력 시 자동완성"></div>
+          </div>
+          <div class="row3">
+            <div><label>총 예정 수량</label><input type="number" id="pd-qty" placeholder="예: 3840"></div>
+            <div>
+              <label>단위</label>
+              <select id="pd-unit">
+                <option value="개">개</option>
+                <option value="롤">롤</option>
+                <option value="SET">SET</option>
+                <option value="m">m</option>
+                <option value="kg">kg</option>
+                <option value="톤">톤</option>
+              </select>
+            </div>
+            <div><label>Lot No</label><input type="text" id="pd-lot" placeholder="선택"></div>
+          </div>
+          <div class="row2">
+            <div><label>공급업체</label><input type="text" id="pd-supplier" placeholder="선택"></div>
+            <div><label>입고 예정일</label><input type="date" id="pd-date"></div>
+          </div>
+          <button type="button" class="btn btn-light" onclick="submitManualPending()" style="margin-top:10px">대기 목록에 추가</button>
+        </div>
+      </details>
+    </div>
+
+    <div id="pending-list"></div>
+  </div>
+
 </div><!-- /.app -->
 
 <!-- 홈 이동 확인 모달 -->
@@ -1353,54 +1402,6 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-    [13] 입고 대기 목록 & 파레트별 분할 적치 탭
-  ══════════════════════════════════════ -->
-  <div id="sec-pending" class="section">
-    <div class="card">
-      <h3 style="font-size:16px;font-weight:800;margin-bottom:6px">📥 입고 대기 목록 (명세서 등록 & 파레트 분할 적치)</h3>
-      <p style="font-size:12.5px;color:var(--txt2);margin-bottom:12px">
-        거래명세서를 촬영하거나 수기로 예정을 등록한 뒤, 도착하는 <b>파레트 단위로 나눠서</b> 창고·위치에 적치할 수 있습니다.
-      </p>
-
-      <input type="file" id="ocr-file-statement" accept="image/*" style="display:none" onchange="handleStatementOcr(event)">
-      <button type="button" id="btn-ocr-statement" class="btn btn-dark" onclick="document.getElementById('ocr-file-statement').click()" style="margin-bottom:12px">
-        📷 거래명세서 촬영으로 일괄 대기 등록
-      </button>
-
-      <details style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--border)">
-        <summary style="font-size:13px;font-weight:700;cursor:pointer;color:var(--txt)">＋ 수기로 입고 대기 직접 추가</summary>
-        <div style="margin-top:10px">
-          <div class="row2">
-            <div><label style="margin-top:0">품번</label><input type="text" id="pd-code" placeholder="예: G11P000013"></div>
-            <div><label style="margin-top:0">품목명</label><input type="text" id="pd-name" placeholder="품번 입력 시 자동완성"></div>
-          </div>
-          <div class="row3">
-            <div><label>총 예정 수량</label><input type="number" id="pd-qty" placeholder="예: 3840"></div>
-            <div>
-              <label>단위</label>
-              <select id="pd-unit">
-                <option value="개">개</option>
-                <option value="롤">롤</option>
-                <option value="SET">SET</option>
-                <option value="m">m</option>
-                <option value="kg">kg</option>
-                <option value="톤">톤</option>
-              </select>
-            </div>
-            <div><label>Lot No</label><input type="text" id="pd-lot" placeholder="선택"></div>
-          </div>
-          <div class="row2">
-            <div><label>공급업체</label><input type="text" id="pd-supplier" placeholder="선택"></div>
-            <div><label>입고 예정일</label><input type="date" id="pd-date"></div>
-          </div>
-          <button type="button" class="btn btn-light" onclick="submitManualPending()" style="margin-top:10px">대기 목록에 추가</button>
-        </div>
-      </details>
-    </div>
-
-    <div id="pending-list"></div>
-  </div>
 
   <!-- 거래명세서 OCR 판독 결과 확인 모달 -->
   <div id="pending-ocr-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1100;justify-content:center;align-items:center;padding:16px">
