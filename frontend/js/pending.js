@@ -1,9 +1,11 @@
 // ═══════════════════════════════════════════
-// 입고 대기 목록 & 파레트별 분할 적치
+// 입고 대기 목록 & 업체·카테고리별 파레트 분할 적치
 // ═══════════════════════════════════════════
-var pendingListCache = [];
-var ocrParsedRows    = [];
-var receivingItem    = null;
+var pendingListCache      = [];
+var ocrParsedRows         = [];
+var receivingItem         = null;
+var selectedPendingGroup  = null; // 현재 열어본 '업체||예정일' 키
+var selectedPendingCat    = '';   // 업체 내부 카테고리 필터
 
 async function loadPending() {
   var wrap = document.getElementById('pending-list');
@@ -21,30 +23,90 @@ async function loadPending() {
       badge.style.display = pendingListCache.length > 0 ? 'inline-block' : 'none';
     }
 
-    if (!pendingListCache.length) {
-      wrap.innerHTML = '<p style="text-align:center;color:var(--txt2);padding:28px 0;font-size:14px">현재 입고 대기 중인 품목이 없습니다</p>';
-      return;
+    renderPendingView();
+  } catch (e) {
+    wrap.innerHTML = '<p style="text-align:center;color:#dc2626;padding:24px 0">불러오기 오류</p>';
+  }
+}
+
+// ── 1단계(업체·예정일별 폴더) / 2단계(업체 내 카테고리별 목록) 렌더링 ──
+function renderPendingView() {
+  var wrap = document.getElementById('pending-list');
+  if (!wrap) return;
+
+  if (!pendingListCache.length) {
+    selectedPendingGroup = null;
+    wrap.innerHTML = '<p style="text-align:center;color:var(--txt2);padding:28px 0;font-size:14px">현재 입고 대기 중인 품목이 없습니다</p>';
+    return;
+  }
+
+  // 업체 + 입고예정일 기준으로 그룹핑
+  var groups = {};
+  var groupOrder = [];
+  pendingListCache.forEach(function(item) {
+    var sup = (item.supplier || '').trim() || '업체 미지정';
+    var dt  = (item.due_date || '').trim() || '날짜 미정';
+    var key = sup + '||' + dt;
+    if (!groups[key]) {
+      groups[key] = { key: key, supplier: sup, due_date: dt, items: [], cats: {} };
+      groupOrder.push(key);
+    }
+    groups[key].items.push(item);
+    var c = item.cat || '기타';
+    groups[key].cats[c] = (groups[key].cats[c] || 0) + 1;
+  });
+
+  // ── 2단계: 특정 업체 그룹 안으로 들어온 상태 ──
+  if (selectedPendingGroup && groups[selectedPendingGroup]) {
+    var grp = groups[selectedPendingGroup];
+    var catKeys = Object.keys(grp.cats);
+    if (selectedPendingCat && !grp.cats[selectedPendingCat]) {
+      selectedPendingCat = '';
     }
 
-    wrap.innerHTML = pendingListCache.map(function(item) {
+    var filtered = selectedPendingCat
+      ? grp.items.filter(function(i){ return (i.cat || '기타') === selectedPendingCat; })
+      : grp.items;
+
+    var catTabsHtml =
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 12px">' +
+        '<button type="button" class="cat-btn ' + (selectedPendingCat === '' ? 'on' : '') + '" onclick="filterPendingCat(\'\')">전체 (' + grp.items.length + ')</button>' +
+        catKeys.map(function(c) {
+          var active = selectedPendingCat === c ? 'on' : '';
+          return '<button type="button" class="cat-btn ' + active + '" onclick="filterPendingCat(\'' + c + '\')">' + c + ' (' + grp.cats[c] + ')</button>';
+        }).join('') +
+      '</div>';
+
+    var headerHtml =
+      '<div class="card" style="padding:14px 16px;margin-bottom:12px;border-left:4px solid var(--blue) !important">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' +
+          '<button type="button" onclick="closePendingGroup()" style="padding:7px 12px;border-radius:10px;border:1px solid var(--border2);background:var(--bg);color:var(--txt);font-size:13px;font-weight:700;cursor:pointer">← 업체 목록</button>' +
+          '<div style="text-align:right">' +
+            '<div style="font-size:16px;font-weight:800;color:var(--txt)">🏢 ' + grp.supplier + '</div>' +
+            '<div style="font-size:12.5px;color:var(--txt2)">예정일: ' + grp.due_date + ' · 총 ' + grp.items.length + '건</div>' +
+          '</div>' +
+        '</div>' +
+        catTabsHtml +
+      '</div>';
+
+    var cardsHtml = filtered.map(function(item) {
       var pct = item.total_qty > 0 ? Math.min(100, Math.round((item.received_qty / item.total_qty) * 100)) : 0;
       var catBadge = item.cat ? '<span class="cat-lbl cl-' + item.cat + '">' + item.cat + '</span>' : '';
       return '<div class="card" style="padding:14px 16px;margin-bottom:10px">' +
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
           '<div style="min-width:0;flex:1">' +
             '<div style="font-size:15px;font-weight:700;color:var(--txt)">' + (item.name || item.code) + catBadge + '</div>' +
-            '<div style="font-size:12px;color:var(--txt2);margin-top:3px">' +
+            '<div style="font-size:12.5px;color:var(--txt2);margin-top:3px">' +
               (item.code || '-') +
-              (item.supplier ? ' · 업체: <b>' + item.supplier + '</b>' : '') +
-              (item.due_date ? ' · 예정일: ' + item.due_date : '') +
+              (item.lot ? ' · Lot: <b>' + item.lot + '</b>' : '') +
+              (item.po ? ' · PO: ' + item.po : '') +
             '</div>' +
-            (item.lot ? '<div style="font-size:12px;color:var(--txt2);margin-top:2px">Lot: <b>' + item.lot + '</b></div>' : '') +
           '</div>' +
           '<button type="button" onclick="deletePendingItem(' + item.id + ')" style="background:none;border:none;color:var(--txt2);font-size:16px;cursor:pointer;padding:2px 6px" title="대기 삭제">✕</button>' +
         '</div>' +
 
         '<div style="background:var(--bg);border-radius:10px;padding:10px 12px;margin-top:10px;display:flex;justify-content:space-between;align-items:center">' +
-          '<div style="font-size:12px;color:var(--txt2)">' +
+          '<div style="font-size:12.5px;color:var(--txt2)">' +
             '총 예정: <b>' + item.total_qty + item.unit + '</b> · 적치완료: <b style="color:#16a34a">' + item.received_qty + item.unit + '</b>' +
           '</div>' +
           '<div style="font-size:15px;font-weight:800;color:var(--blue)">' +
@@ -56,14 +118,61 @@ async function loadPending() {
           '<div style="height:100%;width:' + pct + '%;background:var(--blue)"></div>' +
         '</div>' +
 
-        '<button type="button" class="btn btn-dark" onclick="openReceiveModal(' + item.id + ')" style="margin-top:10px;padding:10px !important;font-size:14px">' +
+        '<button type="button" class="btn btn-dark" onclick="openReceiveModal(' + item.id + ')" style="margin-top:10px;padding:11px !important;font-size:14px">' +
           '📦 파레트 적치 / 부분 입고 처리' +
         '</button>' +
       '</div>';
     }).join('');
-  } catch (e) {
-    wrap.innerHTML = '<p style="text-align:center;color:#dc2626;padding:24px 0">불러오기 오류</p>';
+
+    wrap.innerHTML = headerHtml + cardsHtml;
+    return;
   }
+
+  // ── 1단계: 업체 · 예정일별 묶음 폴더 카드 목록 ──
+  selectedPendingGroup = null;
+  wrap.innerHTML = groupOrder.map(function(key) {
+    var grp = groups[key];
+    var catSummary = Object.keys(grp.cats).map(function(c) {
+      return '<span class="cat-lbl cl-' + c + '" style="margin-left:0;margin-right:4px">' + c + ' ' + grp.cats[c] + '건</span>';
+    }).join('');
+
+    var totalItems = grp.items.length;
+    var inProgress = grp.items.filter(function(i){ return (i.received_qty || 0) > 0; }).length;
+
+    return '<div class="card" onclick="openPendingGroup(\'' + key.replace(/'/g, "\\'") + '\')" style="padding:16px;margin-bottom:10px;cursor:pointer;transition:transform .12s ease">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">' +
+        '<div style="min-width:0;flex:1">' +
+          '<div style="font-size:16px;font-weight:800;color:var(--txt)">🏢 ' + grp.supplier + '</div>' +
+          '<div style="font-size:13px;color:var(--txt2);margin-top:4px">' +
+            '입고 예정일: <b>' + grp.due_date + '</b>' +
+            (inProgress > 0 ? ' · <span style="color:var(--blue);font-weight:700">부분적치 ' + inProgress + '건 진행중</span>' : '') +
+          '</div>' +
+          '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">' + catSummary + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;flex-shrink:0">' +
+          '<div style="font-size:18px;font-weight:800;color:var(--blue)">' + totalItems + '건 ›</div>' +
+          '<div style="font-size:11.5px;color:var(--txt2);margin-top:2px">눌러서 보기</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openPendingGroup(key) {
+  selectedPendingGroup = key;
+  selectedPendingCat   = '';
+  renderPendingView();
+}
+
+function closePendingGroup() {
+  selectedPendingGroup = null;
+  selectedPendingCat   = '';
+  renderPendingView();
+}
+
+function filterPendingCat(cat) {
+  selectedPendingCat = cat;
+  renderPendingView();
 }
 
 // ── 수기 입고 대기 추가 ──
