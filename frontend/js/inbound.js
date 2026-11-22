@@ -145,12 +145,12 @@ function buildLoc(p) {
     var zone = (document.getElementById(p + '-zone') || {}).value || '';
     var rn   = (document.getElementById(p + '-rn')   || {}).value || '';
     var fl   = (document.getElementById(p + '-fl')   || {}).value || '';
-    var parts = ['D동', zone ? zone + '동' : '', rn ? rn + '호' : '', fl ? fl + '층' : ''].filter(Boolean);
+    var parts = ['D창고', zone ? zone + '동' : '', rn ? rn + '호' : '', fl ? fl + '층' : ''].filter(Boolean);
     return parts.length >= 2 ? parts.join(' ') : '';
   } else {
     var dZone = (document.getElementById(p + '-d-fzone') || {}).value || '';
     var dCol  = (document.getElementById(p + '-d-fcol')  || {}).value || '';
-    if (dZone && dCol) return 'D동 바닥 ' + dZone + '구역 ' + dCol + '열';
+    if (dZone && dCol) return 'D창고 바닥 ' + dZone + '구역 ' + dCol + '열';
     return '';
   }
 }

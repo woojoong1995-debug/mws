@@ -38,9 +38,10 @@ function openMoveModal(id) {
       } else {
         document.getElementById('move-st').value = 'rack';
         onMoveStChange();
-        var zoneM  = loc.match(/([A-F])(?:동|구역)/);
-        var rackM  = loc.match(/(\d+)(?:호|번 렉)/);
-        var floorM = loc.match(/(\d+)층/);
+        var rackPart = loc.replace(/^(?:D창고|D동)\s*/, '');
+        var zoneM  = rackPart.match(/([A-F])(?:동|구역)/);
+        var rackM  = rackPart.match(/(\d+)(?:호|번 렉)/);
+        var floorM = rackPart.match(/(\d+)층/);
         document.getElementById('move-zone').value = zoneM  ? zoneM[1]  : '';
         document.getElementById('move-rn').value   = rackM  ? rackM[1]  : '';
         document.getElementById('move-fl').value   = floorM ? floorM[1] : '';
@@ -87,12 +88,12 @@ function buildMoveLoc() {
     var zone = document.getElementById('move-zone').value;
     var rn   = document.getElementById('move-rn').value;
     var fl   = document.getElementById('move-fl').value;
-    var parts = ['D동', zone ? zone + '동' : '', rn ? rn + '호' : '', fl ? fl + '층' : ''].filter(Boolean);
+    var parts = ['D창고', zone ? zone + '동' : '', rn ? rn + '호' : '', fl ? fl + '층' : ''].filter(Boolean);
     return parts.length >= 2 ? parts.join(' ') : '';
   } else {
     var dZone = document.getElementById('move-d-fzone').value;
     var dCol  = document.getElementById('move-d-fcol').value;
-    return (dZone && dCol) ? ('D동 바닥 ' + dZone + '구역 ' + dCol + '열') : '';
+    return (dZone && dCol) ? ('D창고 바닥 ' + dZone + '구역 ' + dCol + '열') : '';
   }
 }
 
@@ -198,9 +199,10 @@ function openEditModal(id) {
         document.getElementById('edit-rack-fields') .style.display = 'block';
         document.getElementById('edit-floor-fields').style.display = 'none';
         document.getElementById('edit-t-fields')    .style.display = 'none';
-        var zoneM  = loc.match(/([A-F])(?:동|구역)/);
-        var rackM  = loc.match(/(\d+)(?:호|번 렉)/);
-        var floorM = loc.match(/(\d+)층/);
+        var rackPart = loc.replace(/^(?:D창고|D동)\s*/, '');
+        var zoneM  = rackPart.match(/([A-F])(?:동|구역)/);
+        var rackM  = rackPart.match(/(\d+)(?:호|번 렉)/);
+        var floorM = rackPart.match(/(\d+)층/);
         document.getElementById('edit-zone').value = zoneM  ? zoneM[1]  : '';
         document.getElementById('edit-rn').value   = rackM  ? rackM[1]  : '';
         document.getElementById('edit-fl').value   = floorM ? floorM[1] : '';
@@ -226,13 +228,13 @@ function buildEditLoc() {
     var zone  = document.getElementById('edit-zone').value;
     var rn    = document.getElementById('edit-rn').value;
     var fl    = document.getElementById('edit-fl').value;
-    var parts = ['D동', zone ? zone + '동' : '', rn ? rn + '호' : '', fl ? fl + '층' : ''].filter(Boolean);
-    return parts.length >= 2 ? parts.join(' ') : 'D동';
+    var parts = ['D창고', zone ? zone + '동' : '', rn ? rn + '호' : '', fl ? fl + '층' : ''].filter(Boolean);
+    return parts.length >= 2 ? parts.join(' ') : 'D창고';
   } else {
     var dZone = document.getElementById('edit-d-fzone').value;
     var dCol  = document.getElementById('edit-d-fcol').value;
-    if (dZone && dCol) return 'D동 바닥 ' + dZone + '구역 ' + dCol + '열';
-    return 'D동 바닥';
+    if (dZone && dCol) return 'D창고 바닥 ' + dZone + '구역 ' + dCol + '열';
+    return 'D창고 바닥';
   }
 }
 

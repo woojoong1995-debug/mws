@@ -108,15 +108,35 @@ function applyOcrToInbound() {
   if (ocrData['유형'] === '원단') setType('in', 'fabric');
   else setType('in', 'normal');
   if (ocrData['품목명']) { document.getElementById('in-name').value = ocrData['품목명']; autoCat('in'); }
-  if (ocrData['품번'])   document.getElementById('in-code').value   = ocrData['품번'];
-  if (ocrData['LotNo'])  { document.getElementById('in-lot').value = ocrData['LotNo']; document.getElementById('in-lot-fabric').value = ocrData['LotNo']; }
+  if (ocrData['품번'])   document.getElementById('in-code').value   = ocrData['품번'].toUpperCase();
+  if (ocrData['LotNo'])  {
+    var lotUpper = ocrData['LotNo'].toUpperCase();
+    document.getElementById('in-lot').value = lotUpper;
+    document.getElementById('in-lot-fabric').value = lotUpper;
+  }
   if (ocrData['입고일']) document.getElementById('in-date').value   = ocrData['입고일'];
   if (ocrData['비고'])   document.getElementById('in-note').value   = ocrData['비고'];
+
   if (ocrData['유형'] === '원단') {
-    if (ocrData['롤수']) document.getElementById('in-rolls').value  = ocrData['롤수'];
-    if (ocrData['무게']) document.getElementById('in-weight').value = ocrData['무게'];
+    var rawQtyText = String(ocrData['수량'] || '');
+    var numVal     = rawQtyText.replace(/[^0-9.]/g, '');
+    var rawUnit    = String(ocrData['단위'] || rawQtyText).toLowerCase();
+
+    if (rawUnit.includes('set')) {
+      setFabricUnit('in', 'set');
+      var otherSet = document.getElementById('in-fabric-other-qty');
+      if (otherSet && numVal) otherSet.value = numVal;
+    } else if (rawUnit.includes('m') || rawUnit.includes('미터')) {
+      setFabricUnit('in', 'm');
+      var otherM = document.getElementById('in-fabric-other-qty');
+      if (otherM && numVal) otherM.value = numVal;
+    } else {
+      setFabricUnit('in', 'roll');
+      if (ocrData['롤수']) document.getElementById('in-rolls').value  = ocrData['롤수'];
+      if (ocrData['무게']) document.getElementById('in-weight').value = ocrData['무게'];
+    }
   } else {
-    if (ocrData['수량']) document.getElementById('in-qty').value = ocrData['수량'].replace(/[^0-9.]/g, '');
+    if (ocrData['수량']) document.getElementById('in-qty').value = String(ocrData['수량']).replace(/[^0-9.]/g, '');
   }
   showToast('입고 화면에 자동 입력 완료! 창고/위치만 선택해주세요');
 }
@@ -130,13 +150,32 @@ function applyOcrToReturn() {
   if (ocrData['유형'] === '원단') setType('hj', 'fabric');
   else setType('hj', 'normal');
   if (ocrData['품목명']) { document.getElementById('hj-name').value = ocrData['품목명']; autoCat('hj'); }
-  if (ocrData['품번'])   document.getElementById('hj-code').value   = ocrData['품번'];
-  if (ocrData['LotNo'])  document.getElementById('hj-lot').value    = ocrData['LotNo'];
+  if (ocrData['품번'])   document.getElementById('hj-code').value   = ocrData['품번'].toUpperCase();
+  if (ocrData['LotNo'])  {
+    var lotUpper = ocrData['LotNo'].toUpperCase();
+    document.getElementById('hj-lot').value = lotUpper;
+    var hjLotFab = document.getElementById('hj-lot-fabric');
+    if (hjLotFab) hjLotFab.value = lotUpper;
+  }
+
   if (ocrData['유형'] === '원단') {
-    if (ocrData['롤수']) document.getElementById('hj-rolls').value  = ocrData['롤수'];
-    if (ocrData['무게']) document.getElementById('hj-weight').value = ocrData['무게'];
+    var rawQtyText = String(ocrData['수량'] || '');
+    var numVal     = rawQtyText.replace(/[^0-9.]/g, '');
+    var rawUnit    = String(ocrData['단위'] || rawQtyText).toLowerCase();
+
+    if (rawUnit.includes('set')) {
+      setFabricUnit('hj', 'set');
+      if (numVal) document.getElementById('hj-weight').value = numVal;
+    } else if (rawUnit.includes('m') || rawUnit.includes('미터')) {
+      setFabricUnit('hj', 'm');
+      if (numVal) document.getElementById('hj-weight').value = numVal;
+    } else {
+      setFabricUnit('hj', 'kg');
+      if (ocrData['무게']) document.getElementById('hj-weight').value = ocrData['무게'];
+      else if (numVal) document.getElementById('hj-weight').value = numVal;
+    }
   } else {
-    if (ocrData['수량']) document.getElementById('hj-qty').value = ocrData['수량'].replace(/[^0-9.]/g, '');
+    if (ocrData['수량']) document.getElementById('hj-qty').value = String(ocrData['수량']).replace(/[^0-9.]/g, '');
   }
   showToast('환입 화면에 자동 입력 완료! 창고/위치만 선택해주세요');
 }

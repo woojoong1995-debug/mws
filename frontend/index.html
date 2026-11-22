@@ -240,7 +240,7 @@
           <label>창고</label>
           <select id="in-wh">
             <option value="">선택하세요</option>
-            <option value="D">D동</option>
+            <option value="D">D창고</option>
             <option value="T">천막동</option>
             <option value="O">사무동</option>
           </select>
@@ -254,7 +254,7 @@
         </div>
       </div>
 
-      <!-- D동 렉 보관: A~F동, 1~16호, 1~3층 -->
+      <!-- D창고 렉 보관: A~F동, 1~16호, 1~3층 -->
       <div id="in-rack-fields">
         <div class="row3">
           <div>
@@ -262,7 +262,7 @@
             <select id="in-zone">
               <option value="">-</option>
               <option value="A">A동</option><option value="B">B동</option><option value="C">C동</option>
-              <option value="D">D동</option><option value="E">E동</option><option value="F">F동</option>
+              <option value="D">D창고</option><option value="E">E동</option><option value="F">F동</option>
             </select>
           </div>
           <div>
@@ -285,7 +285,7 @@
         </div>
       </div>
 
-      <!-- D동 바닥 보관: 1~3구역, 1~15열 -->
+      <!-- D창고 바닥 보관: 1~3구역, 1~15열 -->
       <div id="in-floor-fields" style="display:none">
         <div class="row2">
           <div>
@@ -537,7 +537,7 @@
           <label>창고</label>
           <select id="hj-wh">
             <option value="">선택하세요</option>
-            <option value="D">D동</option>
+            <option value="D">D창고</option>
             <option value="T">천막동</option>
             <option value="O">사무동</option>
           </select>
@@ -551,7 +551,7 @@
         </div>
       </div>
 
-      <!-- D동 렉 보관 -->
+      <!-- D창고 렉 보관 -->
       <div id="hj-rack-fields">
         <div class="row3">
           <div>
@@ -559,7 +559,7 @@
             <select id="hj-zone">
               <option value="">-</option>
               <option value="A">A동</option><option value="B">B동</option><option value="C">C동</option>
-              <option value="D">D동</option><option value="E">E동</option><option value="F">F동</option>
+              <option value="D">D창고</option><option value="E">E동</option><option value="F">F동</option>
             </select>
           </div>
           <div>
@@ -582,7 +582,7 @@
         </div>
       </div>
 
-      <!-- D동 바닥 보관: 1~3구역, 1~15열 -->
+      <!--D창고 바닥 보관: 1~3구역, 1~15열 -->
       <div id="hj-floor-fields" style="display:none">
         <div class="row2">
           <div>
@@ -716,7 +716,7 @@
   <div id="sec-stock" class="section">
     <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:6px;margin-bottom:12px">
       <button id="st-wh-all" class="tbtn on" onclick="setStockWh('all')">전체</button>
-      <button id="st-wh-D" class="tbtn" onclick="setStockWh('D')">D동</button>
+      <button id="st-wh-D" class="tbtn" onclick="setStockWh('D')">D창고</button>
       <button id="st-wh-T" class="tbtn" onclick="setStockWh('T')">천막동</button>
       <button id="st-wh-O" class="tbtn" onclick="setStockWh('O')">사무동</button>
       <button id="st-wh-hj" class="tbtn" onclick="setStockWh('hj')">환입재고</button>
@@ -1122,7 +1122,7 @@
       <div>
         <label>이동할 창고</label>
         <select id="move-wh" onchange="onMoveWhChange()">
-          <option value="D">D동</option>
+          <option value="D">D창고</option>
           <option value="T">천막동</option>
           <option value="O">사무동</option>
         </select>
@@ -1143,7 +1143,7 @@
           <select id="move-zone">
             <option value="">-</option>
             <option value="A">A동</option><option value="B">B동</option><option value="C">C동</option>
-            <option value="D">D동</option><option value="E">E동</option><option value="F">F동</option>
+            <option value="D">D창고</option><option value="E">E동</option><option value="F">F동</option>
           </select>
         </div>
         <div>
@@ -1281,7 +1281,7 @@
       <div>
         <label>창고</label>
         <select id="edit-wh">
-          <option value="D">D동</option>
+          <option value="D">D창고</option>
           <option value="T">천막동</option>
           <option value="O">사무동</option>
         </select>
@@ -1295,7 +1295,7 @@
       </div>
     </div>
 
-    <!-- 수정 모달: D동 렉 (A~F동, 1~16호, 1~3층) -->
+    <!-- 수정 모달: D창고 렉 (A~F동, 1~16호, 1~3층) -->
     <div id="edit-rack-fields">
       <div class="row3">
         <div>
@@ -1303,7 +1303,7 @@
           <select id="edit-zone">
             <option value="">-</option>
             <option value="A">A동</option><option value="B">B동</option><option value="C">C동</option>
-            <option value="D">D동</option><option value="E">E동</option><option value="F">F동</option>
+            <option value="D">D창고</option><option value="E">E동</option><option value="F">F동</option>
           </select>
         </div>
         <div>
@@ -1326,7 +1326,7 @@
       </div>
     </div>
 
-    <!-- 수정 모달: D동 바닥 (1~3구역, 1~15열) -->
+    <!-- 수정 모달: D창고 바닥 (1~3구역, 1~15열) -->
     <div id="edit-floor-fields" style="display:none">
       <div class="row2">
         <div>
@@ -1454,7 +1454,7 @@
           <label>창고</label>
           <select id="rcv-wh" onchange="updateWh('rcv')">
             <option value="">선택하세요</option>
-            <option value="D">D동</option>
+            <option value="D">D창고</option>
             <option value="T">천막동</option>
             <option value="O">사무동</option>
           </select>
@@ -1475,7 +1475,7 @@
             <select id="rcv-zone" onchange="updateLocPreview('rcv')">
               <option value="">-</option>
               <option value="A">A동</option><option value="B">B동</option><option value="C">C동</option>
-              <option value="D">D동</option><option value="E">E동</option><option value="F">F동</option>
+              <option value="D">D창고</option><option value="E">E동</option><option value="F">F동</option>
             </select>
           </div>
           <div>

@@ -140,17 +140,35 @@ def do_ocr_statement():
         is_fabric = (code.startswith('A')) or (cat_item and cat_item.get('item_type') == 'fabric')
         cat = (cat_item.get('cat') if cat_item else '') or detect_category(name, code)
 
+        cat_funit = cat_item.get('fabric_unit') if cat_item else ''
+        if is_fabric:
+            if unit == 'm':
+                f_unit = cat_funit if cat_funit in ('m', 'set', 'ea') else 'm'
+            elif unit == 'SET':
+                f_unit = cat_funit if cat_funit in ('m', 'set', 'ea') else 'set'
+            elif unit == '롤':
+                f_unit = cat_funit or 'roll'
+            elif unit == 'kg':
+                f_unit = cat_funit or 'kg'
+            else:
+                f_unit = cat_funit or 'roll'
+        else:
+            f_unit = ''
+
         cleaned_items.append({
             'code'       : code,
             'name'       : name,
             'cat'        : cat,
             'item_type'  : 'fabric' if is_fabric else 'normal',
-            'fabric_unit': (cat_item.get('fabric_unit') if cat_item else ('roll' if unit == '롤' else 'kg')) if is_fabric else '',
+            'fabric_unit': f_unit,
             'spec_w'     : cat_item.get('spec_w', 0) if cat_item else 0,
             'spec_l'     : cat_item.get('spec_l', 0) if cat_item else 0,
             'spec_m'     : cat_item.get('spec_m', 0) if cat_item else 0,
             'unit_weight': cat_item.get('unit_weight', 0) if cat_item else 0,
             'qty'        : qty,
+            'rolls'      : qty if f_unit == 'roll' else 0,
+            'weight'     : qty if f_unit == 'kg' else 0,
+            'meters'     : qty if f_unit == 'm' else 0,
             'unit'       : unit,
             'lot'        : (row.get('LotNo') or row.get('동종재고ID') or '').strip().upper(),
             'po'         : (row.get('PO') or '').strip(),
