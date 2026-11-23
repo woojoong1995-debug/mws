@@ -102,7 +102,7 @@ async function loadStock() {
 
       var rows = g.items.map(function(item) {
         var badgeCls   = item.kind === 'hwanjip' ? 'b-r' : item.wh === 'D' ? 'b-d' : 'b-t';
-        var badgeLabel = item.kind === 'hwanjip' ? '환입' : item.wh === 'D' ? 'D동' : '천막동';
+        var badgeLabel = item.kind === 'hwanjip' ? '환입' : item.wh === 'D' ? 'D창고' : '천막동';
         var qtyTxt     = formatItemQtyText(item);
         var depCls     = item.depleted ? 'depleted' : '';
         var depBadge   = item.depleted ? '<span class="depleted-badge">소진</span>' : '';
