@@ -33,32 +33,41 @@ function setType(prefix, type) {
 // 원단 관리 단위 선택
 // ═══════════════════════════════════════════
 function setFabricUnit(prefix, unit) {
+  var catVal = (document.getElementById(prefix + '-cat') || {}).value || '';
+  var nextUnit = unit;
+
+  // 필름 카테고리는 kg을 쓰지 않고 roll 또는 m만 사용
+  if (catVal === '필름' && nextUnit === 'kg') {
+    nextUnit = 'roll';
+  }
+
   var hidden = document.getElementById(prefix + '-fabric-unit');
-  if (hidden) hidden.value = unit;
+  if (hidden) hidden.value = nextUnit;
 
   document.querySelectorAll('.funit-btn[data-p="' + prefix + '"]').forEach(function(btn){
-    btn.classList.toggle('on', btn.dataset.u === unit);
+    btn.classList.toggle('on', btn.dataset.u === nextUnit);
   });
 
   if (prefix === 'in') {
     var rollBox  = document.getElementById('in-fbox-roll');
     var otherBox = document.getElementById('in-fbox-other');
     var otherLbl = document.getElementById('in-fbox-other-label');
-    if (unit === 'roll') {
+    if (nextUnit === 'roll') {
       if (rollBox)  rollBox.style.display  = 'block';
       if (otherBox) otherBox.style.display = 'none';
     } else {
       if (rollBox)  rollBox.style.display  = 'none';
       if (otherBox) otherBox.style.display = 'block';
       var lblMap = { set: '입고 수량 (SET)', m: '입고 길이 (m)', ea: '입고 개수 (개)' };
-      if (otherLbl) otherLbl.textContent = lblMap[unit] || '수량';
+      if (otherLbl) otherLbl.textContent = lblMap[nextUnit] || '수량';
     }
   } else if (prefix === 'hj') {
     var hjLbl = document.getElementById('hj-fabric-qty-label');
     var hjMap = { kg: '환입 무게 (kg)', set: '환입 수량 (SET)', m: '환입 길이 (m)', ea: '환입 개수 (개)' };
-    if (hjLbl) hjLbl.textContent = hjMap[unit] || '환입 수량';
+    if (hjLbl) hjLbl.textContent = hjMap[nextUnit] || '환입 수량';
   }
 }
+
 
 // ═══════════════════════════════════════════
 // 원단 규격 기반 1롤당 무게 & 총 무게 실시간 자동 계산
@@ -95,6 +104,13 @@ function pickCat(prefix, cat) {
   document.querySelectorAll('.cat-choice[data-p="' + prefix + '"]').forEach(function(el){
     el.classList.toggle('on', el.dataset.cat === cat);
   });
+
+  if (cat === '필름' && typeof setFabricUnit === 'function') {
+    var curUnit = (document.getElementById(prefix + '-fabric-unit') || {}).value;
+    if (curUnit !== 'm' && curUnit !== 'roll') {
+      setFabricUnit(prefix, 'roll');
+    }
+  }
 }
 
 function updateWh(p) {

@@ -402,10 +402,13 @@ def reconcile_inventory():
                 mws_db_map[code] = {
                     'name': d.get('name') or cat_names.get(code, ''),
                     'ea': 0.0, 'set': 0.0, 'kg': 0.0, 'm': 0.0, 'roll': 0.0,
-                    'default_unit': 'ea'
+                    'default_unit': 'ea',
+                    'is_film': False
                 }
             if not mws_db_map[code]['name'] and d.get('name'):
                 mws_db_map[code]['name'] = d.get('name')
+            if (d.get('cat') or '').strip() == '필름' or '필름' in (d.get('name') or ''):
+                mws_db_map[code]['is_film'] = True
 
             if d.get('item_type') == 'fabric':
                 fu = d.get('fabric_unit') or 'roll'
@@ -440,8 +443,10 @@ def reconcile_inventory():
         hq_qty = round(hq_info['qty'], 3) if hq_info else 0.0
 
         if mws_info:
-            # 본사 CSV 단위에 맞춰 MWS 재고 합산값을 자동 매칭 (원단 kg vs 롤 자동 대응)
             mws_qty = round(mws_info.get(unit, 0.0), 3)
+            # 필름 품목이 기존에 '개'(ea)로 등록된 경우 roll / m 대조 시에도 반영
+            if mws_qty == 0 and mws_info.get('is_film') and unit in ('roll', 'm') and mws_info.get('ea', 0) > 0:
+                mws_qty = round(mws_info['ea'], 3)
             if mws_qty == 0 and unit == 'ea' and mws_info.get('set', 0) > 0:
                 mws_qty = round(mws_info['set'], 3)
         else:
