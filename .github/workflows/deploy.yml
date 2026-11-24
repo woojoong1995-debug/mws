@@ -49,5 +49,5 @@ jobs:
               backend/req.py \
               backend/catalog.py \
               backend/build_catalog.py \
-              backend/pending.py\
+              backend/pending.py
             systemctl restart warehouse
