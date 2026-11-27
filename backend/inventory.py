@@ -277,23 +277,25 @@ def _parse_qty_and_unit(val_str):
 
 
 def _parse_hq_csv(text):
-    """본사 전산 CSV(제품, 기초 수량 / A열 빈칸 이어받기)를 파싱해 품번별 총합을 반환합니다."""
+    """대리님 CSV(A열 제품, D열 전산 수량)와 기존 CSV(A열 품번, B열 수량 등)를 모두 지원합니다."""
     reader = csv.reader(io.StringIO(text))
     rows = list(reader)
     if not rows:
         return {}
 
-    # 헤더 위치 자동 탐색 (기본: 0열=제품/품번, 1열=기초 수량)
-    code_idx, qty_idx = 0, 1
+    code_idx = 0
+    qty_idx = None
     start_row = 0
-    for r_i, row in enumerate(rows[:5]):
-        joined = ' '.join(row)
-        if '제품' in joined or '품번' in joined or '수량' in joined:
-            for c_i, cell in enumerate(row):
-                c_clean = cell.strip()
+
+    for r_i, row in enumerate(rows[:10]):
+        cleaned = [(c or '').strip() for c in row]
+        if any(k in cleaned for k in ('제품', '품번', '품목코드')) or any('수량' in c or '재고' in c for c in cleaned):
+            for c_i, c_clean in enumerate(cleaned):
                 if c_clean in ('제품', '품번', '품목코드'):
                     code_idx = c_i
-                elif '수량' in c_clean or '재고' in c_clean:
+                elif c_clean == '전산 수량':
+                    qty_idx = c_i
+                elif qty_idx is None and ('수량' in c_clean or '재고' in c_clean):
                     qty_idx = c_i
             start_row = r_i + 1
             break
@@ -302,26 +304,49 @@ def _parse_hq_csv(text):
     last_code = ''
 
     for row in rows[start_row:]:
-        if not row or len(row) <= qty_idx:
+        if not row:
             continue
-        raw_code = (row[code_idx] if len(row) > code_idx else '').strip().upper()
-        raw_qty  = (row[qty_idx]  if len(row) > qty_idx  else '').strip()
 
+        raw_code = (row[code_idx] if len(row) > code_idx else '').strip().upper()
         if raw_code in ('합계', '총계', 'TOTAL', '소계'):
             continue
 
         if raw_code:
             last_code = raw_code
         code = last_code
-        if not code or not raw_qty:
+        if not code:
             continue
 
-        val, unit = _parse_qty_and_unit(raw_qty)
+        # 지정된 qty_idx 먼저 확인 후, 없으면 D열(3) / B열(1) 순으로 수량 칸 탐색
+        candidate_indices = []
+        if qty_idx is not None:
+            candidate_indices.append(qty_idx)
+        for fallback_idx in (3, 1):
+            if fallback_idx not in candidate_indices:
+                candidate_indices.append(fallback_idx)
+
+        raw_qty = ''
+        val, unit = 0.0, ''
+        for idx in candidate_indices:
+            if len(row) > idx:
+                cell_val = (row[idx] or '').strip()
+                if not cell_val:
+                    continue
+                parsed_val, parsed_unit = _parse_qty_and_unit(cell_val)
+                if parsed_val != 0 or parsed_unit or re.search(r'\d', cell_val):
+                    raw_qty = cell_val
+                    val, unit = parsed_val, parsed_unit
+                    break
+
+        if not raw_qty:
+            continue
+
+        norm_u = unit or 'ea'
         if code not in hq_map:
-            hq_map[code] = {'qty': 0.0, 'unit': unit or 'ea'}
-        hq_map[code]['qty'] += val
-        if unit and hq_map[code]['unit'] == 'ea':
-            hq_map[code]['unit'] = unit
+            hq_map[code] = {'qty': 0.0, 'unit': norm_u}
+        hq_map[code]['qty'] = round(hq_map[code]['qty'] + val, 3)
+        if unit:
+            hq_map[code]['unit'] = norm_u
 
     return hq_map
 
